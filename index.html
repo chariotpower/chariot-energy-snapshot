@@ -1,0 +1,1812 @@
+<!doctype html>
+<!--
+  ============================================================================
+  CHARIOT ENERGY SNAPSHOT — production build
+  ============================================================================
+  WHAT THIS IS
+  A single, self-contained HTML file. No build step, no bundler, no backend,
+  no database, no signup or login for the visitor. Open it directly in a
+  browser and it works; put it on any static host and it works the same way.
+
+  DEPLOY — pick ONE, all take under five minutes:
+
+  A) Netlify (fastest, free, get a URL immediately)
+     1. Go to app.netlify.com/drop (no account required for a first drop;
+        create a free account to keep the site permanently instead of it
+        expiring).
+     2. Drag this file onto the page. Netlify gives you a live
+        https://random-name.netlify.app URL immediately.
+     3. Optional: Site settings → Domain management → add a custom domain
+        (e.g. snapshot.chariotpower.co.za) and point its DNS CNAME at the
+        Netlify URL Netlify shows you.
+
+  B) Vercel
+     1. Create a free account at vercel.com if you don't have one.
+     2. New Project → "Deploy" → drag-and-drop this file (or push it to a
+        GitHub repo containing just this file and import that repo).
+     3. Vercel gives you a live URL; add a custom domain the same way as (A).
+
+  C) GitHub Pages (good if Chariot already uses GitHub)
+     1. Create a new GitHub repo, add this file, rename it to index.html.
+     2. Repo Settings → Pages → Deploy from branch → main → / (root).
+     3. GitHub gives you https://<org>.github.io/<repo>/ within a minute or two.
+     4. Optional: Settings → Pages → Custom domain → your subdomain, plus a
+        DNS CNAME record pointing that subdomain at <org>.github.io.
+
+  D) A subdomain of chariotpower.co.za directly (most branded option)
+     1. Rename this file to index.html.
+     2. Upload it via your hosting control panel's file manager (cPanel,
+        Plesk, etc.) or via SFTP into a new subdomain folder — e.g. create
+        the subdomain "snapshot.chariotpower.co.za" and upload this as its
+        index.html.
+     3. No server-side config needed — it is a static file.
+
+  WHATEVER URL YOU END UP WITH: that is the link to put behind every
+  "START MY ENERGY SNAPSHOT" button in the client deck, and the link to
+  encode into the deck's QR code. See the accompanying go-live checklist
+  for the exact steps to update those.
+
+  EXTERNAL DEPENDENCY (the only one)
+  One script tag loads pdf.js from cdnjs.cloudflare.com, used only for the
+  optional "upload a copy of your bill" feature (client-side PDF text
+  extraction — no file ever leaves the visitor's browser). If that CDN is
+  ever unreachable, the feature degrades silently and the rest of the tool
+  keeps working exactly as before — this is not a hosting requirement, just
+  a courtesy dependency for one optional feature.
+
+  CONTACT DETAILS
+  Search this file for "var CONTACT" to find the phone/email/WhatsApp
+  values that power the Step 4 send actions. All three are confirmed
+  against the live chariotpower.co.za site as of this build. Update them
+  there (and nowhere else) if they ever change.
+
+  BRANDING
+  Colors live in the ":root" CSS custom properties at the top of the
+  <style> block below and match the official Chariot Power client deck
+  (teal / deep-teal / ink). Change values there to re-skin the whole tool
+  in one place.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chariot Energy Snapshot</title>
+<meta name="description" content="Chariot Power's live, interactive pre-feasibility energy snapshot tool for South African commercial, industrial and agricultural sites.">
+<style>
+  :root{
+    /* Chariot Power brand palette — matches the official client deck (teal / deep-teal / ink).
+       Variable names kept as-is from the original build to avoid touching structural CSS;
+       only the color VALUES changed. --bronze now carries a deep-teal accent (used for small-caps
+       eyebrow/legend labels) so it reads as a secondary tone against the brighter --forest primary. */
+    --forest:#00A9D6; --forest-deep:#00495A; --sage:#4FB9CE; --sage-tint:#E6F5F8;
+    --mineral:#F7F9FA; --charcoal:#111111; --bronze:#00495A; --line:#D8DDE0;
+    --gray:#62676B; --card:#FFFFFF;
+    --series-solar:#00A9D6; --series-grid:#94999D;
+    --route-grid:#94999D; --route-purchase:#00495A; --route-bank:#3E6FA6; --route-rent:#8C6BAE; --route-ppa:#00A9D6;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--mineral);}
+  .wrap{max-width:1320px;margin:0 auto;padding:28px 20px 80px;font-family:Calibri,"Segoe UI",Arial,sans-serif;color:var(--charcoal);}
+  h1,h2,h3{font-family:Cambria,Georgia,"Times New Roman",serif;font-weight:700;margin:0;color:var(--charcoal);}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:6px;flex-wrap:wrap;gap:10px;}
+  .wordmark{font-family:Cambria,Georgia,serif;font-weight:700;font-size:15px;letter-spacing:2px;color:var(--forest);}
+  .tag{font-size:11px;letter-spacing:2px;color:var(--gray);font-weight:700;}
+  .indic-badge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--forest);background:var(--sage-tint);border-radius:20px;padding:6px 12px;}
+  .indic-badge .icn{width:13px;height:13px;}
+
+  .hero{margin:22px 0 18px;}
+  .hero h1{font-size:clamp(24px,3.4vw,36px);line-height:1.15;margin-bottom:8px;}
+  .hero p{font-size:14.5px;color:var(--gray);max-width:680px;line-height:1.5;margin:0;}
+
+  .quickstart{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 6px;}
+  .quickstart button{flex:1;min-width:190px;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:14px 16px;text-align:left;cursor:pointer;font-family:Calibri,Arial,sans-serif;}
+  .quickstart button:hover{border-color:var(--forest);}
+  .quickstart .qs-icon{display:block;margin-bottom:6px;}
+  .quickstart .qs-icon .icn{width:22px;height:22px;color:var(--forest);}
+  .quickstart .qs-label{font-size:13px;font-weight:700;color:var(--charcoal);display:block;}
+  .quickstart .qs-sub{font-size:11px;color:var(--gray);display:block;margin-top:2px;}
+  .panel-toggle-hint{font-size:11.5px;color:var(--gray);margin:8px 0 22px;}
+  .reveal-panel{display:none;}
+  .callback-box{display:none;border:1px dashed var(--line);border-radius:8px;padding:18px;margin-bottom:26px;background:#fff;}
+
+  /* step tracker */
+  .steps-track{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--line);margin-bottom:22px;}
+  .step-item{background:none;border:none;padding:0 26px 12px 0;margin-right:26px;font-family:Calibri,Arial,sans-serif;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;text-align:left;}
+  .step-item .num{display:block;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--line);margin-bottom:3px;}
+  .step-item .lbl{display:block;font-size:13px;font-weight:700;letter-spacing:1.5px;color:var(--gray);}
+  .step-item.done .num{color:var(--forest);}
+  .step-item.done .lbl{color:var(--forest);}
+  .step-item.current{border-bottom-color:var(--forest);}
+  .step-item.current .num{color:var(--forest);}
+  .step-item.current .lbl{color:var(--charcoal);}
+
+  /* two-panel wizard layout */
+  .wizard-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,460px);gap:22px;align-items:start;}
+  @media (max-width:980px){ .wizard-grid{grid-template-columns:1fr;} .dash-panel{position:static !important;} }
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:26px 26px 28px;margin-bottom:22px;}
+  .card h2{font-size:20px;margin-bottom:4px;}
+  .card .sub{color:var(--gray);font-size:13px;margin-bottom:20px;}
+  .step-eyebrow{font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--bronze);text-transform:uppercase;margin-bottom:8px;}
+
+  .step-panel{display:none;}
+  .step-panel.active{display:block;}
+
+  fieldset{border:none;padding:0;margin:0 0 22px;}
+  legend{font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--bronze);text-transform:uppercase;margin-bottom:12px;padding:0;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  @media (max-width:720px){ .grid2{grid-template-columns:1fr;} .grid3{grid-template-columns:1fr;} .grid4{grid-template-columns:1fr 1fr;} }
+
+  label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:var(--charcoal);}
+  .hint{font-size:11.5px;color:var(--gray);margin-top:5px;line-height:1.4;}
+  input[type=number], input[type=text], select{
+    width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:7px;font-size:15px;
+    font-family:Calibri,Arial,sans-serif;color:var(--charcoal);background:#fff;
+  }
+  input:focus, select:focus{outline:2px solid var(--sage);outline-offset:1px;}
+  button:focus-visible, a:focus-visible{outline:2px solid var(--sage);outline-offset:2px;}
+  .input-unit{position:relative;}
+  .input-unit input{padding-right:46px;}
+  .input-unit span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12.5px;color:var(--gray);font-weight:700;}
+  .input-unit.prefix input{padding-left:30px;padding-right:12px;}
+  .input-unit.prefix span{left:12px;right:auto;}
+
+  .seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .seg3 button{padding:13px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12.5px;font-weight:700;color:var(--gray);cursor:pointer;font-family:Calibri,Arial,sans-serif;line-height:1.3;}
+  .seg3 button.active{background:var(--forest);color:#fff;border-color:var(--forest);}
+  .seg3 .d{display:block;font-weight:400;font-size:10.5px;margin-top:3px;opacity:.85;}
+
+  details{border-top:1px solid var(--line);padding-top:16px;}
+  summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--forest);letter-spacing:.5px;}
+  .adv-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px;}
+  @media (max-width:720px){ .adv-grid{grid-template-columns:1fr;} }
+  .adv-group-label{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--gray);text-transform:uppercase;margin:18px 0 4px;grid-column:1/-1;}
+
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;background:var(--forest);color:#fff;border:none;border-radius:8px;padding:16px 26px;font-size:15px;font-weight:700;letter-spacing:.5px;cursor:pointer;font-family:Calibri,Arial,sans-serif;width:100%;}
+  .btn-primary:hover{background:var(--forest-deep);}
+  .btn-secondary{display:inline-flex;align-items:center;justify-content:center;background:#fff;color:var(--forest);border:1.5px solid var(--forest);border-radius:8px;padding:14px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:Calibri,Arial,sans-serif;text-decoration:none;text-align:center;}
+  .btn-secondary:hover{background:var(--sage-tint);}
+  .btn-ghost{display:inline-flex;align-items:center;justify-content:center;background:var(--mineral);color:var(--charcoal);border:1px solid var(--line);border-radius:8px;padding:14px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:Calibri,Arial,sans-serif;}
+  .icn{display:inline-block;vertical-align:-4px;flex:none;}
+  .icn-sm{width:15px;height:15px;vertical-align:-2px;}
+  .btn-secondary .icn, .btn-primary .icn, .btn-ghost .icn, .chip .icn{margin-right:7px;vertical-align:-3px;}
+
+  .step-nav{display:flex;gap:12px;margin-top:24px;}
+  .step-nav .btn-primary, .step-nav .btn-ghost{width:auto;flex:1;}
+
+  .err{color:#B23B3B;font-size:12.5px;margin-top:10px;padding:10px 12px;background:#F5E1D8;border-radius:7px;display:none;font-weight:700;}
+  .savedmsg{color:var(--forest);font-size:12.5px;margin-top:10px;display:none;font-weight:700;}
+
+  .upload-box{border:1px dashed var(--line);border-radius:8px;padding:16px;margin-top:2px;background:var(--mineral);}
+  .upload-box input[type=file]{font-size:12.5px;font-family:Calibri,Arial,sans-serif;color:var(--charcoal);width:100%;}
+  .upload-note{font-size:12.5px;color:var(--gray);margin-top:9px;line-height:1.5;}
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .chip{background:#fff;border:1.5px solid var(--forest);color:var(--forest);border-radius:20px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:Calibri,Arial,sans-serif;}
+  .chip:hover{background:var(--sage-tint);}
+  .chip.applied{background:var(--forest);color:#fff;border-color:var(--forest);cursor:default;}
+  .doc-tag{color:var(--forest);font-weight:700;}
+
+  .voice-box{border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:24px;background:var(--sage-tint);}
+  .voice-box textarea{font-family:Calibri,Arial,sans-serif;}
+  #voiceBtn.recording{background:#B23B3B;color:#fff;border-color:#B23B3B;}
+  .voice-err{display:none;background:#F5E1D8;border:1px solid #E3B79E;border-radius:7px;padding:10px 12px;font-size:12.5px;color:#95531F;margin-top:10px;line-height:1.5;}
+
+  /* native-control list box (sector) — real radios styled as rows, kept accessible/robust on mobile */
+  .listbox{border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+  .listbox-row{display:block;position:relative;padding:13px 16px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px;background:#fff;}
+  .listbox-row:last-child{border-bottom:none;}
+  .listbox-row input{position:absolute;opacity:0;width:1px;height:1px;}
+  .listbox-row.checked{background:var(--sage-tint);font-weight:700;color:var(--forest);}
+  .listbox-row:hover{background:var(--mineral);}
+  .listbox-row:focus-within{outline:2px solid var(--sage);outline-offset:-2px;}
+
+  /* dashboard panel */
+  .dash-panel{position:sticky;top:16px;background:var(--forest-deep);color:#fff;border-radius:12px;padding:22px;}
+  .dp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px;}
+  .dp-head .dp-title{font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:var(--sage);text-transform:uppercase;}
+  .dp-head h3{color:#fff;font-size:17px;margin-top:4px;}
+  .dp-live{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:20px;padding:5px 11px;font-size:10px;font-weight:700;letter-spacing:1px;white-space:nowrap;}
+  .dp-live .dot{width:6px;height:6px;border-radius:50%;background:#6FCF97;animation:dppulse 1.6s infinite;}
+  @keyframes dppulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+  @media (prefers-reduced-motion: reduce){ .dp-live .dot{animation:none;} }
+
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:18px 0;}
+  @media (max-width:1180px) and (min-width:981px){ .kpi-row{grid-template-columns:1fr 1fr;} }
+  @media (max-width:480px){ .kpi-row{grid-template-columns:1fr 1fr;} }
+  .kpi-tile{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:11px 10px;}
+  .kpi-tile .kk{font-size:9px;font-weight:700;letter-spacing:.6px;color:var(--sage);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+  .kpi-tile .kk .icn{width:13px;height:13px;color:var(--sage);}
+  .kpi-tile .vv{font-size:14.5px;font-weight:700;font-family:Cambria,Georgia,serif;line-height:1.25;color:#fff;}
+
+  .dp-chart-card{background:#fff;color:var(--charcoal);border-radius:10px;padding:15px 15px 8px;margin-bottom:12px;}
+  .dp-chart-card .dcc-head{font-size:9.5px;font-weight:700;letter-spacing:1px;color:var(--gray);text-transform:uppercase;}
+  .dp-chart-card h4{font-size:14.5px;margin:2px 0 8px;}
+  .dp-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;font-weight:700;color:var(--charcoal);margin-bottom:6px;}
+  .dp-legend span{display:inline-flex;align-items:center;gap:4px;}
+  .dp-legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  svg#routeChart{width:100%;height:auto;display:block;}
+  .dp-tooltip{position:absolute;pointer-events:none;background:var(--charcoal);color:#fff;border-radius:7px;padding:9px 11px;font-size:11px;line-height:1.6;opacity:0;transition:opacity .1s;white-space:nowrap;transform:translate(-50%,-104%);z-index:5;}
+  .dp-chart-wrap{position:relative;}
+
+  .dp-score-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;}
+  @media (max-width:480px){ .dp-score-row{grid-template-columns:1fr;} }
+  .dp-score-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:13px 15px;}
+  .dp-score-card .kk{font-size:9.5px;font-weight:700;letter-spacing:1px;color:var(--sage);text-transform:uppercase;}
+  .dp-score-card .vv{font-size:19px;font-weight:700;font-family:Cambria,Georgia,serif;margin:4px 0 8px;color:#fff;}
+  .dp-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.16);overflow:hidden;}
+  .dp-bar-fill{height:100%;background:var(--sage);border-radius:3px;}
+  .dp-direction-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:13px 15px;margin-bottom:12px;}
+  .dp-direction-card .kk{font-size:9.5px;font-weight:700;letter-spacing:1px;color:var(--sage);text-transform:uppercase;}
+  .dp-direction-card .vv{font-size:17px;font-weight:700;font-family:Cambria,Georgia,serif;margin:4px 0 4px;color:#fff;}
+  .dp-direction-card .sm{font-size:11px;color:rgba(255,255,255,.65);}
+
+  .route-table{background:#fff;color:var(--charcoal);border-radius:10px;padding:14px 15px;margin-bottom:12px;overflow-x:auto;}
+  .route-table .rt-head{font-size:9.5px;font-weight:700;letter-spacing:1px;color:var(--gray);text-transform:uppercase;margin-bottom:6px;}
+  .route-table table{width:100%;border-collapse:collapse;font-size:12px;min-width:320px;}
+  .route-table th{text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray);padding:6px 4px;font-weight:700;}
+  .route-table th:not(:first-child), .route-table td:not(:first-child){text-align:right;}
+  .route-table td{padding:9px 4px;border-top:1px solid var(--line);}
+  .route-table tr.fit td{font-weight:700;}
+  .route-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px;}
+  .fit-badge{background:var(--sage-tint);color:var(--forest);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:1px;}
+
+  .dp-bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  @media (max-width:480px){ .dp-bottom-row{grid-template-columns:1fr;} }
+  .dp-panel-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:13px 15px;}
+  .dp-panel-card .kk{font-size:9.5px;font-weight:700;letter-spacing:1px;color:var(--sage);text-transform:uppercase;margin-bottom:8px;}
+  .strengthen-list{list-style:none;margin:0;padding:0;font-size:11.5px;}
+  .strengthen-list li{display:flex;gap:7px;align-items:flex-start;padding:4px 0;color:rgba(255,255,255,.55);}
+  .strengthen-list li.done{color:#fff;}
+  .strengthen-list .chk{flex:none;width:13px;height:13px;margin-top:2px;}
+  .outcome-big{font-size:23px;font-weight:700;font-family:Cambria,Georgia,serif;margin:2px 0 2px;color:#fff;}
+  .outcome-sub{font-size:10.5px;color:rgba(255,255,255,.6);line-height:1.4;}
+  .dp-footnote{font-size:10px;color:rgba(255,255,255,.45);line-height:1.5;margin-top:14px;}
+
+  .send-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+  @media (max-width:560px){ .send-grid{grid-template-columns:1fr;} }
+  .copy-link{display:block;text-align:center;font-size:12.5px;font-weight:700;color:var(--forest);background:none;border:none;cursor:pointer;margin:14px auto 0;text-decoration:underline;font-family:Calibri,Arial,sans-serif;}
+  .ref-code{text-align:center;font-size:11px;color:var(--gray);margin-top:10px;letter-spacing:.5px;}
+  .phone-fallback{text-align:center;font-size:12.5px;color:var(--gray);margin-top:16px;}
+  .phone-fallback b{color:var(--charcoal);}
+
+  /* Step 4 — snapshot-ready completion card */
+  .snap-ready-card{background:linear-gradient(135deg,var(--forest-deep),var(--forest));color:#fff;border-radius:12px;padding:22px 22px 20px;margin-bottom:24px;}
+  .src-badge{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;letter-spacing:.3px;margin-bottom:16px;}
+  .src-badge .icn{width:19px;height:19px;color:var(--sage);flex:none;}
+  .src-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  @media (max-width:720px){ .src-grid{grid-template-columns:1fr 1fr;} }
+  .src-tile{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:11px 12px;}
+  .src-k{font-size:9px;font-weight:700;letter-spacing:.6px;color:var(--sage);text-transform:uppercase;margin-bottom:6px;}
+  .src-v{font-size:14.5px;font-weight:700;font-family:Cambria,Georgia,serif;line-height:1.3;}
+  .src-scores{display:flex;gap:20px;margin-top:14px;flex-wrap:wrap;}
+  .src-score{font-size:12px;color:rgba(255,255,255,.85);}
+  .src-score span{display:block;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--sage);margin-bottom:3px;}
+  .src-score b{font-size:15px;font-family:Cambria,Georgia,serif;}
+  .src-sub{font-size:12.5px;color:rgba(255,255,255,.85);margin-top:4px;line-height:1.5;}
+
+  /* dashboard empty-state overlay */
+  .dp-empty-banner{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:16px 17px;margin:16px 0;text-align:center;}
+  .dp-empty-banner .eb-icon{width:26px;height:26px;color:var(--sage);margin-bottom:8px;}
+  .dp-empty-banner h4{color:#fff;font-size:15px;margin-bottom:6px;}
+  .dp-empty-banner p{font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:12px;}
+  .dp-empty-banner button{background:var(--sage);color:var(--forest-deep);border:none;border-radius:7px;padding:11px 18px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:Calibri,Arial,sans-serif;}
+  .dash-panel.is-empty .kpi-row, .dash-panel.is-empty .dp-chart-card, .dash-panel.is-empty .dp-score-row,
+  .dash-panel.is-empty .dp-direction-card, .dash-panel.is-empty .route-table, .dash-panel.is-empty .dp-bottom-row{
+    opacity:.38; filter:grayscale(.5); pointer-events:none;
+  }
+
+  /* resume-previous-snapshot banner */
+  .resume-banner{display:none;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:var(--sage-tint);border:1px solid var(--sage);border-radius:9px;padding:14px 18px;margin:18px 0;}
+  .resume-banner .rb-text{font-size:13px;color:var(--charcoal);line-height:1.5;display:flex;align-items:flex-start;gap:9px;}
+  .resume-banner .rb-text .icn{width:18px;height:18px;color:var(--forest);flex:none;margin-top:1px;}
+  .resume-banner .rb-actions{display:flex;gap:10px;flex:none;}
+  .resume-banner .rb-actions button{padding:10px 16px;font-size:12.5px;}
+  .start-over-link{background:none;border:none;color:var(--gray);font-size:11.5px;font-weight:700;letter-spacing:.5px;cursor:pointer;font-family:Calibri,Arial,sans-serif;text-decoration:underline;padding:0 0 12px 0;margin-left:auto;align-self:flex-end;white-space:nowrap;}
+  .start-over-link:hover{color:var(--charcoal);}
+
+  .disclaimer{font-size:11.5px;color:var(--gray);line-height:1.6;border-top:1px solid var(--line);padding-top:20px;margin-top:8px;}
+  .footer-brand{font-size:11px;letter-spacing:1.5px;color:var(--gray);font-weight:700;margin-top:26px;text-align:center;}
+
+  #printArea{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{display:block !important;position:absolute;top:0;left:0;width:100%;padding:20px;}
+  }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="wordmark">CHARIOT POWER</div>
+    <div class="indic-badge"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Indicative pre-feasibility</div>
+  </div>
+
+  <div class="hero">
+    <h1>Your Energy Snapshot — built live, right now.</h1>
+    <p>Tell us about your electricity and your site. Every figure on the right updates instantly — sizing, cost comparisons, confidence and fit — so you see exactly how the picture changes as you refine your answers.</p>
+  </div>
+
+  <div class="quickstart">
+    <button type="button" id="qsBill"><span class="qs-icon"><svg class="icn" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg></span><span class="qs-label">I have a copy of my bill</span><span class="qs-sub">Upload it — we'll try to read the figures</span></button>
+    <button type="button" id="qsVoice"><span class="qs-icon"><svg class="icn" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/><path d="M8 22h8"/></svg></span><span class="qs-label">I'd rather just describe it</span><span class="qs-sub">Talk it through in your own words</span></button>
+    <button type="button" id="qsForm"><span class="qs-icon"><svg class="icn" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span><span class="qs-label">I'll answer the questions</span><span class="qs-sub">The guided steps below</span></button>
+    <button type="button" id="qsCallback"><span class="qs-icon"><svg class="icn" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.36 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg></span><span class="qs-label">Not sure about any of this</span><span class="qs-sub">Just have someone call me</span></button>
+  </div>
+  <div class="panel-toggle-hint">Tap any option to jump straight there — the steps below stay the master record, so anything uploaded, said or skipped can still be checked and edited.</div>
+
+  <div class="callback-box" id="callbackBox">
+    <label style="margin-bottom:2px;">No numbers needed — just leave your details</label>
+    <div class="hint">We'll size things up together on the phone. This isn't the calculator, just a quick way to get a real conversation started.</div>
+    <div style="height:12px;"></div>
+    <div class="grid2">
+      <div>
+        <label for="cbName">Your name</label>
+        <input type="text" id="cbName" placeholder="e.g. Anna van der Merwe">
+      </div>
+      <div>
+        <label for="cbContact">Phone or email</label>
+        <input type="text" id="cbContact" placeholder="e.g. 082 000 0000">
+      </div>
+    </div>
+    <div style="height:12px;"></div>
+    <label for="cbNote">Anything you'd like us to know (optional)</label>
+    <input type="text" id="cbNote" placeholder="e.g. Dairy farm near George, mainly want backup for the cold room">
+    <div style="height:14px;"></div>
+    <button class="btn-primary" id="cbSubmitBtn" type="button" style="width:auto;display:inline-flex;padding:13px 22px;">Prepare My Callback Request</button>
+    <div class="err" id="cbErr">Please add your name and a phone number or email so we can reach you.</div>
+    <div class="savedmsg" id="cbSavedMsg">Saved — attach this to an email or WhatsApp it to our team, and we'll call you back.</div>
+  </div>
+
+  <div class="resume-banner" id="resumeBanner">
+    <div class="rb-text"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg><span>Welcome back — you have a snapshot in progress. Resume it or start fresh.</span></div>
+    <div class="rb-actions">
+      <button class="btn-secondary" id="resumeBtn" type="button" style="width:auto;">Resume snapshot</button>
+      <button class="btn-ghost" id="dismissResumeBtn" type="button" style="width:auto;">Start fresh</button>
+    </div>
+  </div>
+
+  <div class="steps-track" id="stepsTrack">
+    <button type="button" class="step-item" data-step="1"><span class="num">01</span><span class="lbl">BILL</span></button>
+    <button type="button" class="step-item" data-step="2"><span class="num">02</span><span class="lbl">SITE</span></button>
+    <button type="button" class="step-item" data-step="3"><span class="num">03</span><span class="lbl">FINANCE</span></button>
+    <button type="button" class="step-item" data-step="4"><span class="num">04</span><span class="lbl">SEND</span></button>
+    <button type="button" class="start-over-link" id="startOverBtn">Start over</button>
+  </div>
+
+  <div class="wizard-grid">
+    <div class="wizard-form">
+
+      <!-- STEP 1: BILL -->
+      <div class="card step-panel" id="stepPanel1">
+        <div class="step-eyebrow">01 · Electricity</div>
+        <h2>Start with what you pay and use.</h2>
+        <div class="sub">Use monthly averages. The tariff field is energy-only — not your all-in bill rate.</div>
+
+        <div class="voice-box reveal-panel" id="voiceBox">
+          <label style="margin-bottom:2px;">Prefer to just talk it through? (optional)</label>
+          <div class="hint">Tap record and describe your setup in your own words — e.g. "We're a dairy farm, bill's about R60,000 a month, mostly daytime irrigation, and we can't afford downtime on the cold room." We'll listen for the details and let you confirm each one before anything is applied. Voice works best when this page is open directly in Chrome or Safari — if it's embedded inside another app, typing below works just as well.</div>
+          <div style="height:12px;"></div>
+          <button class="btn-secondary" id="voiceBtn" type="button" style="width:auto;display:inline-flex;"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/><path d="M8 22h8"/></svg><span id="voiceBtnLabel">Start speaking</span></button>
+          <span id="voiceUnsupportedNote" class="hint" style="display:none;">Voice capture isn't available in this browser — no problem, just type it below instead.</span>
+          <div class="voice-err" id="voiceErrMsg"></div>
+          <div style="height:10px;"></div>
+          <textarea id="voiceText" rows="3" placeholder="What you say (or type) will appear here — feel free to edit before analyzing." style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:7px;font-size:14px;color:var(--charcoal);resize:vertical;"></textarea>
+          <div style="height:10px;"></div>
+          <button class="chip" id="voiceAnalyzeBtn" type="button">Analyze what I said</button>
+          <div id="voiceStatus" style="display:none;"></div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label for="bill">Average monthly bill · incl. VAT (R)</label>
+            <div class="input-unit prefix"><span>R</span><input type="number" id="bill" placeholder="e.g. 45000" min="0" step="100"></div>
+          </div>
+          <div>
+            <label for="kwh">Average monthly consumption</label>
+            <div class="input-unit"><input type="number" id="kwh" placeholder="e.g. 17000" min="0" step="50"><span>kWh</span></div>
+          </div>
+          <div>
+            <label for="history">Billing history</label>
+            <select id="history">
+              <option value="1">1 month · initial</option>
+              <option value="3">3–12 months</option>
+              <option value="12">12+ months</option>
+            </select>
+          </div>
+          <div>
+            <label for="rate">Energy-only tariff (optional)</label>
+            <div class="input-unit"><input type="number" id="rate" placeholder="e.g. 2.60" step="0.05" min="0"><span>/kWh</span></div>
+          </div>
+        </div>
+
+        <div style="height:6px;"></div>
+        <div class="upload-box reveal-panel" id="uploadPanel">
+          <label for="billFile"><svg class="icn icn-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M20 21H4"/></svg>Upload an electricity bill · PDF or photo</label>
+          <input type="file" id="billFile" accept="application/pdf,image/*">
+          <div class="hint">PDF bills: we'll try to read your total and usage automatically so you can confirm with one click below. Photos/scans: we'll just note you have it ready for your application. Either way, your file stays in your browser — it is never uploaded, transmitted or stored anywhere.</div>
+          <div id="uploadStatus" style="display:none;"></div>
+        </div>
+        <div class="hint" id="moreEvidenceHint" style="margin:10px 0 0;"><svg class="icn icn-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>More evidence raises confidence; it does not inflate the result.</div>
+
+        <div class="err" id="step1Err">Add the monthly bill and consumption from your electricity bill.</div>
+
+        <div class="step-nav">
+          <button class="btn-primary" id="toStep2Btn" type="button">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: SITE -->
+      <div class="card step-panel" id="stepPanel2">
+        <div class="step-eyebrow">02 · Site &amp; load</div>
+        <h2>Show us how the operation uses power.</h2>
+        <div class="sub">This shapes self-consumption, system direction and resilience.</div>
+
+        <div class="grid2">
+          <div>
+            <label>Sector</label>
+            <div class="listbox" id="sectorList" role="radiogroup" aria-label="Sector"></div>
+          </div>
+          <div>
+            <div>
+              <label for="supply">Electricity supply</label>
+              <select id="supply">
+                <option value="municipal">Municipality</option>
+                <option value="eskom">Eskom direct</option>
+                <option value="landlord">Landlord / body corporate</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div style="height:16px;"></div>
+            <div>
+              <label for="solarSpace">Solar space</label>
+              <select id="solarSpace">
+                <option value="">Not sure yet</option>
+                <option value="roof">Roof</option>
+                <option value="ground">Ground</option>
+                <option value="both">Roof and ground</option>
+              </select>
+            </div>
+            <div style="height:16px;"></div>
+            <div>
+              <label for="peakDemand">Peak demand · optional</label>
+              <div class="input-unit"><input type="number" id="peakDemand" placeholder="e.g. 250" min="0" step="5"><span>kVA</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:6px;"></div>
+        <div class="grid2">
+          <div>
+            <label for="subsector">Specific operation</label>
+            <select id="subsector"></select>
+          </div>
+          <div>
+            <label for="loadTiming">When does most of your load happen?</label>
+            <select id="loadTiming">
+              <option value="high">Mostly daytime</option>
+              <option value="medium" selected>Mixed day &amp; night</option>
+              <option value="low">Mostly evenings / night</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="height:10px;"></div>
+        <div class="grid2">
+          <div>
+            <label for="province">Province</label>
+            <select id="province">
+              <option value="">Not sure / prefer not to say</option>
+              <option value="EC">Eastern Cape</option>
+              <option value="FS">Free State</option>
+              <option value="GP">Gauteng</option>
+              <option value="KZN">KwaZulu-Natal</option>
+              <option value="LP">Limpopo</option>
+              <option value="MP">Mpumalanga</option>
+              <option value="NC">Northern Cape</option>
+              <option value="NW">North West</option>
+              <option value="WC">Western Cape</option>
+            </select>
+          </div>
+          <div style="align-self:end;">
+            <button class="chip" id="geoBtn" type="button" style="width:100%;justify-content:center;display:flex;"><svg class="icn icn-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.43 12.935c.357-.967.57-1.955.57-2.935a8 8 0 0 0-16 0c0 4.993 5.539 10.193 7.399 11.799a1 1 0 0 0 1.202 0 32.197 32.197 0 0 0 .813-.728"/><circle cx="12" cy="10" r="3"/><path d="m16 18 2 2 4-4"/></svg>Use my location</button>
+          </div>
+        </div>
+        <div id="geoStatus" class="upload-note" style="display:none;"></div>
+
+        <div style="height:20px;"></div>
+        <div class="grid2">
+          <div>
+            <label for="loadGrowth">Planned load growth</label>
+            <div class="input-unit"><input type="number" id="loadGrowth" value="0" min="0" max="100" step="5"><span>%</span></div>
+          </div>
+          <div>
+            <label for="dieselSpend">Generator / diesel spend monthly</label>
+            <div class="input-unit prefix"><span>R</span><input type="number" id="dieselSpend" value="0" min="0" step="500"></div>
+          </div>
+        </div>
+
+        <div style="height:20px;"></div>
+        <label>How much resilience does the site need?</label>
+        <div class="seg3" id="resilienceSeg">
+          <button data-v="cost" class="active" type="button">Cost first<span class="d">No storage</span></button>
+          <button data-v="critical" type="button">Critical loads<span class="d">Targeted backup</span></button>
+          <button data-v="continuity" type="button">Continuity first<span class="d">Broader backup</span></button>
+        </div>
+        <div style="height:10px;"></div>
+        <div class="grid2">
+          <div>
+            <label for="existingBackup">Existing backup on site today</label>
+            <select id="existingBackup">
+              <option value="none">None yet</option>
+              <option value="diesel">Diesel generator</option>
+              <option value="ups">Small inverter / UPS</option>
+              <option value="solar">Some solar already installed</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="step-nav">
+          <button class="btn-ghost" data-back="1" type="button">← Back</button>
+          <button class="btn-primary" id="toStep3Btn" type="button">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: FINANCE -->
+      <div class="card step-panel" id="stepPanel3">
+        <div class="step-eyebrow">03 · Finance &amp; assumptions</div>
+        <h2>What matters most, and what we're assuming.</h2>
+        <div class="sub">Every figure below is an editable, illustrative default — our team confirms the real numbers with you.</div>
+
+        <label>What matters most to you right now?</label>
+        <div class="seg3" id="prioritySeg">
+          <button data-v="cashflow" class="active" type="button">Preserve cash flow<span class="d">Zero / low upfront</span></button>
+          <button data-v="ownership" type="button">Eventual ownership<span class="d">Own it, financed</span></button>
+          <button data-v="roi" type="button">Fastest ROI<span class="d">Own from day one</span></button>
+        </div>
+
+        <div style="height:22px;"></div>
+        <details open>
+          <summary>Technical &amp; financial assumptions (editable)</summary>
+          <div class="adv-grid">
+            <div>
+              <label for="sunhours">Peak sun hours / day</label>
+              <input type="number" id="sunhours" value="4.8" step="0.1" min="3">
+              <div class="hint">South African sites typically see 4.5–6.0 depending on province.</div>
+            </div>
+            <div>
+              <label for="escalation">Assumed annual tariff increase (%)</label>
+              <input type="number" id="escalation" value="9" step="0.5" min="0">
+              <div class="hint">NERSA-approved Eskom increases: 12.72% (2024), 12.74% (2025), 8.76% (2026), 8.83% (2027).</div>
+            </div>
+            <div>
+              <label for="costPerKwp">Installed cost (R per kWp)</label>
+              <input type="number" id="costPerKwp" step="500" min="0">
+              <div class="hint">Illustrative — varies by system route, roof/ground complexity and equipment. Confirmed after a site assessment.</div>
+            </div>
+
+            <div class="adv-group-label">Bank / asset finance</div>
+            <div>
+              <label for="bankRate">Interest rate (%)</label>
+              <input type="number" id="bankRate" value="15" step="0.5" min="0">
+            </div>
+            <div>
+              <label for="bankTerm">Term (years)</label>
+              <input type="number" id="bankTerm" value="5" step="1" min="1" max="15">
+            </div>
+            <div>
+              <label for="bankDeposit">Deposit (%)</label>
+              <input type="number" id="bankDeposit" value="10" step="5" min="0" max="100">
+            </div>
+
+            <div class="adv-group-label">Rent-to-Own</div>
+            <div>
+              <label for="rtoTerm">Term (years)</label>
+              <input type="number" id="rtoTerm" value="10" step="1" min="1" max="15">
+            </div>
+            <div>
+              <label for="rtoMarkup">Cost recovery factor</label>
+              <input type="number" id="rtoMarkup" value="1.35" step="0.05" min="1">
+              <div class="hint">Capex × factor, spread evenly over the term as a fixed monthly rental.</div>
+            </div>
+            <div></div>
+
+            <div class="adv-group-label">Power Purchase Agreement (PPA)</div>
+            <div>
+              <label for="ppaDiscount">Discount vs grid tariff (%)</label>
+              <input type="number" id="ppaDiscount" value="15" step="1" min="0" max="60">
+            </div>
+            <div>
+              <label for="ppaEscalation">PPA rate escalation (%/yr)</label>
+              <input type="number" id="ppaEscalation" value="6" step="0.5" min="0">
+            </div>
+            <div></div>
+          </div>
+        </details>
+
+        <div class="step-nav">
+          <button class="btn-ghost" data-back="2" type="button">← Back</button>
+          <button class="btn-primary" id="toStep4Btn" type="button">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: SEND -->
+      <div class="card step-panel" id="stepPanel4">
+        <div class="step-eyebrow">04 · Send</div>
+        <h2>Your complete snapshot is ready.</h2>
+        <div class="sub">Share the handover, email Chariot, or request a focused review — nothing here is stored anywhere but your own inbox or WhatsApp thread.</div>
+
+        <div class="snap-ready-card" id="snapReadyCard">
+          <div class="src-badge"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 5-5"/></svg><span>Your Energy Snapshot is ready</span></div>
+          <div class="src-grid">
+            <div class="src-tile"><div class="src-k">System size</div><div class="src-v" id="snapKwp">—</div></div>
+            <div class="src-tile"><div class="src-k">Modelled capex</div><div class="src-v" id="snapCapex">—</div></div>
+            <div class="src-tile"><div class="src-k">Year-one value</div><div class="src-v" id="snapYearOne">—</div></div>
+            <div class="src-tile"><div class="src-k">Recommended route</div><div class="src-v" id="snapRoute">—<span class="fit-badge" id="snapFitBadge" style="display:none;">FIT</span></div></div>
+          </div>
+          <div class="src-scores">
+            <div class="src-score"><span>Data confidence</span><b id="snapConfidence">—</b></div>
+            <div class="src-score"><span>Opportunity fit</span><b id="snapFit">—</b></div>
+          </div>
+          <div class="src-sub" id="snapSub">Fill in Step 1 (your bill) to see your numbers here — it only takes a moment.</div>
+        </div>
+
+        <label for="clientName">Your name</label>
+        <div class="grid2">
+          <div>
+            <input type="text" id="clientName" placeholder="e.g. Anna van der Merwe">
+          </div>
+          <div>
+            <label for="clientContact" style="margin-top:0;">Phone or email</label>
+            <input type="text" id="clientContact" placeholder="e.g. 082 000 0000 or anna@site.co.za">
+          </div>
+        </div>
+        <div style="height:14px;"></div>
+        <label for="clientNotes">Anything you'd like Chariot to know (optional)</label>
+        <textarea id="clientNotes" rows="3" placeholder="e.g. Two pivots on separate meters, keen to move fast before the next tariff increase." style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:7px;font-size:14px;color:var(--charcoal);resize:vertical;font-family:Calibri,Arial,sans-serif;"></textarea>
+
+        <div class="err" id="sendWarnMsg" style="display:none;">Add your name and phone or email above so our team can follow up — or click again to continue without them.</div>
+
+        <div class="send-grid">
+          <button class="btn-primary" id="waBtn" type="button" style="background:#2E8B57;"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 21l2.05-5.4A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 10.5c.4 2.4 2.6 4.6 5 5"/></svg>WhatsApp Chariot</button>
+          <a class="btn-ghost" id="emailBtn" href="#"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>Email full snapshot</a>
+          <a class="btn-ghost" id="meetingBtn" href="#" target="_blank" rel="noopener"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 14v2.2l1.6 1"/><path d="M16 2v4"/><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M3 10h5"/><path d="M8 2v4"/><circle cx="16" cy="16" r="6"/></svg>Book / request review</a>
+          <button class="btn-ghost" id="pdfBtn" type="button"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h9l5 5v15H6v-4"/><path d="M14 2v6h6"/><rect x="1" y="13" width="12" height="8" rx="1"/></svg>Save as PDF</button>
+        </div>
+        <div class="hint" id="meetingFallbackMsg" style="display:none;text-align:center;margin-top:10px;">A booking link isn't set up yet — use WhatsApp or email above to reach us directly.</div>
+        <button class="copy-link" id="copyBtn" type="button"><svg class="icn icn-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy full handover</button>
+        <div class="ref-code" id="refCode"></div>
+        <div class="savedmsg" id="sendSavedMsg" style="text-align:center;">Copied — paste it into WhatsApp, email, or anywhere else.</div>
+        <div class="phone-fallback" id="phoneFallback"></div>
+
+        <div class="step-nav">
+          <button class="btn-ghost" data-back="3" type="button">← Back</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- LIVE DASHBOARD -->
+    <div class="dash-panel" id="dashPanel">
+      <div class="dp-head">
+        <div>
+          <div class="dp-title">Live pre-feasibility dashboard</div>
+          <h3>Updates as assumptions change</h3>
+        </div>
+        <div class="dp-live"><span class="dot"></span>LIVE</div>
+      </div>
+
+      <div class="dp-empty-banner" id="dpEmptyBanner" style="display:none;">
+        <svg class="icn eb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        <h4>Add your bill to see live numbers</h4>
+        <p>Add your monthly bill and usage in Step 1 — every figure below updates instantly. Nothing is saved until you choose to share it.</p>
+        <button type="button" id="dpEmptyCta">Add my bill →</button>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-tile">
+          <div class="kk"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>Solar range</div>
+          <div class="vv" id="kpiSolarRange">—</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kk"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9.536V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3"/><path d="M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4"/><path d="M5 21h14"/></svg>Year-one value</div>
+          <div class="vv" id="kpiYearOne">—</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kk"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>Modelled capex</div>
+          <div class="vv" id="kpiCapex">—</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kk"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m11 7-3 5h4l-3 5"/><path d="M14.856 6H16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.935"/><path d="M22 14v-4"/><path d="M5.14 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2.936"/></svg>System route</div>
+          <div class="vv" id="kpiSystemRoute">—</div>
+        </div>
+      </div>
+
+      <div class="dp-chart-card">
+        <div class="dcc-head">20-YEAR CUMULATIVE COST</div>
+        <h4>Every route on the same assumptions</h4>
+        <div class="dp-legend" id="chartLegend"></div>
+        <div class="dp-chart-wrap">
+          <svg id="routeChart" viewBox="0 0 480 220" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dp-tooltip" id="dpTooltip"></div>
+        </div>
+      </div>
+
+      <div class="dp-score-row">
+        <div class="dp-score-card">
+          <div class="kk">Data confidence</div>
+          <div class="vv" id="scoreConfidenceLabel">—</div>
+          <div class="dp-bar"><div class="dp-bar-fill" id="scoreConfidenceBar" style="width:0%;"></div></div>
+        </div>
+        <div class="dp-score-card">
+          <div class="kk">Opportunity fit</div>
+          <div class="vv" id="scoreFitLabel">—</div>
+          <div class="dp-bar"><div class="dp-bar-fill" id="scoreFitBar" style="width:0%;"></div></div>
+        </div>
+      </div>
+
+      <div class="dp-direction-card">
+        <div class="kk">Commercial direction</div>
+        <div class="vv" id="commercialDirection">—</div>
+        <div class="sm">Compare every route below</div>
+      </div>
+
+      <div class="route-table">
+        <div class="rt-head">Route</div>
+        <table>
+          <thead><tr><th>Route</th><th>Upfront</th><th>20-year cost</th></tr></thead>
+          <tbody id="routeTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="dp-bottom-row">
+        <div class="dp-panel-card">
+          <div class="kk">What strengthens this case</div>
+          <ul class="strengthen-list" id="strengthenList"></ul>
+        </div>
+        <div class="dp-panel-card">
+          <div class="kk">Indicative outcome</div>
+          <div class="outcome-big" id="outcomePayback">—</div>
+          <div class="outcome-sub">Simple purchase payback · modelled</div>
+          <div style="height:8px;"></div>
+          <div class="outcome-sub" id="outcomeBattery">Battery screen: —</div>
+        </div>
+      </div>
+
+      <div class="dp-panel-card" id="dieselCard" style="display:none;margin-bottom:12px;">
+        <div class="kk">Diesel / generator impact</div>
+        <div class="outcome-big" id="dieselSavingBig">—</div>
+        <div class="outcome-sub" id="dieselSavingSub">Illustrative annual diesel spend avoided once solar is running.</div>
+      </div>
+
+      <div class="dp-footnote">Indicative model only. Results depend on verified tariffs, interval data, site conditions, engineering, credit approval and final commercial terms.</div>
+    </div>
+
+  </div>
+
+  <div class="disclaimer">
+    Chariot Energy Snapshot is an indicative pre-feasibility screen built from what you tell us plus general South African market assumptions (all editable above). It is not a guaranteed-savings calculator and not a final quotation. The 20-year route comparison includes modelled capex and illustrative financing terms for Bank/Asset Finance, Rent-to-Own and PPA — actual rates, terms and eligibility are confirmed by our team and are subject to credit approval. Figures exclude routine maintenance and equipment replacement unless stated. Data-confidence and opportunity-fit scores reflect how much information was provided, not a certainty guarantee. No savings, PPA payment or instalment figure shown here is guaranteed.
+  </div>
+  <div class="footer-brand">CHARIOT POWER · RELIABLE SOLAR FOR SOUTH AFRICAN BUSINESS</div>
+
+</div>
+
+<div id="printArea"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // CONTACT — [CONFIRMED] all three values below were verified directly against the live
+  // chariotpower.co.za homepage and contact page (checked at go-live time) — phone, email
+  // and WhatsApp all match published Chariot Power contact details. No placeholders remain.
+  var CONTACT = {
+    phone: "+27 66 110 5578",       // [CONFIRMED] — chariotpower.co.za
+    email: "admin@chariotpower.co.za",   // [CONFIRMED] — chariotpower.co.za contact page
+    whatsapp: "27661105578",        // [CONFIRMED] — chariotpower.co.za states WhatsApp is available on this same number; digit-only wa.me format (country code, no + or leading 0)
+    calendar: ""   // e.g. a Calendly, Google Meet, or Microsoft Teams scheduling link — no booking link supplied, left blank intentionally
+  };
+
+  function $(id){ return document.getElementById(id); }
+
+  var ICON_PATHS = {
+    battery: '<path d="m11 7-3 5h4l-3 5"/><path d="M14.856 6H16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.935"/><path d="M22 14v-4"/><path d="M5.14 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2.936"/>',
+    moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+    trendingup: '<path d="M12 16v5"/><path d="M16 14v7"/><path d="M20 10v11"/><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15"/><path d="M4 18v3"/><path d="M8 14v7"/>',
+    lightbulb: '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2.05V17h6v-.25c0-.85.4-1.55 1-2.05A7 7 0 0 0 12 2Z"/>',
+    generator: '<path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/>',
+    building: '<path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/>',
+    check: '<path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/>',
+    checkCircle: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 5-5"/>',
+    circleEmpty: '<circle cx="12" cy="12" r="9"/>'
+  };
+  function svgIcon(name, cls){
+    return '<svg class="icn'+(cls?" "+cls:"")+'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(ICON_PATHS[name]||"")+'</svg>';
+  }
+
+  // ---------- state ----------
+  var state = {
+    step: 1,
+    maxStepReached: 1,
+    sector: "farm",
+    resilience: "cost",
+    priority: "cashflow",
+    hasDocument: false,
+    docSource: null
+  };
+
+  // ================= STEP NAVIGATION =================
+  var STEP_LABELS = {1:"BILL",2:"SITE",3:"FINANCE",4:"SEND"};
+  function goToStep(n){
+    state.step = n;
+    if (n > state.maxStepReached) state.maxStepReached = n;
+    for (var i=1;i<=4;i++){
+      $("stepPanel"+i).classList.toggle("active", i===n);
+    }
+    document.querySelectorAll("#stepsTrack .step-item").forEach(function(btn){
+      var s = parseInt(btn.getAttribute("data-step"),10);
+      btn.classList.toggle("current", s===n);
+      btn.classList.toggle("done", s < n);
+    });
+    window.scrollTo({ top: $("stepsTrack").getBoundingClientRect().top + window.scrollY - 20, behavior:"smooth" });
+  }
+  document.querySelectorAll("#stepsTrack .step-item").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var s = parseInt(this.getAttribute("data-step"),10);
+      if (s <= state.maxStepReached || s === state.step + 1 && validateStep(state.step)) goToStep(s);
+    });
+  });
+  document.querySelectorAll("[data-back]").forEach(function(btn){
+    btn.addEventListener("click", function(){ goToStep(parseInt(this.getAttribute("data-back"),10)); });
+  });
+  function validateStep(n){
+    if (n === 1){
+      var bill = parseFloat($("bill").value) || 0;
+      var kwh = parseFloat($("kwh").value) || 0;
+      if (bill <= 0 && kwh <= 0){
+        $("step1Err").style.display = "block";
+        return false;
+      }
+      $("step1Err").style.display = "none";
+    }
+    return true;
+  }
+  $("toStep2Btn").addEventListener("click", function(){ if (validateStep(1)) goToStep(2); });
+  $("toStep3Btn").addEventListener("click", function(){ goToStep(3); });
+  $("toStep4Btn").addEventListener("click", function(){ goToStep(4); recompute(); });
+  goToStep(1);
+
+  // ================= QUICK START =================
+  function revealPanel(id){
+    var el = $(id);
+    el.style.display = "block";
+    el.scrollIntoView({ behavior:"smooth", block:"center" });
+    return el;
+  }
+  $("qsBill").addEventListener("click", function(){ goToStep(1); revealPanel("uploadPanel"); $("billFile").focus(); });
+  $("qsVoice").addEventListener("click", function(){ goToStep(1); revealPanel("voiceBox"); });
+  $("qsForm").addEventListener("click", function(){ goToStep(1); $("bill").scrollIntoView({behavior:"smooth",block:"center"}); $("bill").focus(); });
+  $("dpEmptyCta").addEventListener("click", function(){ goToStep(1); $("bill").scrollIntoView({behavior:"smooth",block:"center"}); $("bill").focus(); });
+  $("qsCallback").addEventListener("click", function(){
+    var box = $("callbackBox");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+    if (box.style.display === "block") box.scrollIntoView({ behavior:"smooth", block:"center" });
+  });
+
+  async function saveTextFile(filename, html, onDone){
+    try{
+      var downloads = (typeof claude !== "undefined" && claude && claude.use) ? await claude.use("downloads") : null;
+      if (downloads){
+        await downloads.save({ filename: filename, data: html });
+        if (onDone) onDone();
+      } else {
+        var blob = new Blob([html], {type:"text/html"});
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        if (onDone) onDone();
+      }
+    } catch(e){ /* declined or unavailable — fail quietly */ }
+  }
+
+  $("cbSubmitBtn").addEventListener("click", function(){
+    var name = $("cbName").value.trim();
+    var contact = $("cbContact").value.trim();
+    var note = $("cbNote").value.trim();
+    if (!name || !contact){ $("cbErr").style.display = "block"; return; }
+    $("cbErr").style.display = "none";
+    var html = "<title>Chariot Power — Callback Request</title><style>" +
+      "body{font-family:Calibri,Arial,sans-serif;color:#111111;max-width:600px;margin:40px auto;padding:0 20px;}" +
+      "h1{font-family:Cambria,Georgia,serif;color:#00A9D6;font-size:22px;} .row{margin:14px 0;} .k{font-size:10px;font-weight:700;color:#00A9D6;text-transform:uppercase;letter-spacing:1px;} .v{font-size:15px;margin-top:2px;}" +
+      "</style>" +
+      "<h1>Callback Request</h1>" +
+      "<div class='row'><div class='k'>Name</div><div class='v'>" + name + "</div></div>" +
+      "<div class='row'><div class='k'>Phone / Email</div><div class='v'>" + contact + "</div></div>" +
+      (note ? "<div class='row'><div class='k'>Note</div><div class='v'>" + note + "</div></div>" : "") +
+      "<div class='row'><div class='k'>Requested</div><div class='v'>" + new Date().toLocaleString("en-ZA") + "</div></div>";
+    saveTextFile("chariot-callback-request.html", html, function(){ $("cbSavedMsg").style.display = "block"; });
+  });
+
+  // ================= SECTOR LIST + SUBSECTOR =================
+  var SECTORS = [
+    ["farm","Farming & agriculture"],
+    ["commercial","Commercial property"],
+    ["industrial","Industrial & manufacturing"],
+    ["mining","Mining & processing"],
+    ["hospitality","Hospitality"],
+    ["other","Other productive site"]
+  ];
+  var SECTOR_LABEL = {}; SECTORS.forEach(function(p){ SECTOR_LABEL[p[0]] = p[1]; });
+  var sectorListEl = $("sectorList");
+  sectorListEl.innerHTML = SECTORS.map(function(p,i){
+    return '<label class="listbox-row'+(i===0?" checked":"")+'"><input type="radio" name="sectorRadio" value="'+p[0]+'"'+(i===0?" checked":"")+'>'+p[1]+'</label>';
+  }).join("");
+  sectorListEl.addEventListener("change", function(e){
+    if (e.target.name !== "sectorRadio") return;
+    state.sector = e.target.value;
+    sectorListEl.querySelectorAll(".listbox-row").forEach(function(row){
+      row.classList.toggle("checked", row.querySelector("input").checked);
+    });
+    populateSubsector(state.sector);
+    recompute();
+  });
+
+  var SUBSECTOR_OPTIONS = {
+    farm: [["","Choose the closest fit…"],["dairy","Dairy farm"],["crop","Crop / grain production"],["orchard-vineyard","Orchard or vineyard"],["livestock","Livestock / poultry"],["game","Game farm"],["irrigation","Irrigation-heavy (pivots/pumps)"],["packhouse","Packhouse / cold storage"],["other-farm","Other agriculture"]],
+    commercial: [["","Choose the closest fit…"],["retail","Retail / shopping centre"],["office","Office property"],["warehouse-logistics","Warehousing / logistics"],["other-commercial","Other commercial"]],
+    industrial: [["","Choose the closest fit…"],["food-processing","Food production / processing"],["manufacturing","Manufacturing"],["warehouse-industrial","Industrial warehousing"],["other-industrial","Other industrial"]],
+    mining: [["","Choose the closest fit…"],["surface","Surface mining"],["underground","Underground mining"],["processing-plant","Processing plant"],["quarry","Quarry"],["other-mining","Other mining"]],
+    hospitality: [["","Choose the closest fit…"],["hotel","Hotel"],["guesthouse","Guesthouse / B&B"],["restaurant","Restaurant"],["lodge","Game lodge"],["conference","Conference venue"],["other-hospitality","Other hospitality"]],
+    other: [["","Tell us more in your notes on the Send step"]]
+  };
+  var SUBSECTOR_LABEL = {};
+  Object.keys(SUBSECTOR_OPTIONS).forEach(function(sec){ SUBSECTOR_OPTIONS[sec].forEach(function(p){ if (p[0]) SUBSECTOR_LABEL[p[0]] = p[1]; }); });
+  function populateSubsector(sectorVal){
+    var sel = $("subsector");
+    var prev = sel.value;
+    sel.innerHTML = SUBSECTOR_OPTIONS[sectorVal].map(function(p){ return '<option value="'+p[0]+'">'+p[1]+'</option>'; }).join("");
+    if (prev && SUBSECTOR_OPTIONS[sectorVal].some(function(p){ return p[0]===prev; })) sel.value = prev;
+  }
+  populateSubsector(state.sector);
+
+  // ================= SEGMENTS =================
+  function wireSeg(containerId, stateKey){
+    var buttons = document.querySelectorAll("#"+containerId+" button");
+    buttons.forEach(function(b){
+      b.addEventListener("click", function(){
+        buttons.forEach(function(x){ x.classList.remove("active"); });
+        b.classList.add("active");
+        state[stateKey] = b.getAttribute("data-v");
+        recompute();
+      });
+    });
+  }
+  wireSeg("resilienceSeg","resilience");
+  wireSeg("prioritySeg","priority");
+
+  // ================= PROVINCE + GEOLOCATION =================
+  var PROVINCE_SUN_HOURS = { EC:4.7, FS:5.6, GP:5.2, KZN:4.6, LP:5.4, MP:5.1, NC:6.0, NW:5.5, WC:5.0 };
+  var PROVINCE_LABEL = { EC:"Eastern Cape", FS:"Free State", GP:"Gauteng", KZN:"KwaZulu-Natal", LP:"Limpopo", MP:"Mpumalanga", NC:"Northern Cape", NW:"North West", WC:"Western Cape" };
+  var SA_CITIES = [
+    { name:"Cape Town", lat:-33.9249, lon:18.4241, p:"WC" }, { name:"Stellenbosch", lat:-33.9321, lon:18.8602, p:"WC" },
+    { name:"George", lat:-33.9628, lon:22.4619, p:"WC" }, { name:"Bloemfontein", lat:-29.0852, lon:26.1596, p:"FS" },
+    { name:"Bethlehem", lat:-28.2308, lon:28.3123, p:"FS" }, { name:"Johannesburg", lat:-26.2041, lon:28.0473, p:"GP" },
+    { name:"Pretoria", lat:-25.7479, lon:28.2293, p:"GP" }, { name:"Durban", lat:-29.8587, lon:31.0218, p:"KZN" },
+    { name:"Pietermaritzburg", lat:-29.6006, lon:30.3794, p:"KZN" }, { name:"Vryheid", lat:-27.7686, lon:30.7913, p:"KZN" },
+    { name:"Polokwane", lat:-23.9045, lon:29.4689, p:"LP" }, { name:"Tzaneen", lat:-23.8330, lon:30.1633, p:"LP" },
+    { name:"Nelspruit (Mbombela)", lat:-25.4753, lon:30.9694, p:"MP" }, { name:"Kimberley", lat:-28.7282, lon:24.7499, p:"NC" },
+    { name:"Upington", lat:-28.4478, lon:21.2561, p:"NC" }, { name:"Mahikeng", lat:-25.8560, lon:25.6403, p:"NW" },
+    { name:"Rustenburg", lat:-25.6672, lon:27.2424, p:"NW" }, { name:"Klerksdorp", lat:-26.8523, lon:26.6668, p:"NW" },
+    { name:"Gqeberha (Port Elizabeth)", lat:-33.9608, lon:25.6022, p:"EC" }, { name:"East London", lat:-32.9836, lon:27.8541, p:"EC" }
+  ];
+  var sunHoursTouched = false;
+  $("sunhours").addEventListener("input", function(){ sunHoursTouched = true; recompute(); });
+  function applyProvince(code){
+    $("province").value = code;
+    if (code && PROVINCE_SUN_HOURS[code] && !sunHoursTouched) $("sunhours").value = PROVINCE_SUN_HOURS[code];
+    recompute();
+  }
+  $("province").addEventListener("change", function(){ applyProvince(this.value); });
+  function haversine(lat1, lon1, lat2, lon2){
+    var R = 6371, toRad = function(d){ return d * Math.PI / 180; };
+    var dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+    var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)*Math.sin(dLon/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+  $("geoBtn").addEventListener("click", function(){
+    var statusEl = $("geoStatus");
+    if (!navigator.geolocation){
+      statusEl.style.display = "block";
+      statusEl.textContent = "Your browser doesn't support location detection here — no problem, just pick your province above.";
+      return;
+    }
+    statusEl.style.display = "block";
+    statusEl.textContent = "Detecting your location…";
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat = pos.coords.latitude, lon = pos.coords.longitude;
+      var best = null, bestDist = Infinity;
+      SA_CITIES.forEach(function(c){ var d = haversine(lat, lon, c.lat, c.lon); if (d < bestDist){ bestDist = d; best = c; } });
+      if (best){
+        applyProvince(best.p);
+        statusEl.textContent = "Nearest to " + best.name + " (" + PROVINCE_LABEL[best.p] + ") — sun hours set to " + PROVINCE_SUN_HOURS[best.p] + "/day, a typical regional estimate. Edit anytime below.";
+      } else {
+        statusEl.textContent = "Couldn't match that to a South African province — no problem, just pick it above.";
+      }
+    }, function(){
+      statusEl.textContent = "Couldn't get your location (permission denied or unavailable) — no problem, just pick your province above.";
+    }, { timeout: 8000 });
+  });
+
+  // ================= BILL UPLOAD (PDF text extraction, client-side only) =================
+  var PDFJS_WORKER_SRC = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  function extractTextFromPDF(arrayBuffer){
+    return new Promise(function(resolve){
+      var settled = false;
+      function done(val){ if (!settled){ settled = true; resolve(val); } }
+      var timer = setTimeout(function(){ done(null); }, 9000);
+      try{
+        if (!window.pdfjsLib){ clearTimeout(timer); done(null); return; }
+        pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC;
+        pdfjsLib.getDocument({ data: arrayBuffer }).promise.then(function(pdf){
+          var maxPages = Math.min(pdf.numPages, 4);
+          var pagePromises = [];
+          for (var p = 1; p <= maxPages; p++){
+            pagePromises.push(pdf.getPage(p).then(function(page){ return page.getTextContent(); }).then(function(tc){ return tc.items.map(function(it){ return it.str; }).join(" "); }));
+          }
+          Promise.all(pagePromises).then(function(texts){ clearTimeout(timer); done(texts.join("\n")); }).catch(function(){ clearTimeout(timer); done(null); });
+        }).catch(function(){ clearTimeout(timer); done(null); });
+      } catch(e){ clearTimeout(timer); done(null); }
+    });
+  }
+  function parseBillText(text){
+    var result = {};
+    if (!text) return result;
+    var randRe = /R\s?(?:\d{1,3}(?:[ ,]\d{3})+|\d{2,7})(?:\.\d{2})?/g;
+    var randMatches = text.match(randRe) || [];
+    var randNums = randMatches.map(function(s){ return parseFloat(s.replace(/[^\d.]/g,"")); }).filter(function(n){ return n > 200 && n < 2000000; });
+    if (randNums.length){
+      var chosen = randNums[0];
+      var totalIdx = text.search(/total\s*(amount)?\s*(due|payable)?/i);
+      if (totalIdx >= 0){
+        var windowText = text.substr(totalIdx, 80);
+        var wMatch = windowText.match(randRe);
+        if (wMatch) chosen = parseFloat(wMatch[0].replace(/[^\d.]/g,""));
+      }
+      result.rand = chosen;
+    }
+    var kwhRe = /(?:\d{1,3}(?:[ ,]\d{3})+|\d{2,6})(?:\.\d+)?\s*kwh/gi;
+    var kwhMatches = text.match(kwhRe) || [];
+    var kwhNums = kwhMatches.map(function(s){ return parseFloat(s.replace(/[^\d.]/gi,"")); }).filter(function(n){ return n > 50 && n < 500000; });
+    if (kwhNums.length) result.kwh = kwhNums.sort(function(a,b){ return b-a; })[0];
+    return result;
+  }
+  function renderUploadStatus(kind, detected){
+    var box = $("uploadStatus");
+    box.style.display = "block";
+    box.innerHTML = "";
+    if (kind === "reading"){ box.innerHTML = '<div class="upload-note">Reading your bill in your browser…</div>'; return; }
+    if (kind === "unsupported"){ box.innerHTML = '<div class="upload-note">Got it — we\'ve noted your file for your application. Photos and scans can\'t be auto-read here, so please confirm your bill amount or usage above.</div>'; return; }
+    if (kind === "no-match"){ box.innerHTML = '<div class="upload-note">Bill received — we couldn\'t confidently detect your figures automatically, so please enter them above.</div>'; return; }
+    if (kind === "found"){
+      var chips = "";
+      if (detected.rand) chips += '<button type="button" class="chip" data-apply="rand" data-val="'+detected.rand+'">Use R'+Math.round(detected.rand).toLocaleString()+' as my monthly bill</button>';
+      if (detected.kwh) chips += '<button type="button" class="chip" data-apply="kwh" data-val="'+detected.kwh+'">Use '+Math.round(detected.kwh).toLocaleString()+' kWh as my monthly usage</button>';
+      box.innerHTML = '<div class="upload-note">We found this on your bill — check it looks right, then apply it:</div><div class="chip-row">'+chips+'</div>';
+      var chipEls = box.querySelectorAll(".chip");
+      for (var i=0;i<chipEls.length;i++){
+        chipEls[i].addEventListener("click", function(){
+          var val = parseFloat(this.getAttribute("data-val"));
+          if (this.getAttribute("data-apply") === "rand"){ $("bill").value = Math.round(val); state.docSource = "bill"; }
+          else { $("kwh").value = Math.round(val); state.docSource = "kwh"; }
+          this.classList.add("applied"); this.textContent = "✓ Applied"; this.disabled = true;
+          recompute();
+        });
+      }
+    }
+  }
+  $("bill").addEventListener("input", function(){ if (state.docSource === "bill") state.docSource = null; recompute(); });
+  $("kwh").addEventListener("input", function(){ if (state.docSource === "kwh") state.docSource = null; recompute(); });
+  $("billFile").addEventListener("change", function(){
+    var f = this.files && this.files[0];
+    state.hasDocument = !!f;
+    if (!f){ $("uploadStatus").style.display = "none"; recompute(); return; }
+    var isPDF = f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+    if (!isPDF){ renderUploadStatus("unsupported"); recompute(); return; }
+    renderUploadStatus("reading");
+    var reader = new FileReader();
+    reader.onload = function(){
+      extractTextFromPDF(reader.result).then(function(text){
+        var parsed = parseBillText(text);
+        if (parsed.rand || parsed.kwh) renderUploadStatus("found", parsed);
+        else renderUploadStatus("no-match");
+        recompute();
+      });
+    };
+    reader.onerror = function(){ renderUploadStatus("no-match"); };
+    reader.readAsArrayBuffer(f);
+  });
+
+  // ================= VOICE INPUT =================
+  var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var recognition = null, isRecording = false;
+  function setVoiceLabel(text){ var l = $("voiceBtnLabel"); if (l) l.textContent = text; }
+  function showVoiceErr(msg){
+    var box = $("voiceErrMsg");
+    if (!msg){ box.style.display = "none"; box.textContent = ""; return; }
+    box.style.display = "block"; box.textContent = msg;
+  }
+  var VOICE_ERROR_MESSAGES = {
+    "not-allowed": "Microphone access was blocked. Check your browser's site permissions and allow the microphone, then try again — or just type your answer below instead.",
+    "service-not-allowed": "This browser or app won't allow voice capture here. If you're inside an embedded view, try opening this page directly in Chrome or Safari — or just type below.",
+    "no-speech": "We didn't catch anything that time. Tap Start speaking and try again, or type below.",
+    "audio-capture": "We couldn't find a working microphone on this device. No problem — just type your answer below.",
+    "network": "Voice recognition needs an internet connection to work. You can type your answer below instead.",
+    "aborted": ""
+  };
+  if (!SpeechRec){
+    $("voiceBtn").style.display = "none";
+    $("voiceUnsupportedNote").style.display = "inline";
+  } else {
+    recognition = new SpeechRec();
+    recognition.continuous = true; recognition.interimResults = true; recognition.lang = "en-ZA";
+    var finalTranscript = "";
+    recognition.onresult = function(evt){
+      showVoiceErr(null);
+      var interim = "";
+      for (var i = evt.resultIndex; i < evt.results.length; i++){
+        var chunk = evt.results[i][0].transcript;
+        if (evt.results[i].isFinal) finalTranscript += chunk + " "; else interim += chunk;
+      }
+      $("voiceText").value = (finalTranscript + interim).trim();
+    };
+    recognition.onerror = function(evt){
+      isRecording = false; $("voiceBtn").classList.remove("recording"); setVoiceLabel("Start speaking");
+      var code = evt && evt.error;
+      var msg = VOICE_ERROR_MESSAGES.hasOwnProperty(code) ? VOICE_ERROR_MESSAGES[code] : "Voice capture stopped unexpectedly (" + (code || "unknown error") + "). No problem — just type your answer below.";
+      if (msg) showVoiceErr(msg);
+    };
+    recognition.onend = function(){ isRecording = false; $("voiceBtn").classList.remove("recording"); setVoiceLabel("Start speaking"); };
+    $("voiceBtn").addEventListener("click", function(){
+      showVoiceErr(null);
+      if (isRecording){ recognition.stop(); }
+      else {
+        if (!navigator.mediaDevices && !window.isSecureContext){ showVoiceErr("Voice capture needs a secure (https) connection. Please type your answer below instead."); return; }
+        finalTranscript = $("voiceText").value ? $("voiceText").value + " " : "";
+        try{ recognition.start(); isRecording = true; this.classList.add("recording"); setVoiceLabel("Stop (listening…)"); }
+        catch(e){ showVoiceErr("Couldn't start voice capture (" + (e && e.message ? e.message : "unknown issue") + "). Try tapping Start speaking again, or type your answer below instead."); }
+      }
+    });
+  }
+  function countMatches(text, re){ var m = text.match(re); return m ? m.length : 0; }
+  function parseVoiceRandKwh(text){
+    var result = parseBillText(text);
+    if (!result.rand){
+      var spokenRand = text.match(/(?:\d{1,3}(?:[ ,]\d{3})+|\d{2,7})(?:\.\d{2})?\s*rand/i);
+      if (spokenRand){ var n = parseFloat(spokenRand[0].replace(/[^\d.]/g,"")); if (n > 200 && n < 2000000) result.rand = n; }
+    }
+    if (!result.kwh){
+      var spokenKwh = text.match(/(?:\d{1,3}(?:[ ,]\d{3})+|\d{2,6})(?:\.\d+)?\s*(?:kilowatt.?hours?|kw\/h)/i);
+      if (spokenKwh){ var n2 = parseFloat(spokenKwh[0].replace(/[^\d.]/gi,"")); if (n2 > 50 && n2 < 500000) result.kwh = n2; }
+    }
+    return result;
+  }
+  var SECTOR_VOICE_RE = {
+    farm: /farm|dairy|irrigation|orchard|vineyard|livestock|cold\s?room|pack\s?house|agri|crop|cattle|poultry|piv?ots?/gi,
+    commercial: /shop|retail|office|store|mall/gi,
+    industrial: /factory|manufactur|plant|industrial|warehouse|workshop/gi,
+    mining: /mine|mining|quarry|shaft|opencast/gi,
+    hospitality: /hotel|guest\s?house|restaurant|lodge|hospitality|b&b/gi
+  };
+  function parseVoiceText(text){
+    var out = {};
+    if (!text || !text.trim()) return out;
+    var sectorScores = {}; var bestSector=null, bestScore=0;
+    Object.keys(SECTOR_VOICE_RE).forEach(function(k){ sectorScores[k] = countMatches(text, SECTOR_VOICE_RE[k]); if (sectorScores[k] > bestScore){ bestScore = sectorScores[k]; bestSector = k; } });
+    if (bestSector) out.sector = bestSector;
+    var billInfo = parseVoiceRandKwh(text);
+    if (billInfo.rand) out.rand = billInfo.rand;
+    if (billInfo.kwh) out.kwh = billInfo.kwh;
+    var fullBackupScore = countMatches(text, /can'?t afford (any )?downtime|full backup|generator|no power (at all|ever)|continuity/gi);
+    var someBackupScore = countMatches(text, /cold\s?room|server|critical|pump|freezer|backup/gi);
+    if (fullBackupScore > 0) out.resilience = "continuity"; else if (someBackupScore > 0) out.resilience = "critical";
+    var dayScore = countMatches(text, /day\s?time|during the day|irrigation|milking|shop hours|business hours|9\s?to\s?5/gi);
+    var nightScore = countMatches(text, /night|evening|24\/?7|after hours|dark/gi);
+    if (dayScore > 0 && nightScore === 0) out.loadTiming = "high"; else if (nightScore > 0 && dayScore === 0) out.loadTiming = "low";
+    var cashflowScore = countMatches(text, /cash\s?flow|no upfront|zero upfront|can'?t afford upfront/gi);
+    var ownershipScore = countMatches(text, /own it|ownership|own the system|end of the term/gi);
+    var roiScore = countMatches(text, /fastest return|\broi\b|payback|pay itself off/gi);
+    var prioScores = { cashflow:cashflowScore, ownership:ownershipScore, roi:roiScore };
+    var bestPrio=null, bestPrioScore=0;
+    Object.keys(prioScores).forEach(function(k){ if (prioScores[k] > bestPrioScore){ bestPrioScore = prioScores[k]; bestPrio = k; } });
+    if (bestPrio) out.priority = bestPrio;
+    return out;
+  }
+  var VOICE_LABELS = {
+    sector: SECTOR_LABEL,
+    resilience: { continuity:"Continuity first", critical:"Critical loads" },
+    loadTiming: { high:"Mostly daytime", low:"Mostly evenings/night" },
+    priority: { cashflow:"Preserve cash flow", ownership:"Eventual ownership", roi:"Fastest ROI" }
+  };
+  function applyVoiceField(kind, val){
+    if (kind === "sector"){
+      state.sector = val;
+      sectorListEl.querySelectorAll(".listbox-row").forEach(function(row){ row.classList.toggle("checked", row.querySelector("input").value===val); row.querySelector("input").checked = row.querySelector("input").value===val; });
+      populateSubsector(val);
+    }
+    else if (kind === "rand"){ $("bill").value = Math.round(val); }
+    else if (kind === "kwh"){ $("kwh").value = Math.round(val); }
+    else if (kind === "resilience"){ document.querySelector("#resilienceSeg button[data-v='"+val+"']").click(); }
+    else if (kind === "loadTiming"){ $("loadTiming").value = val; }
+    else if (kind === "priority"){ document.querySelector("#prioritySeg button[data-v='"+val+"']").click(); }
+    recompute();
+  }
+  $("voiceAnalyzeBtn").addEventListener("click", function(){
+    var text = $("voiceText").value;
+    var detected = parseVoiceText(text);
+    var box = $("voiceStatus");
+    box.style.display = "block";
+    var chips = [];
+    if (detected.sector) chips.push({ label:"Sector: " + VOICE_LABELS.sector[detected.sector], kind:"sector", val:detected.sector });
+    if (detected.rand) chips.push({ label:"Monthly bill: R" + Math.round(detected.rand).toLocaleString(), kind:"rand", val:detected.rand });
+    if (detected.kwh) chips.push({ label:"Monthly usage: " + Math.round(detected.kwh).toLocaleString() + " kWh", kind:"kwh", val:detected.kwh });
+    if (detected.resilience) chips.push({ label:"Resilience: " + VOICE_LABELS.resilience[detected.resilience], kind:"resilience", val:detected.resilience });
+    if (detected.loadTiming) chips.push({ label:"Usage pattern: " + VOICE_LABELS.loadTiming[detected.loadTiming], kind:"loadTiming", val:detected.loadTiming });
+    if (detected.priority) chips.push({ label:"Priority: " + VOICE_LABELS.priority[detected.priority], kind:"priority", val:detected.priority });
+    if (!chips.length){ box.innerHTML = '<div class="upload-note">We couldn\'t confidently pick anything out of that — no problem, the questions above only take a minute.</div>'; return; }
+    box.innerHTML = '<div class="upload-note">Here\'s what we picked up — check it looks right, then apply it:</div><div class="chip-row"></div>';
+    var row = box.querySelector(".chip-row");
+    chips.forEach(function(c){
+      var btn = document.createElement("button");
+      btn.type = "button"; btn.className = "chip"; btn.textContent = "Use: " + c.label;
+      btn.addEventListener("click", function(){ applyVoiceField(c.kind, c.val); btn.classList.add("applied"); btn.textContent = "✓ Applied"; btn.disabled = true; });
+      row.appendChild(btn);
+    });
+  });
+
+  // ================= ASSUMPTIONS: default cost/kWp by system route =================
+  var costPerKwpTouched = false;
+  $("costPerKwp").addEventListener("input", function(){ costPerKwpTouched = true; recompute(); });
+  function defaultCostPerKwp(isHybrid){ return isHybrid ? 14000 : 12000; }
+  $("costPerKwp").value = defaultCostPerKwp(state.resilience !== "cost");
+
+  // ================= REAL-TIME RECOMPUTE ON ANY INPUT =================
+  var LIVE_IDS = ["bill","kwh","history","rate","supply","solarSpace","peakDemand","loadGrowth","dieselSpend","existingBackup",
+    "loadTiming","sunhours","escalation","costPerKwp","bankRate","bankTerm","bankDeposit","rtoTerm","rtoMarkup","ppaDiscount","ppaEscalation"];
+  LIVE_IDS.forEach(function(id){
+    var el = $(id);
+    if (!el) return;
+    el.addEventListener("input", recompute);
+    el.addEventListener("change", recompute);
+  });
+
+  // ================= FINANCE HELPERS =================
+  function amortizedMonthly(principal, annualRatePct, years){
+    var r = annualRatePct/100/12, n = years*12;
+    if (n <= 0) return principal;
+    if (r === 0) return principal/n;
+    return principal * r / (1 - Math.pow(1+r, -n));
+  }
+  function fmtR(n){ n = Math.round(n); var neg = n<0; n=Math.abs(n); var s = "R" + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " "); return neg?"-"+s:s; }
+  function fmtRk(n){
+    var neg = n<0; n=Math.abs(n);
+    var s;
+    if (n >= 1000000) s = "R" + (n/1000000).toFixed(2) + "m";
+    else if (n >= 1000) s = "R" + (n/1000).toFixed(0) + "k";
+    else s = fmtR(n);
+    return neg?"-"+s:s;
+  }
+
+  var LOAD_TIMING_FRAC = { low:0.25, medium:0.45, high:0.70 };
+
+  // ================= CORE COMPUTE ENGINE =================
+  function compute(){
+    var bill = parseFloat($("bill").value) || 0;
+    var kwh = parseFloat($("kwh").value) || 0;
+    var tariff = parseFloat($("rate").value) || 2.6;
+    var historyMonths = parseFloat($("history").value) || 1;
+    var sunHours = parseFloat($("sunhours").value) || 4.8;
+    var esc = (parseFloat($("escalation").value) || 9) / 100;
+    var peakDemand = parseFloat($("peakDemand").value) || 0;
+    var loadGrowth = Math.min(100, Math.max(0, parseFloat($("loadGrowth").value) || 0));
+    var dieselSpend = parseFloat($("dieselSpend").value) || 0;
+    var solarSpace = $("solarSpace").value;
+    var resilience = state.resilience;
+    var loadTiming = $("loadTiming").value || "medium";
+
+    var hasInput = bill > 0 || kwh > 0;
+    var monthlyKwh = kwh > 0 ? kwh : (bill > 0 ? bill/tariff : 0);
+    var monthlyBill = bill > 0 ? bill : (kwh > 0 ? kwh*tariff : 0);
+    var dailyKwh = monthlyKwh/30;
+
+    var daytimeFrac = LOAD_TIMING_FRAC[loadTiming] || 0.45;
+    var backupBonus = resilience==="continuity"?0.18:(resilience==="critical"?0.10:0);
+    var offsetCeiling = Math.min(0.85, Math.max(0.10, daytimeFrac*0.85 + backupBonus));
+
+    var bandWidth = historyMonths>=12?0.15:(historyMonths>=3?0.25:0.35);
+    var growthMultiplier = 1 + Math.min(loadGrowth,50)/100*0.5;
+
+    var offsettableDailyKwh = dailyKwh*offsetCeiling;
+    var performanceRatio = 0.8;
+    var kwpMid = (offsettableDailyKwh/sunHours/performanceRatio) * growthMultiplier;
+    var kwpLow = kwpMid*(1-bandWidth), kwpHigh = kwpMid*(1+bandWidth);
+
+    var isHybrid = resilience !== "cost";
+    if (!costPerKwpTouched) $("costPerKwp").value = defaultCostPerKwp(isHybrid);
+    var costPerKwp = parseFloat($("costPerKwp").value) || defaultCostPerKwp(isHybrid);
+    var batteryKwhMid = resilience==="continuity" ? dailyKwh*0.35 : (resilience==="critical" ? dailyKwh*0.18 : 0);
+    var batteryLow = batteryKwhMid*0.7, batteryHigh = batteryKwhMid*1.3;
+    var batteryCostPerKwh = 9000;
+    var capex = kwpMid*costPerKwp + batteryKwhMid*batteryCostPerKwh;
+
+    var annualBase = monthlyBill*12;
+    function residual(y){ return annualBase*(1-offsetCeiling)*Math.pow(1+esc, y-1); }
+    function gridFull(y){ return annualBase*Math.pow(1+esc, y-1); }
+
+    var bankRate = parseFloat($("bankRate").value) || 15;
+    var bankTerm = parseFloat($("bankTerm").value) || 5;
+    var bankDepositPct = (parseFloat($("bankDeposit").value) || 10)/100;
+    var deposit = capex*bankDepositPct, financed = capex-deposit;
+    var bankAnnual = amortizedMonthly(financed, bankRate, bankTerm)*12;
+
+    var rtoTerm = parseFloat($("rtoTerm").value) || 10;
+    var rtoMarkup = parseFloat($("rtoMarkup").value) || 1.35;
+    var rtoAnnual = (capex*rtoMarkup/rtoTerm/12)*12;
+
+    var ppaDiscount = (parseFloat($("ppaDiscount").value) || 15)/100;
+    var ppaEsc = (parseFloat($("ppaEscalation").value) || 6)/100;
+    var ppaOffsetAnnual0 = annualBase*offsetCeiling;
+    function ppaOffset(y){ return ppaOffsetAnnual0*(1-ppaDiscount)*Math.pow(1+ppaEsc, y-1); }
+
+    var years = { grid:[], purchase:[], bank:[], rent:[], ppa:[] };
+    var routes = {
+      grid:{ upfront:0, cum:0, label:"Grid only", sub:"No energy asset" },
+      purchase:{ upfront:capex, cum:0, label:"Outright purchase", sub:"Owned from day one" },
+      bank:{ upfront:deposit, cum:0, label:"Bank / asset finance", sub:"Owned; finance modelled over "+bankTerm+" years" },
+      rent:{ upfront:0, cum:0, label:"Rent-to-Own", sub:"Ownership after "+rtoTerm+" years" },
+      ppa:{ upfront:0, cum:0, label:"PPA", sub:"Service model; illustrative discount" }
+    };
+    years.grid.push({y:0,v:0}); years.purchase.push({y:0,v:routes.purchase.upfront}); years.bank.push({y:0,v:routes.bank.upfront}); years.rent.push({y:0,v:0}); years.ppa.push({y:0,v:0});
+    var cumG=0,cumP=routes.purchase.upfront,cumB=routes.bank.upfront,cumR=0,cumPPA=0;
+    for (var y=1;y<=20;y++){
+      cumG += gridFull(y);
+      cumP += residual(y);
+      cumB += residual(y) + (y<=bankTerm?bankAnnual:0);
+      cumR += residual(y) + (y<=rtoTerm?rtoAnnual:0);
+      cumPPA += residual(y) + ppaOffset(y);
+      years.grid.push({y:y,v:cumG}); years.purchase.push({y:y,v:cumP}); years.bank.push({y:y,v:cumB}); years.rent.push({y:y,v:cumR}); years.ppa.push({y:y,v:cumPPA});
+    }
+    routes.grid.cum = cumG; routes.purchase.cum = cumP; routes.bank.cum = cumB; routes.rent.cum = cumR; routes.ppa.cum = cumPPA;
+
+    var PRIORITY_ROUTE = { cashflow:"ppa", ownership:"bank", roi:"purchase" };
+    var recommendedKey = PRIORITY_ROUTE[state.priority] || "purchase";
+    var systemRoute = isHybrid ? "Hybrid" : "Grid-tied";
+
+    // data confidence score
+    var confidence = 10;
+    confidence += historyMonths>=12?35:(historyMonths>=3?20:10);
+    confidence += tariff && $("rate").value ? 10 : 0;
+    confidence += peakDemand>0 ? 15 : 0;
+    confidence += solarSpace ? 15 : 0;
+    confidence += state.docSource ? 10 : 0;
+    confidence += $("province").value ? 5 : 0;
+    confidence = Math.max(5, Math.min(100, Math.round(confidence)));
+    var confLabel = confidence>=70?"Strong":(confidence>=40?"Good":"Initial");
+
+    // opportunity fit score
+    var fit = 20 + Math.min(monthlyBill/1000, 40) + offsetCeiling*30 + (resilience!=="cost"?10:0) + (dieselSpend>0?10:0);
+    fit = Math.max(0, Math.min(100, Math.round(fit)));
+    var fitLabel = fit>=70?"Strong":(fit>=40?"Promising":"Early");
+
+    var payback = capex>0 && annualBase*offsetCeiling>0 ? capex/(annualBase*offsetCeiling) : 0;
+
+    // diesel / generator impact — illustrative only. Generator runtime typically falls once
+    // solar (and, where relevant, battery backup) covers daytime and/or critical loads;
+    // the offset fraction below is a rough, clearly-labelled planning assumption, not a
+    // measured result, and is never blended into the core capex/payback figures above.
+    var dieselAnnual = dieselSpend*12;
+    var dieselOffsetFrac = resilience==="continuity"?0.75:(resilience==="critical"?0.55:0.30);
+    var dieselAnnualSaving = dieselAnnual*dieselOffsetFrac;
+
+    return {
+      hasInput: hasInput, monthlyKwh: monthlyKwh, monthlyBill: monthlyBill, annualBase: annualBase,
+      offsetCeiling: offsetCeiling, kwpLow: kwpLow, kwpMid: kwpMid, kwpHigh: kwpHigh,
+      capex: capex, systemRoute: systemRoute, isHybrid: isHybrid,
+      batteryLow: batteryLow, batteryHigh: batteryHigh,
+      routes: routes, years: years, recommendedKey: recommendedKey,
+      confidence: confidence, confLabel: confLabel, fit: fit, fitLabel: fitLabel,
+      payback: payback, historyMonths: historyMonths, peakDemand: peakDemand, solarSpace: solarSpace,
+      dieselSpend: dieselSpend, existingBackup: $("existingBackup").value, resilience: resilience,
+      yearOneValue: annualBase*offsetCeiling, tariffProvided: !!$("rate").value,
+      dieselAnnual: dieselAnnual, dieselOffsetFrac: dieselOffsetFrac, dieselAnnualSaving: dieselAnnualSaving
+    };
+  }
+
+  var ROUTE_ORDER = ["grid","purchase","bank","rent","ppa"];
+  var ROUTE_COLOR = { grid:"var(--route-grid)", purchase:"var(--route-purchase)", bank:"var(--route-bank)", rent:"var(--route-rent)", ppa:"var(--route-ppa)" };
+
+  // ================= CHART RENDER =================
+  var lastResult = null;
+  function renderChart(result){
+    var svg = $("routeChart");
+    var W = 480, H = 220, padL = 46, padR = 12, padT = 10, padB = 22;
+    var maxVal = Math.max.apply(null, result.years.grid.map(function(d){ return d.v; })) * 1.06;
+    if (!isFinite(maxVal) || maxVal <= 0) maxVal = 1;
+    function xPos(y){ return padL + (y/20) * (W-padL-padR); }
+    function yPos(v){ return H-padB - (v/maxVal) * (H-padT-padB); }
+    var svgns = "http://www.w3.org/2000/svg";
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    function el(tag, attrs){ var e = document.createElementNS(svgns, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+    var ticks = 3;
+    for (var i=0;i<=ticks;i++){
+      var v = maxVal*i/ticks, yy = yPos(v);
+      svg.appendChild(el("line",{x1:padL,y1:yy,x2:W-padR,y2:yy,stroke:"#D8DDE0","stroke-width":1}));
+      var t = el("text",{x:padL-6,y:yy+3,"text-anchor":"end",style:"font-size:8px;fill:#62676B;font-family:Calibri,Arial,sans-serif;"});
+      t.textContent = fmtRk(v); svg.appendChild(t);
+    }
+    [0,5,10,15,20].forEach(function(yr){
+      var xx = xPos(yr);
+      var t = el("text",{x:xx,y:H-8,"text-anchor":"middle",style:"font-size:8px;fill:#62676B;font-family:Calibri,Arial,sans-serif;"});
+      t.textContent = "Y"+yr; svg.appendChild(t);
+    });
+
+    ROUTE_ORDER.forEach(function(key){
+      var pts = result.years[key];
+      var d = pts.map(function(p,idx){ return (idx===0?"M":"L") + xPos(p.y).toFixed(1) + "," + yPos(p.v).toFixed(1); }).join(" ");
+      var color = getComputedStyle(document.documentElement).getPropertyValue(ROUTE_COLOR[key].match(/--[\w-]+/)[0]).trim() || "#999";
+      svg.appendChild(el("path",{d:d, fill:"none", stroke: color, "stroke-width": key==="grid"?2:2.4, "stroke-dasharray": key==="grid"?"5,4":"none", "stroke-linecap":"round", opacity: key===result.recommendedKey?1:0.85}));
+    });
+
+    var hoverLine = el("line",{x1:0,y1:padT,x2:0,y2:H-padB,stroke:"#111111","stroke-width":1,opacity:0});
+    svg.appendChild(hoverLine);
+    var hoverRect = el("rect",{x:padL,y:padT,width:W-padL-padR,height:H-padT-padB,fill:"transparent"});
+    hoverRect.style.touchAction = "pan-y";
+    svg.appendChild(hoverRect);
+    var tooltip = $("dpTooltip");
+    function showTooltipAt(clientX){
+      var rect = svg.getBoundingClientRect();
+      var scaleX = W/rect.width;
+      var mx = (clientX - rect.left) * scaleX;
+      var yearIdx = Math.round(((mx-padL)/(W-padL-padR))*20);
+      yearIdx = Math.max(0, Math.min(20, yearIdx));
+      var px = xPos(yearIdx);
+      hoverLine.setAttribute("x1", px); hoverLine.setAttribute("x2", px); hoverLine.setAttribute("opacity", 1);
+      var svgRect = svg.getBoundingClientRect();
+      var pctX = px/W;
+      var wrapRect = svg.parentElement.getBoundingClientRect();
+      tooltip.style.left = (svgRect.left - wrapRect.left + pctX*svgRect.width) + "px";
+      tooltip.style.top = "10px";
+      var lines = "<b>Year " + yearIdx + "</b><br>";
+      ROUTE_ORDER.forEach(function(key){
+        lines += result.routes[key].label + " : " + fmtRk(result.years[key][yearIdx].v) + "<br>";
+      });
+      tooltip.innerHTML = lines;
+      tooltip.style.opacity = 1;
+    }
+    // Desktop: hover with the mouse. Mobile/touch: tap or drag a finger across the chart —
+    // the tooltip stays visible after lifting so the figures can actually be read.
+    hoverRect.addEventListener("mousemove", function(evt){ showTooltipAt(evt.clientX); });
+    hoverRect.addEventListener("mouseleave", function(){ hoverLine.setAttribute("opacity",0); tooltip.style.opacity = 0; });
+    hoverRect.addEventListener("touchstart", function(evt){ var t = evt.touches[0]; if (t){ evt.preventDefault(); showTooltipAt(t.clientX); } }, {passive:false});
+    hoverRect.addEventListener("touchmove", function(evt){ var t = evt.touches[0]; if (t){ evt.preventDefault(); showTooltipAt(t.clientX); } }, {passive:false});
+  }
+
+  function renderLegend(result){
+    $("chartLegend").innerHTML = ROUTE_ORDER.map(function(key){
+      return '<span><i style="background:'+ROUTE_COLOR[key]+';"></i>'+result.routes[key].label+'</span>';
+    }).join("");
+  }
+
+  // ================= STEP 4 COMPLETION SUMMARY =================
+  function renderStep4Summary(result){
+    var card = $("snapReadyCard");
+    if (!card) return;
+    if (!result.hasInput){
+      card.classList.remove("has-data");
+      $("snapKwp").textContent = "—"; $("snapCapex").textContent = "—"; $("snapYearOne").textContent = "—";
+      $("snapRoute").innerHTML = "—";
+      $("snapConfidence").textContent = "—"; $("snapFit").textContent = "—";
+      $("snapSub").textContent = "Fill in Step 1 (your bill) to see your numbers here — it only takes a moment.";
+      return;
+    }
+    card.classList.add("has-data");
+    $("snapKwp").textContent = result.kwpLow.toFixed(0) + "–" + result.kwpHigh.toFixed(0) + " kWp";
+    $("snapCapex").textContent = fmtR(result.capex);
+    $("snapYearOne").textContent = fmtR(result.yearOneValue);
+    $("snapRoute").innerHTML = result.routes[result.recommendedKey].label + '<span class="fit-badge" id="snapFitBadge">FIT</span>';
+    $("snapConfidence").textContent = result.confLabel + " (" + result.confidence + "/100)";
+    $("snapFit").textContent = result.fitLabel + " (" + result.fit + "/100)";
+    $("snapSub").textContent = "This snapshot reflects everything entered across Steps 1–3. Share it below, or go back to refine any answer — the numbers update instantly.";
+  }
+
+  // ================= DASHBOARD RENDER =================
+  function renderDashboard(result){
+    lastResult = result;
+    var dashPanel = $("dashPanel");
+    var emptyBanner = $("dpEmptyBanner");
+    dashPanel.classList.toggle("is-empty", !result.hasInput);
+    emptyBanner.style.display = result.hasInput ? "none" : "block";
+
+    renderStep4Summary(result);
+
+    var dieselCard = $("dieselCard");
+    if (result.hasInput && result.dieselSpend > 0){
+      dieselCard.style.display = "block";
+      $("dieselSavingBig").textContent = fmtR(result.dieselAnnualSaving) + "/yr";
+      $("dieselSavingSub").textContent = "Illustrative — modelled on your R" + Math.round(result.dieselSpend).toLocaleString() + "/month diesel spend, assuming roughly " + Math.round(result.dieselOffsetFrac*100) + "% less generator runtime once solar" + (result.resilience!=="cost" ? " and backup are" : " is") + " running. Confirmed properly once we see actual generator hours.";
+    } else {
+      dieselCard.style.display = "none";
+    }
+
+    if (!result.hasInput){
+      $("kpiSolarRange").textContent = "—"; $("kpiYearOne").textContent = "—";
+      $("kpiCapex").textContent = "—"; $("kpiSystemRoute").textContent = "—";
+      $("scoreConfidenceLabel").textContent = "—"; $("scoreConfidenceBar").style.width = "0%";
+      $("scoreFitLabel").textContent = "—"; $("scoreFitBar").style.width = "0%";
+      $("commercialDirection").textContent = "Waiting on your bill";
+      $("routeTableBody").innerHTML = "";
+      $("outcomePayback").textContent = "—"; $("outcomeBattery").textContent = "Battery screen: —";
+      $("strengthenList").innerHTML = "";
+      renderLegend(result); renderChart(result);
+      return;
+    }
+
+    $("kpiSolarRange").textContent = result.kwpLow.toFixed(0) + "–" + result.kwpHigh.toFixed(0) + " kWp";
+    $("kpiYearOne").textContent = fmtR(result.yearOneValue);
+    $("kpiCapex").textContent = fmtR(result.capex);
+    $("kpiSystemRoute").textContent = result.systemRoute;
+
+    $("scoreConfidenceLabel").textContent = result.confLabel;
+    $("scoreConfidenceBar").style.width = result.confidence + "%";
+    $("scoreFitLabel").textContent = result.fitLabel;
+    $("scoreFitBar").style.width = result.fit + "%";
+
+    $("commercialDirection").textContent = result.routes[result.recommendedKey].label;
+
+    $("routeTableBody").innerHTML = ROUTE_ORDER.map(function(key){
+      var r = result.routes[key];
+      var isFit = key === result.recommendedKey;
+      return '<tr class="'+(isFit?"fit":"")+'"><td><span class="route-dot" style="background:'+ROUTE_COLOR[key]+';"></span>'+r.label+(isFit?'<span class="fit-badge">FIT</span>':'')+'<div style="font-size:10.5px;color:var(--gray);font-weight:400;margin-top:2px;">'+r.sub+'</div></td><td>'+fmtR(r.upfront)+'</td><td>'+fmtR(r.cum)+'</td></tr>';
+    }).join("");
+
+    $("outcomePayback").textContent = result.payback>0 ? result.payback.toFixed(1) + " years" : "—";
+    $("outcomeBattery").textContent = result.resilience==="cost" ? "Battery screen: no storage needed" : ("Battery screen: " + Math.max(1,Math.round(result.batteryLow)) + "–" + Math.max(2,Math.round(result.batteryHigh)) + " kWh");
+
+    var strengthItems = [
+      { label:"12 months of electricity bills", on: result.historyMonths>=12 },
+      { label:"Peak demand or interval data", on: result.peakDemand>0 },
+      { label:"Energy-only tariff breakdown", on: result.tariffProvided },
+      { label:"Roof or ground-space confirmation", on: !!result.solarSpace }
+    ];
+    $("strengthenList").innerHTML = strengthItems.map(function(it){
+      return '<li class="'+(it.on?"done":"")+'"><span class="chk">'+svgIcon(it.on?"checkCircle":"circleEmpty")+'</span>'+it.label+'</li>';
+    }).join("");
+
+    renderLegend(result);
+    renderChart(result);
+  }
+
+  function recompute(){
+    var r = compute();
+    renderDashboard(r);
+    persistState();
+  }
+
+  // ================= LOCAL PERSISTENCE (survives a page refresh, this device only) =================
+  // Everything below stays entirely client-side: nothing is sent anywhere. It only lets the
+  // browser remember an in-progress snapshot so a refresh or an accidental tab close doesn't
+  // lose someone's answers. This is separate from — and does not create — any server-side
+  // lead storage.
+  var STORAGE_KEY = "chariotEnergySnapshot_v1";
+  var PERSIST_FIELD_IDS = ["bill","kwh","history","rate","supply","solarSpace","peakDemand","province",
+    "loadGrowth","dieselSpend","existingBackup","loadTiming","subsector","sunhours","escalation","costPerKwp",
+    "bankRate","bankTerm","bankDeposit","rtoTerm","rtoMarkup","ppaDiscount","ppaEscalation",
+    "clientName","clientContact","clientNotes"];
+  function collectPersistState(){
+    var fields = {};
+    PERSIST_FIELD_IDS.forEach(function(id){ var el = $(id); if (el) fields[id] = el.value; });
+    return {
+      v: 1, savedAt: Date.now(), fields: fields,
+      sector: state.sector, resilience: state.resilience, priority: state.priority,
+      step: state.step, maxStepReached: state.maxStepReached,
+      sunHoursTouched: sunHoursTouched, costPerKwpTouched: costPerKwpTouched
+    };
+  }
+  var __persistTimer = null;
+  function persistState(){
+    try{
+      window.clearTimeout(__persistTimer);
+      __persistTimer = window.setTimeout(function(){
+        try{ window.localStorage.setItem(STORAGE_KEY, JSON.stringify(collectPersistState())); } catch(e){ /* storage unavailable — fail quietly */ }
+      }, 300);
+    } catch(e){ /* no timers / storage — fail quietly, nothing lost except resume-on-refresh */ }
+  }
+  function hasMeaningfulSavedData(saved){
+    if (!saved || !saved.fields) return false;
+    var f = saved.fields;
+    return (parseFloat(f.bill) > 0) || (parseFloat(f.kwh) > 0) || !!(f.clientName && f.clientName.trim());
+  }
+  function applyPersistState(saved){
+    if (!saved) return;
+    var fields = saved.fields || {};
+    Object.keys(fields).forEach(function(id){ var el = $(id); if (el && fields[id] != null) el.value = fields[id]; });
+    if (saved.sunHoursTouched) sunHoursTouched = true;
+    if (saved.costPerKwpTouched) costPerKwpTouched = true;
+    if (saved.sector){
+      state.sector = saved.sector;
+      sectorListEl.querySelectorAll(".listbox-row").forEach(function(row){
+        var inp = row.querySelector("input");
+        var checked = inp.value === saved.sector;
+        inp.checked = checked; row.classList.toggle("checked", checked);
+      });
+      populateSubsector(state.sector);
+      if (fields.subsector) $("subsector").value = fields.subsector;
+    }
+    if (saved.resilience){
+      state.resilience = saved.resilience;
+      document.querySelectorAll("#resilienceSeg button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-v") === saved.resilience); });
+    }
+    if (saved.priority){
+      state.priority = saved.priority;
+      document.querySelectorAll("#prioritySeg button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-v") === saved.priority); });
+    }
+    if (saved.maxStepReached) state.maxStepReached = Math.max(state.maxStepReached, saved.maxStepReached);
+    goToStep(saved.step && saved.step >= 1 && saved.step <= 4 ? saved.step : 1);
+    recompute();
+  }
+  function clearPersistState(){
+    try{ window.localStorage.removeItem(STORAGE_KEY); } catch(e){ /* fail quietly */ }
+  }
+
+  // Wire every field that isn't already covered by LIVE_IDS to also save progress.
+  ["clientNotes"].forEach(function(id){ $(id).addEventListener("input", persistState); });
+  $("subsector").addEventListener("change", persistState);
+
+  $("startOverBtn").addEventListener("click", function(){
+    if (!window.confirm("Start over? This clears everything you've entered on this device.")) return;
+    clearPersistState();
+    window.location.reload();
+  });
+
+  var __savedSnapshot = null;
+  try{
+    var __raw = window.localStorage.getItem(STORAGE_KEY);
+    if (__raw) __savedSnapshot = JSON.parse(__raw);
+  } catch(e){ __savedSnapshot = null; }
+
+  if (hasMeaningfulSavedData(__savedSnapshot)){
+    $("resumeBanner").style.display = "flex";
+  }
+  $("resumeBtn").addEventListener("click", function(){
+    applyPersistState(__savedSnapshot);
+    $("resumeBanner").style.display = "none";
+  });
+  $("dismissResumeBtn").addEventListener("click", function(){
+    clearPersistState();
+    $("resumeBanner").style.display = "none";
+  });
+
+  recompute();
+
+  // ================= STEP 4: SEND (WhatsApp / email / PDF / copy) =================
+  function refCode(){
+    if (!window.__refCode) window.__refCode = ("CB" + Math.random().toString(36).slice(2,8)).toUpperCase();
+    return window.__refCode;
+  }
+  $("refCode").textContent = "Reference " + refCode();
+
+  function buildHandoverText(){
+    var r = lastResult || compute();
+    var name = $("clientName").value.trim();
+    var contact = $("clientContact").value.trim();
+    var notes = $("clientNotes").value.trim();
+    var sectorTxt = SECTOR_LABEL[state.sector] + ($("subsector").value && SUBSECTOR_LABEL[$("subsector").value] ? " — " + SUBSECTOR_LABEL[$("subsector").value] : "");
+    var lines = [];
+    lines.push("CHARIOT ENERGY SNAPSHOT — " + new Date().toLocaleDateString("en-ZA", {year:"numeric",month:"long",day:"numeric"}));
+    lines.push("Reference " + refCode());
+    lines.push("");
+    if (name) lines.push("From: " + name + (contact ? " (" + contact + ")" : ""));
+    lines.push("Sector: " + sectorTxt);
+    lines.push("Supply: " + $("supply").value + " · Solar space: " + ($("solarSpace").value || "not specified"));
+    if (r.hasInput){
+      lines.push("Indicative monthly bill: " + fmtR(r.monthlyBill) + " (" + Math.round(r.monthlyKwh).toLocaleString() + " kWh)");
+      lines.push("Indicative system size: " + r.kwpLow.toFixed(0) + "–" + r.kwpHigh.toFixed(0) + " kWp (" + r.systemRoute + ")");
+      lines.push("Modelled capex: " + fmtR(r.capex) + " · Simple purchase payback: ~" + r.payback.toFixed(1) + " years");
+      lines.push("Data confidence: " + r.confLabel + " (" + r.confidence + "/100) · Opportunity fit: " + r.fitLabel + " (" + r.fit + "/100)");
+      lines.push("Recommended commercial direction: " + r.routes[r.recommendedKey].label);
+      lines.push("");
+      lines.push("Route comparison (upfront / 20-year modelled cost):");
+      ROUTE_ORDER.forEach(function(key){ lines.push("  " + r.routes[key].label + ": " + fmtR(r.routes[key].upfront) + " / " + fmtR(r.routes[key].cum)); });
+      if (r.dieselSpend > 0){
+        lines.push("");
+        lines.push("Diesel/generator spend: " + fmtR(r.dieselSpend) + "/month — illustrative annual saving once solar is running: ~" + fmtR(r.dieselAnnualSaving) + "/yr");
+      }
+    } else {
+      lines.push("(Bill and usage not yet entered)");
+    }
+    if (notes) { lines.push(""); lines.push("Notes from client: " + notes); }
+    lines.push("");
+    lines.push("This is an indicative pre-feasibility snapshot only, not a quotation. Includes modelled capex and illustrative financing terms — confirmed by our team, subject to credit approval where financing is involved.");
+    return lines.join("\n");
+  }
+
+  // Soft-require name + contact before WhatsApp/Email actually fire. First click on either
+  // button with both fields empty shows an inline warning instead of sending; a second click
+  // (or filling in the fields) lets the action through — never a hard block.
+  var contactWarnShown = false;
+  function contactFieldsFilled(){ return !!($("clientName").value.trim() && $("clientContact").value.trim()); }
+  function checkContactBeforeSend(){
+    if (contactFieldsFilled() || contactWarnShown) { $("sendWarnMsg").style.display = "none"; return true; }
+    contactWarnShown = true;
+    $("sendWarnMsg").style.display = "block";
+    $("sendWarnMsg").scrollIntoView({ behavior:"smooth", block:"nearest" });
+    return false;
+  }
+  ["clientName","clientContact"].forEach(function(id){
+    $(id).addEventListener("input", function(){ contactWarnShown = false; $("sendWarnMsg").style.display = "none"; persistState(); });
+  });
+
+  $("waBtn").addEventListener("click", function(){
+    if (!checkContactBeforeSend()) return;
+    var text = encodeURIComponent(buildHandoverText());
+    var url = CONTACT.whatsapp ? ("https://wa.me/" + CONTACT.whatsapp + "?text=" + text) : ("https://wa.me/?text=" + text);
+    window.open(url, "_blank", "noopener");
+  });
+
+  $("emailBtn").addEventListener("click", function(e){
+    e.preventDefault();
+    if (!checkContactBeforeSend()) return;
+    var subject = encodeURIComponent("Energy Snapshot — " + SECTOR_LABEL[state.sector] + " — " + refCode());
+    var body = encodeURIComponent(buildHandoverText());
+    var mailto = "mailto:" + (CONTACT.email || "") + "?subject=" + subject + "&body=" + body;
+    window.location.href = mailto;
+  });
+
+  if (CONTACT.calendar) $("meetingBtn").href = CONTACT.calendar;
+  else $("meetingBtn").addEventListener("click", function(e){
+    e.preventDefault();
+    var msg = $("meetingFallbackMsg");
+    msg.style.display = "block";
+    msg.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  });
+
+  if (CONTACT.phone) $("phoneFallback").innerHTML = "Prefer to call? <b>" + CONTACT.phone + "</b>";
+
+  $("copyBtn").addEventListener("click", async function(){
+    var text = buildHandoverText();
+    try{
+      if (navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(text); }
+      else {
+        var ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        document.execCommand("copy"); document.body.removeChild(ta);
+      }
+      $("sendSavedMsg").style.display = "block";
+      setTimeout(function(){ $("sendSavedMsg").style.display = "none"; }, 4000);
+    } catch(e){ /* clipboard denied — fail quietly */ }
+  });
+
+  $("pdfBtn").addEventListener("click", function(){
+    var text = buildHandoverText();
+    $("printArea").innerHTML = "<div style=\"font-family:Calibri,Arial,sans-serif;color:#111111;white-space:pre-wrap;font-size:13px;line-height:1.6;max-width:680px;\">" +
+      "<h1 style=\"font-family:Cambria,Georgia,serif;color:#00A9D6;font-size:20px;margin-bottom:14px;\">Chariot Energy Snapshot</h1>" +
+      text.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</div>";
+    window.print();
+  });
+
+})();
+</script>
+
+</body>
+</html>
