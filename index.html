@@ -84,6 +84,7 @@
     --gray:#62676B; --card:#FFFFFF;
     --series-solar:#00A9D6; --series-grid:#94999D;
     --route-grid:#94999D; --route-purchase:#00495A; --route-bank:#3E6FA6; --route-rent:#8C6BAE; --route-ppa:#00A9D6;
+    --good:#1E8E5A; --good-tint:#E4F3EC; --warn:#B8791E; --warn-tint:#FBF0DD; --bad:#B23B3B; --bad-tint:#F5E1D8;
   }
   *{box-sizing:border-box;}
   body{background:var(--mineral);}
@@ -127,6 +128,8 @@
   /* two-panel wizard layout */
   .wizard-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,460px);gap:22px;align-items:start;}
   @media (max-width:980px){ .wizard-grid{grid-template-columns:1fr;} .dash-panel{position:static !important;} }
+  .wizard-grid.step4-wide{grid-template-columns:minmax(0,1fr);}
+  .wizard-form{min-width:0;}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:26px 26px 28px;margin-bottom:22px;}
   .card h2{font-size:20px;margin-bottom:4px;}
@@ -254,7 +257,7 @@
   .route-table td{padding:9px 4px;border-top:1px solid var(--line);}
   .route-table tr.fit td{font-weight:700;}
   .route-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:7px;}
-  .fit-badge{background:var(--sage-tint);color:var(--forest);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:1px;}
+  .fit-badge{background:var(--sage-tint);color:var(--forest);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:1px;white-space:nowrap;}
 
   .dp-bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
   @media (max-width:480px){ .dp-bottom-row{grid-template-columns:1fr;} }
@@ -319,6 +322,152 @@
     #printArea, #printArea *{visibility:visible;}
     #printArea{display:block !important;position:absolute;top:0;left:0;width:100%;padding:20px;}
   }
+
+  /* ===================== DECISION COCKPIT (Step 4) ===================== */
+  .ck-cockpit{margin:4px 0 26px;}
+  .ck-cockpit-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+  .ck-cockpit-head h3{font-size:19px;}
+  .ck-cockpit-head .ck-sub{margin:0;}
+  .ck-sub{font-size:11.5px;color:var(--gray);line-height:1.5;margin:0 0 12px;}
+  .ck-scenario-lbl{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--gray);margin-right:8px;}
+
+  .ck-seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;}
+  .ck-seg button{background:#fff;border:none;padding:8px 13px;font-size:11.5px;font-weight:700;color:var(--gray);cursor:pointer;font-family:Calibri,Arial,sans-serif;border-right:1px solid var(--line);}
+  .ck-seg button:last-child{border-right:none;}
+  .ck-seg button.active{background:var(--forest);color:#fff;}
+
+  .ck-kpi-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-bottom:16px;}
+  @media (max-width:1180px){ .ck-kpi-row{grid-template-columns:repeat(4,minmax(0,1fr));} }
+  @media (max-width:760px){
+    .ck-kpi-row{display:flex;overflow-x:auto;gap:10px;padding-bottom:4px;margin:0 -20px 16px;padding-left:20px;padding-right:20px;scroll-snap-type:x mandatory;}
+    .ck-kpi-row .ck-kpi{min-width:46%;scroll-snap-align:start;}
+  }
+  .ck-kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 12px 11px;position:relative;}
+  .ck-kpi .kl{font-size:9.5px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:5px;min-height:24px;}
+  .ck-kpi .ki{width:14px;height:14px;border-radius:50%;border:1px solid var(--line);font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;color:var(--gray);cursor:pointer;flex:none;background:#fff;}
+  .ck-kpi .ring-row{display:flex;align-items:center;gap:8px;margin-top:2px;}
+  .ck-kpi .ring-wrap{position:relative;width:38px;height:38px;flex:none;}
+  .ck-kpi .ring-wrap .ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Mono",Cambria,monospace;font-size:11px;font-weight:700;color:var(--charcoal);}
+  .ck-kpi .kv{font-family:Cambria,Georgia,serif;font-weight:700;font-size:16px;margin-top:4px;color:var(--charcoal);line-height:1.25;}
+  .ck-kpi .kv small{font-size:9.5px;color:var(--gray);font-weight:500;}
+  .ck-kpi .ktag{margin-top:6px;min-height:18px;display:block;}
+  .ck-kpi .kwhy{font-size:10px;color:var(--gray);margin-top:5px;line-height:1.4;}
+  .ck-kpi .ck-tooltip{position:absolute;z-index:9;top:calc(100% + 8px);left:0;width:210px;background:var(--charcoal);color:#fff;font-size:10.5px;line-height:1.5;padding:9px 11px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.2);display:none;}
+  .ck-kpi.tt-open .ck-tooltip{display:block;}
+  @media (max-width:760px){ .ck-kpi .ck-tooltip{left:auto;right:0;} }
+
+  .ck-tag{display:inline-flex;align-items:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 8px;border-radius:20px;white-space:nowrap;}
+  .ck-tag.good{background:var(--good-tint);color:var(--good);}
+  .ck-tag.warn{background:var(--warn-tint);color:var(--warn);}
+  .ck-tag.bad{background:var(--bad-tint);color:var(--bad);}
+
+  .ck-panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 18px 16px;margin-bottom:14px;}
+  .ck-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:4px;}
+  .ck-panel h4{font-family:Cambria,Georgia,serif;font-size:16px;margin:0;}
+
+  .ck-two-col{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start;margin-top:8px;}
+  @media (max-width:900px){ .ck-two-col{grid-template-columns:minmax(0,1fr);} }
+  .ck-chart-wrap{position:relative;}
+  svg#ckChart, svg#ckLoadChart, svg#ckRiskChart{width:100%;height:auto;display:block;}
+  .ck-tooltip-float{position:absolute;pointer-events:none;background:var(--charcoal);color:#fff;border-radius:7px;padding:9px 11px;font-size:11px;line-height:1.6;opacity:0;transition:opacity .1s;width:210px;z-index:6;}
+  .ck-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;font-weight:700;color:var(--charcoal);margin:8px 0 0;}
+  .ck-legend span{display:inline-flex;align-items:center;gap:4px;}
+  .ck-legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
+
+  .ck-rec-stack{display:flex;flex-direction:column;gap:10px;}
+  .ck-rec{background:var(--mineral);border:1px solid var(--line);border-radius:9px;padding:12px 13px;}
+  .ck-rec .rl{font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--forest);}
+  .ck-rec h5{font-family:Cambria,Georgia,serif;font-size:14px;margin:3px 0 4px;}
+  .ck-rec p{font-size:11.5px;color:var(--gray);line-height:1.5;margin:0;}
+
+  .ck-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line-soft,var(--line));}
+  .ck-row:last-child{border-bottom:none;}
+  .ck-row b{font-family:"IBM Plex Mono",Cambria,monospace;}
+  .ck-load-legend{display:flex;gap:14px;font-size:10.5px;font-weight:700;color:var(--gray);margin:6px 0 10px;}
+  .ck-load-legend span{display:inline-flex;align-items:center;gap:5px;}
+  .ck-load-legend i{width:16px;height:2px;display:inline-block;}
+  .ck-callout{background:var(--warn-tint);color:#7A5316;border-radius:8px;padding:11px 13px;font-size:11.5px;line-height:1.5;margin-top:10px;}
+
+  .ck-fund-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+  @media (max-width:900px){ .ck-fund-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:560px){ .ck-fund-grid{grid-template-columns:minmax(0,1fr);} }
+  .ck-fcard{border:1px solid var(--line);border-radius:9px;padding:13px 14px;background:#fff;}
+  .ck-fcard.best{border-color:var(--forest);box-shadow:0 0 0 1px var(--forest) inset;}
+  .ck-fcard .fbadge{font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--forest);margin-bottom:6px;display:block;}
+  .ck-fcard h5{font-family:Cambria,Georgia,serif;font-size:14px;margin:0 0 8px;}
+  .ck-fcard .fp{font-family:Cambria,Georgia,serif;font-weight:700;font-size:17px;}
+  .ck-fcard .fp small{font-size:9.5px;color:var(--gray);font-weight:500;display:block;}
+  .ck-fcard ul{list-style:none;margin:9px 0 0;padding:0;font-size:11px;color:var(--gray);line-height:1.65;}
+  .ck-fcard ul li:before{content:"• ";color:var(--forest);}
+
+  .ck-sens-wrap{overflow-x:auto;margin-top:14px;}
+  table.ck-sens{width:100%;border-collapse:collapse;font-size:11.5px;min-width:460px;}
+  table.ck-sens th{text-align:right;font-size:9.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--gray);padding:6px 6px;font-weight:700;}
+  table.ck-sens th:first-child, table.ck-sens td:first-child{text-align:left;}
+  table.ck-sens td{padding:8px 6px;border-top:1px solid var(--line);text-align:right;font-family:"IBM Plex Mono",Cambria,monospace;}
+  .ck-pos{color:var(--good);font-weight:700;}
+  .ck-neg{color:var(--bad);font-weight:700;}
+
+  .ck-risk-grid{display:grid;grid-template-columns:1.3fr minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:10px;}
+  @media (max-width:860px){ .ck-risk-grid{grid-template-columns:minmax(0,1fr);} }
+  .ck-risk-col h5{font-size:12.5px;margin:0 0 6px;display:flex;align-items:center;gap:8px;}
+  .ck-conf-row, .ck-doclist .ck-row{display:flex;justify-content:space-between;font-size:11.5px;padding:5px 0;}
+  .ck-conf-row b.ok, .ck-doclist b.ok{color:var(--good);}
+  .ck-conf-row b.missing, .ck-doclist b.missing{color:var(--warn);}
+
+  .ck-assump-bar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+  .ck-achip{display:flex;align-items:center;gap:6px;background:var(--mineral);border:1px solid var(--line);border-radius:20px;padding:7px 12px;font-size:11.5px;font-weight:700;color:var(--charcoal);}
+  .ck-achip input{width:56px;border:none;background:transparent;font-size:12px;font-weight:700;color:var(--forest);text-align:right;padding:0;font-family:"IBM Plex Mono",Cambria,monospace;}
+  .ck-achip input:focus{outline:none;}
+  .ck-achip .u{color:var(--gray);font-weight:500;}
+  .ck-reset-link{background:none;border:none;color:var(--forest);font-size:11px;font-weight:700;text-decoration:underline;cursor:pointer;font-family:Calibri,Arial,sans-serif;}
+  .ck-conf-grid{display:grid;grid-template-columns:80px 1fr;gap:16px;align-items:start;margin-bottom:12px;}
+  .ck-conf-grid .ring-wrap{position:relative;width:68px;height:68px;}
+  .ck-conf-grid .ring-wrap svg{width:68px;height:68px;}
+  .ck-conf-grid .ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Cambria,Georgia,serif;font-weight:700;font-size:14px;}
+  .ck-ai-item{display:flex;gap:9px;align-items:flex-start;font-size:11.5px;color:var(--charcoal);line-height:1.5;padding:6px 0;border-top:1px solid var(--line);}
+  .ck-ai-item:first-child{border-top:none;}
+  .ck-ai-num{flex:none;width:18px;height:18px;border-radius:50%;background:var(--forest);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+
+  .ck-site-split{display:grid;grid-template-columns:120px 1fr;gap:16px;align-items:center;}
+  @media (max-width:560px){ .ck-site-split{grid-template-columns:1fr;} }
+  .ck-site-badge{width:100%;aspect-ratio:1;border-radius:10px;background:var(--sage-tint);display:flex;align-items:center;justify-content:center;color:var(--forest);}
+  dl.ck-sys-facts{margin:0;display:grid;gap:7px;}
+  .ck-fact{display:flex;justify-content:space-between;gap:12px;font-size:12px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+  .ck-fact dt{color:var(--gray);}
+  .ck-fact dd{margin:0;font-weight:700;text-align:right;}
+
+  .ck-deeper-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+  @media (max-width:760px){ .ck-deeper-row{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .ck-deeper{background:var(--mineral);border:1px solid var(--line);border-radius:9px;padding:12px 13px;cursor:pointer;text-align:left;font-family:Calibri,Arial,sans-serif;}
+  .ck-deeper:hover{border-color:var(--forest);}
+  .ck-deeper h5{font-size:12.5px;margin:0 0 3px;}
+  .ck-deeper p{font-size:10.5px;color:var(--gray);margin:0;line-height:1.4;}
+  .ck-deep-detail{display:none;margin-top:12px;background:#fff;border:1px solid var(--forest);border-radius:9px;padding:16px 18px;}
+  .ck-deep-detail h5{font-family:Cambria,Georgia,serif;font-size:14.5px;margin:0 0 10px;}
+  .ck-deep-grid{display:flex;gap:26px;margin-bottom:8px;flex-wrap:wrap;}
+  .ck-deep-grid > div{display:flex;flex-direction:column;}
+  .ck-deep-grid b{font-family:Cambria,Georgia,serif;font-size:19px;}
+  .ck-deep-grid span{font-size:10.5px;color:var(--gray);margin-top:2px;}
+  .ck-waterfall{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+  .ck-wf-step{display:flex;justify-content:space-between;font-size:12.5px;padding:7px 10px;border-radius:6px;background:var(--mineral);}
+  .ck-wf-step.down b{color:var(--good);}
+  .ck-wf-step.up b{color:var(--bronze);}
+  .ck-wf-step.total{background:var(--forest);color:#fff;font-weight:700;}
+  .ck-wf-step b{font-family:"IBM Plex Mono",Cambria,monospace;}
+
+  .ck-action-bar{background:var(--forest-deep);border-radius:12px;padding:18px 20px;margin-top:8px;color:#fff;}
+  .ck-action-bar .ck-adisc{font-size:10.5px;color:rgba(255,255,255,.7);line-height:1.5;margin-top:12px;}
+  .ck-action-bar .send-grid{margin-top:0;}
+  .ck-action-bar .btn-ghost{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.25);}
+  .ck-action-bar .hint#meetingFallbackMsg{color:rgba(255,255,255,.75);}
+  .ck-action-bar .copy-link{color:#fff;}
+  .ck-action-bar .ref-code{color:rgba(255,255,255,.6);}
+  .ck-action-bar .phone-fallback{color:rgba(255,255,255,.75);}
+  .ck-action-bar .phone-fallback b{color:#fff;}
+  .ck-action-bar label{color:#fff;}
+  .ck-action-bar input[type=text], .ck-action-bar textarea{background:rgba(255,255,255,.95);}
+
 </style>
 </head>
 <body>
@@ -640,11 +789,11 @@
         </div>
       </div>
 
-      <!-- STEP 4: SEND -->
+      <!-- STEP 4: DECISION COCKPIT -->
       <div class="card step-panel" id="stepPanel4">
-        <div class="step-eyebrow">04 · Send</div>
-        <h2>Your complete snapshot is ready.</h2>
-        <div class="sub">Share the handover, email Chariot, or request a focused review — nothing here is stored anywhere but your own inbox or WhatsApp thread.</div>
+        <div class="step-eyebrow">04 · Your Decision Cockpit</div>
+        <h2>Everything you need to decide, in one view.</h2>
+        <div class="sub">Every figure below comes straight from Steps 1–3 — edit any assumption here or go back and change an answer, and the whole view updates. Nothing is stored anywhere until you choose to share it.</div>
 
         <div class="snap-ready-card" id="snapReadyCard">
           <div class="src-badge"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 5-5"/></svg><span>Your Energy Snapshot is ready</span></div>
@@ -652,7 +801,7 @@
             <div class="src-tile"><div class="src-k">System size</div><div class="src-v" id="snapKwp">—</div></div>
             <div class="src-tile"><div class="src-k">Modelled capex</div><div class="src-v" id="snapCapex">—</div></div>
             <div class="src-tile"><div class="src-k">Year-one value</div><div class="src-v" id="snapYearOne">—</div></div>
-            <div class="src-tile"><div class="src-k">Recommended route</div><div class="src-v" id="snapRoute">—<span class="fit-badge" id="snapFitBadge" style="display:none;">FIT</span></div></div>
+            <div class="src-tile"><div class="src-k">Recommended route</div><div class="src-v" id="snapRoute">—<span class="fit-badge" id="snapFitBadge" style="display:none;">RECOMMENDED</span></div></div>
           </div>
           <div class="src-scores">
             <div class="src-score"><span>Data confidence</span><b id="snapConfidence">—</b></div>
@@ -661,33 +810,213 @@
           <div class="src-sub" id="snapSub">Fill in Step 1 (your bill) to see your numbers here — it only takes a moment.</div>
         </div>
 
-        <label for="clientName">Your name</label>
-        <div class="grid2">
-          <div>
-            <input type="text" id="clientName" placeholder="e.g. Anna van der Merwe">
-          </div>
-          <div>
-            <label for="clientContact" style="margin-top:0;">Phone or email</label>
-            <input type="text" id="clientContact" placeholder="e.g. 082 000 0000 or anna@site.co.za">
-          </div>
-        </div>
-        <div style="height:14px;"></div>
-        <label for="clientNotes">Anything you'd like Chariot to know (optional)</label>
-        <textarea id="clientNotes" rows="3" placeholder="e.g. Two pivots on separate meters, keen to move fast before the next tariff increase." style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:7px;font-size:14px;color:var(--charcoal);resize:vertical;font-family:Calibri,Arial,sans-serif;"></textarea>
+        <!-- ================= DECISION COCKPIT ================= -->
+        <div class="ck-cockpit" id="ckCockpit">
 
-        <div class="err" id="sendWarnMsg" style="display:none;">Add your name and phone or email above so our team can follow up — or click again to continue without them.</div>
+          <div class="ck-cockpit-head">
+            <div><span class="ck-scenario-lbl">Scenario</span></div>
+            <div class="ck-seg" id="ckScenarioSeg">
+              <button type="button" class="active" data-v="base">Base Case</button>
+              <button type="button" data-v="high">High Escalation</button>
+              <button type="button" data-v="conservative">Conservative</button>
+            </div>
+          </div>
+          <div class="ck-sub">The scenario switcher re-runs the cost projections below at a higher or lower tariff-escalation assumption — it never changes your system sizing or the actual assumptions saved in Step 3.</div>
 
-        <div class="send-grid">
-          <button class="btn-primary" id="waBtn" type="button" style="background:#2E8B57;"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 21l2.05-5.4A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 10.5c.4 2.4 2.6 4.6 5 5"/></svg>WhatsApp Chariot</button>
-          <a class="btn-ghost" id="emailBtn" href="#"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>Email full snapshot</a>
-          <a class="btn-ghost" id="meetingBtn" href="#" target="_blank" rel="noopener"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 14v2.2l1.6 1"/><path d="M16 2v4"/><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M3 10h5"/><path d="M8 2v4"/><circle cx="16" cy="16" r="6"/></svg>Book / request review</a>
-          <button class="btn-ghost" id="pdfBtn" type="button"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h9l5 5v15H6v-4"/><path d="M14 2v6h6"/><rect x="1" y="13" width="12" height="8" rx="1"/></svg>Save as PDF</button>
+          <!-- KPI STRIP -->
+          <div class="ck-kpi-row">
+            <div class="ck-kpi" id="ckKpiOpportunity">
+              <div class="kl">Opportunity score<button type="button" class="ki">i</button></div>
+              <div class="ring-row"><div class="ring-wrap"></div></div>
+              <div class="ktag"></div>
+              <div class="ck-tooltip">Combines savings potential, roof/land available, and how fast your tariff is rising. Higher = solar moves the needle more for this site.</div>
+            </div>
+            <div class="ck-kpi" id="ckKpiConfidence">
+              <div class="kl">Data confidence<button type="button" class="ki">i</button></div>
+              <div class="ring-row"><div class="ring-wrap"></div></div>
+              <div class="ktag"></div>
+              <div class="ck-tooltip">How much of the information we'd want has been provided — not a certainty guarantee. See the Assumptions panel below for exactly what's missing.</div>
+            </div>
+            <div class="ck-kpi" id="ckKpiCostToday">
+              <div class="kl">Cost today → projected<button type="button" class="ki">i</button></div>
+              <div class="kv">—</div>
+              <div class="kwhy"></div>
+              <div class="ck-tooltip">Projected using your own tariff-escalation assumption from Step 3 — editable in the Assumptions panel below.</div>
+            </div>
+            <div class="ck-kpi" id="ckKpiSaving">
+              <div class="kl">Estimated saving<button type="button" class="ki">i</button></div>
+              <div class="kv">—</div>
+              <div class="ktag"></div>
+              <div class="ck-tooltip">Modelled Year-1 saving from solar offsetting part of your bill, based on your load timing and resilience choice.</div>
+            </div>
+            <div class="ck-kpi" id="ckKpiSystem">
+              <div class="kl">Recommended system<button type="button" class="ki">i</button></div>
+              <div class="kv">—</div>
+              <div class="kwhy"></div>
+              <div class="ck-tooltip">Sized to your daytime load using your assumed sun hours and performance ratio — confirmed after a site assessment.</div>
+            </div>
+            <div class="ck-kpi" id="ckKpiCoverage">
+              <div class="kl">Coverage &amp; resilience<button type="button" class="ki">i</button></div>
+              <div class="kv">—</div>
+              <div class="kwhy"></div>
+              <div class="ck-tooltip">Share of your load solar is sized to cover, plus a modelled battery-runtime estimate for critical loads if your resilience setting includes storage.</div>
+            </div>
+            <div class="ck-kpi" id="ckKpiSite">
+              <div class="kl">Site &amp; confidence<button type="button" class="ki">i</button></div>
+              <div class="kv">—</div>
+              <div class="kwhy"></div>
+              <div class="ck-tooltip">Your province sets the default sun-hours assumption above — edit it any time in Step 2.</div>
+            </div>
+          </div>
+
+          <!-- PRIMARY DECISION VIEW -->
+          <div class="ck-panel">
+            <div class="ck-panel-head">
+              <div><h4>20-year cost comparison</h4><div class="ck-sub" style="margin:2px 0 0;">Every route, same assumptions.</div></div>
+              <div class="ck-seg" id="ckChartSeg">
+                <button type="button" class="active" data-mode="cum">Cumulative</button>
+                <button type="button" data-mode="cash">Cash flow</button>
+                <button type="button" data-mode="npv">NPV</button>
+              </div>
+            </div>
+            <div class="ck-legend" id="ckChartLegend"></div>
+            <div class="ck-two-col">
+              <div class="ck-chart-wrap">
+                <svg id="ckChart" viewBox="0 0 640 260" preserveAspectRatio="xMidYMid meet"></svg>
+                <div class="ck-tooltip-float" id="ckChartTooltip"></div>
+              </div>
+              <div class="ck-rec-stack" id="ckRecStack"></div>
+            </div>
+          </div>
+
+          <!-- LOAD & GENERATION MATCH -->
+          <div class="ck-panel">
+            <div class="ck-panel-head">
+              <div><h4>Load &amp; generation match</h4><div class="ck-sub" style="margin:2px 0 0;">An illustrative daily shape built from your answers — not measured interval data (upload that in Step 1 to sharpen it).</div></div>
+              <div class="ck-seg" id="ckLoadSeg">
+                <button type="button" class="active" data-v="weekday">Weekday</button>
+                <button type="button" data-v="weekend">Weekend</button>
+                <button type="button" data-v="seasonal">Seasonal</button>
+              </div>
+            </div>
+            <div class="ck-load-legend"><span><i style="background:#111111;"></i>Load (illustrative)</span><span><i style="background:var(--forest);"></i>Solar generation</span></div>
+            <svg id="ckLoadChart" viewBox="0 0 560 190" preserveAspectRatio="xMidYMid meet"></svg>
+            <div id="ckCritRows" style="margin-top:8px;"></div>
+            <div class="ck-callout" id="ckPeakCallout" style="display:none;"></div>
+          </div>
+
+          <!-- FUNDING OPTIONS -->
+          <div class="ck-panel">
+            <h4>Compare funding options</h4>
+            <div class="ck-sub" style="margin:2px 0 12px;">Zero-upfront through to full ownership — pick the lever that fits your cash position.</div>
+            <div class="ck-fund-grid" id="ckFundGrid"></div>
+            <div class="ck-sens-wrap">
+              <table class="ck-sens">
+                <thead><tr><th>If assumptions shift</th><th>PPA</th><th>Rent-to-Own</th><th>Bank finance</th><th>Outright</th></tr></thead>
+                <tbody id="ckSensBody"></tbody>
+              </table>
+            </div>
+            <div class="ck-sub" style="margin-top:10px;">20-year cost, shown as the change vs. today's base case. Green = that route comes out ahead under the shift; red = it costs more. A plain-English "what if" for a board pack, not a modelling tool.</div>
+          </div>
+
+          <!-- RISK & RESILIENCE -->
+          <div class="ck-panel">
+            <h4>Risk &amp; resilience</h4>
+            <div class="ck-risk-grid">
+              <div class="ck-risk-col">
+                <h5>Tariff exposure — 5-year outlook <span class="ck-tag" id="ckRiskTag"></span></h5>
+                <svg id="ckRiskChart" viewBox="0 0 260 110" preserveAspectRatio="xMidYMid meet"></svg>
+                <div class="ck-sub" id="ckRiskNote" style="margin-top:6px;"></div>
+              </div>
+              <div class="ck-risk-col">
+                <h5>Diesel / outage displacement</h5>
+                <div id="ckDieselBlock"></div>
+                <h5 style="margin-top:14px;">Backup today</h5>
+                <div class="ck-sub" id="ckBackupBlock"></div>
+              </div>
+              <div class="ck-risk-col">
+                <h5>Battery runtime</h5>
+                <div id="ckBatteryRows"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ASSUMPTIONS & DATA CONFIDENCE -->
+          <div class="ck-panel">
+            <div class="ck-panel-head">
+              <div><h4>Assumptions &amp; data confidence</h4><div class="ck-sub" style="margin:2px 0 0;">Editable — every chart above updates instantly.</div></div>
+              <button type="button" class="ck-reset-link" id="ckAssumpReset">Reset to defaults</button>
+            </div>
+            <div class="ck-assump-bar">
+              <label class="ck-achip">Tariff escalation <input type="number" id="ckAssumpEsc" step="0.5" min="0"><span class="u">%/yr</span></label>
+              <label class="ck-achip">Specific yield <input type="number" id="ckAssumpYield" step="0.1" min="3"><span class="u">sun-hrs/day</span></label>
+              <label class="ck-achip">Cost per kWp <input type="number" id="ckAssumpCost" step="500" min="0"><span class="u">R</span></label>
+            </div>
+            <div class="ck-conf-grid">
+              <div class="ring-wrap" id="ckConfRing"></div>
+              <div id="ckConfList"></div>
+            </div>
+            <h5 style="font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray);margin:12px 0 4px;">Suggested next steps</h5>
+            <div id="ckAiList"></div>
+          </div>
+
+          <!-- SITE & SYSTEM SNAPSHOT -->
+          <div class="ck-panel">
+            <h4>Site &amp; system snapshot</h4>
+            <div class="ck-sub" id="ckSiteLoc" style="font-size:13px;font-weight:700;color:var(--charcoal);margin:6px 0 12px;"></div>
+            <div class="ck-site-split">
+              <div class="ck-site-badge"><svg class="icn" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19.43 12.935c.357-.967.57-1.955.57-2.935a8 8 0 0 0-16 0c0 4.993 5.539 10.193 7.399 11.799a1 1 0 0 0 1.202 0 32.197 32.197 0 0 0 .813-.728"/><circle cx="12" cy="10" r="3"/></svg></div>
+              <dl class="ck-sys-facts" id="ckSiteFacts"></dl>
+            </div>
+          </div>
+
+          <!-- ONE CLICK DEEPER -->
+          <div class="ck-panel">
+            <h4>One click deeper</h4>
+            <div class="ck-sub" style="margin:2px 0 12px;">Optional detail — nothing here is required reading.</div>
+            <div class="ck-deeper-row" id="ckDeeperRow">
+              <button type="button" class="ck-deeper" data-k="payback"><h5>Payback &amp; IRR</h5><p>Simple payback and modelled internal rate of return.</p></button>
+              <button type="button" class="ck-deeper" data-k="waterfall"><h5>Year-1 cash flow</h5><p>Bill → savings → payment → net monthly position.</p></button>
+              <button type="button" class="ck-deeper" data-k="stage"><h5>Stage the system</h5><p>Split the build into solar-first, storage-second.</p></button>
+              <button type="button" class="ck-deeper" data-k="docs"><h5>Document checklist</h5><p>What's received, what's still needed.</p></button>
+            </div>
+            <div class="ck-deep-detail" id="ckDeepDetail"></div>
+          </div>
+
         </div>
-        <div class="hint" id="meetingFallbackMsg" style="display:none;text-align:center;margin-top:10px;">Our team confirms exact times by WhatsApp or email — send your snapshot above and we'll get a review booked in.</div>
-        <button class="copy-link" id="copyBtn" type="button"><svg class="icn icn-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy full handover</button>
-        <div class="ref-code" id="refCode"></div>
-        <div class="savedmsg" id="sendSavedMsg" style="text-align:center;">Copied — paste it into WhatsApp, email, or anywhere else.</div>
-        <div class="phone-fallback" id="phoneFallback"></div>
+        <!-- ================= /DECISION COCKPIT ================= -->
+
+        <!-- ACTION LAYER -->
+        <div class="ck-action-bar" id="ckActionBar">
+          <label for="clientName">Your name</label>
+          <div class="grid2">
+            <div>
+              <input type="text" id="clientName" placeholder="e.g. Anna van der Merwe">
+            </div>
+            <div>
+              <label for="clientContact" style="margin-top:0;">Phone or email</label>
+              <input type="text" id="clientContact" placeholder="e.g. 082 000 0000 or anna@site.co.za">
+            </div>
+          </div>
+          <div style="height:14px;"></div>
+          <label for="clientNotes">Anything you'd like Chariot to know (optional)</label>
+          <textarea id="clientNotes" rows="3" placeholder="e.g. Two pivots on separate meters, keen to move fast before the next tariff increase." style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:7px;font-size:14px;color:var(--charcoal);resize:vertical;font-family:Calibri,Arial,sans-serif;"></textarea>
+
+          <div class="err" id="sendWarnMsg" style="display:none;">Add your name and phone or email above so our team can follow up — or click again to continue without them.</div>
+
+          <div class="send-grid">
+            <button class="btn-primary" id="waBtn" type="button" style="background:#2E8B57;"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 21l2.05-5.4A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 10.5c.4 2.4 2.6 4.6 5 5"/></svg>WhatsApp Chariot</button>
+            <a class="btn-ghost" id="emailBtn" href="#"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>Email full snapshot</a>
+            <a class="btn-ghost" id="meetingBtn" href="#" target="_blank" rel="noopener"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 14v2.2l1.6 1"/><path d="M16 2v4"/><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M3 10h5"/><path d="M8 2v4"/><circle cx="16" cy="16" r="6"/></svg>Book / request review</a>
+            <button class="btn-ghost" id="pdfBtn" type="button"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h9l5 5v15H6v-4"/><path d="M14 2v6h6"/><rect x="1" y="13" width="12" height="8" rx="1"/></svg>Save as PDF</button>
+          </div>
+          <div class="hint" id="meetingFallbackMsg" style="display:none;text-align:center;margin-top:10px;">Our team confirms exact times by WhatsApp or email — send your snapshot above and we'll get a review booked in.</div>
+          <button class="copy-link" id="copyBtn" type="button"><svg class="icn icn-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy full handover</button>
+          <div class="ref-code" id="refCode"></div>
+          <div class="savedmsg" id="sendSavedMsg" style="text-align:center;">Copied — paste it into WhatsApp, email, or anywhere else.</div>
+          <div class="phone-fallback" id="phoneFallback"></div>
+          <div class="ck-adisc">Pre-feasibility only. Final numbers are confirmed after a site visit, credit approval and funder terms — nothing above is a guaranteed saving or a quotation.</div>
+        </div>
 
         <div class="step-nav">
           <button class="btn-ghost" data-back="3" type="button">← Back</button>
@@ -861,6 +1190,10 @@
       btn.classList.toggle("current", s===n);
       btn.classList.toggle("done", s < n);
     });
+    // Step 4 is the Decision Cockpit — it wants the full page width, so the live
+    // sidebar (which is most useful while still filling in Steps 1-3) steps aside.
+    document.querySelector(".wizard-grid").classList.toggle("step4-wide", n===4);
+    $("dashPanel").style.display = (n===4) ? "none" : "";
     // Skipped on first paint (see call below) so a fresh visit lands on the brand header,
     // hero copy and quick-start options instead of jumping straight to the form.
     if (!skipScroll){
@@ -1357,8 +1690,6 @@
     var capex = kwpMid*costPerKwp + batteryKwhMid*batteryCostPerKwh;
 
     var annualBase = monthlyBill*12;
-    function residual(y){ return annualBase*(1-offsetCeiling)*Math.pow(1+esc, y-1); }
-    function gridFull(y){ return annualBase*Math.pow(1+esc, y-1); }
 
     var bankRate = parseFloat($("bankRate").value) || 15;
     var bankTerm = parseFloat($("bankTerm").value) || 5;
@@ -1373,27 +1704,20 @@
     var ppaDiscount = (parseFloat($("ppaDiscount").value) || 15)/100;
     var ppaEsc = (parseFloat($("ppaEscalation").value) || 6)/100;
     var ppaOffsetAnnual0 = annualBase*offsetCeiling;
-    function ppaOffset(y){ return ppaOffsetAnnual0*(1-ppaDiscount)*Math.pow(1+ppaEsc, y-1); }
 
-    var years = { grid:[], purchase:[], bank:[], rent:[], ppa:[] };
+    var series = computeRouteSeries({
+      annualBase:annualBase, esc:esc, offsetCeiling:offsetCeiling, capex:capex, deposit:deposit,
+      bankAnnual:bankAnnual, bankTerm:bankTerm, rtoAnnual:rtoAnnual, rtoTerm:rtoTerm,
+      ppaOffsetAnnual0:ppaOffsetAnnual0, ppaDiscount:ppaDiscount, ppaEsc:ppaEsc
+    });
+    var years = series.years;
     var routes = {
-      grid:{ upfront:0, cum:0, label:"Grid only", sub:"No energy asset" },
-      purchase:{ upfront:capex, cum:0, label:"Outright purchase", sub:"Owned from day one" },
-      bank:{ upfront:deposit, cum:0, label:"Bank / asset finance", sub:"Owned; finance modelled over "+bankTerm+" years" },
-      rent:{ upfront:0, cum:0, label:"Rent-to-Own", sub:"Ownership after "+rtoTerm+" years" },
-      ppa:{ upfront:0, cum:0, label:"PPA", sub:"Service model; illustrative discount" }
+      grid:{ upfront:0, cum:series.cum.grid, label:"Grid only", sub:"No energy asset" },
+      purchase:{ upfront:capex, cum:series.cum.purchase, label:"Outright purchase", sub:"Owned from day one" },
+      bank:{ upfront:deposit, cum:series.cum.bank, label:"Bank / asset finance", sub:"Owned; finance modelled over "+bankTerm+" years" },
+      rent:{ upfront:0, cum:series.cum.rent, label:"Rent-to-Own", sub:"Ownership after "+rtoTerm+" years" },
+      ppa:{ upfront:0, cum:series.cum.ppa, label:"PPA", sub:"Service model; illustrative discount" }
     };
-    years.grid.push({y:0,v:0}); years.purchase.push({y:0,v:routes.purchase.upfront}); years.bank.push({y:0,v:routes.bank.upfront}); years.rent.push({y:0,v:0}); years.ppa.push({y:0,v:0});
-    var cumG=0,cumP=routes.purchase.upfront,cumB=routes.bank.upfront,cumR=0,cumPPA=0;
-    for (var y=1;y<=20;y++){
-      cumG += gridFull(y);
-      cumP += residual(y);
-      cumB += residual(y) + (y<=bankTerm?bankAnnual:0);
-      cumR += residual(y) + (y<=rtoTerm?rtoAnnual:0);
-      cumPPA += residual(y) + ppaOffset(y);
-      years.grid.push({y:y,v:cumG}); years.purchase.push({y:y,v:cumP}); years.bank.push({y:y,v:cumB}); years.rent.push({y:y,v:cumR}); years.ppa.push({y:y,v:cumPPA});
-    }
-    routes.grid.cum = cumG; routes.purchase.cum = cumP; routes.bank.cum = cumB; routes.rent.cum = cumR; routes.ppa.cum = cumPPA;
 
     var PRIORITY_ROUTE = { cashflow:"ppa", ownership:"bank", roi:"purchase" };
     var recommendedKey = PRIORITY_ROUTE[state.priority] || "purchase";
@@ -1430,13 +1754,39 @@
       offsetCeiling: offsetCeiling, kwpLow: kwpLow, kwpMid: kwpMid, kwpHigh: kwpHigh,
       capex: capex, systemRoute: systemRoute, isHybrid: isHybrid,
       batteryLow: batteryLow, batteryHigh: batteryHigh,
-      routes: routes, years: years, recommendedKey: recommendedKey,
+      routes: routes, years: years, annualCost: series.annualCost, recommendedKey: recommendedKey,
       confidence: confidence, confLabel: confLabel, fit: fit, fitLabel: fitLabel,
       payback: payback, historyMonths: historyMonths, peakDemand: peakDemand, solarSpace: solarSpace,
       dieselSpend: dieselSpend, existingBackup: $("existingBackup").value, resilience: resilience,
       yearOneValue: annualBase*offsetCeiling, tariffProvided: !!$("rate").value,
-      dieselAnnual: dieselAnnual, dieselOffsetFrac: dieselOffsetFrac, dieselAnnualSaving: dieselAnnualSaving
+      dieselAnnual: dieselAnnual, dieselOffsetFrac: dieselOffsetFrac, dieselAnnualSaving: dieselAnnualSaving,
+      // ---- extra fields for the Decision Cockpit (Step 4) — same engine, just exposed ----
+      esc: esc, sunHours: sunHours, costPerKwp: costPerKwp, province: $("province").value,
+      sector: state.sector, subsector: $("subsector").value, loadTiming: loadTiming, priority: state.priority,
+      __bankAnnual: bankAnnual, __bankTerm: bankTerm, __rtoAnnual: rtoAnnual, __rtoTerm: rtoTerm,
+      __ppaOffsetAnnual0: ppaOffsetAnnual0, __ppaDiscount: ppaDiscount, __ppaEsc: ppaEsc
     };
+  }
+
+  // Shared by compute() (the real result) and the Decision Cockpit's scenario/sensitivity
+  // previews (same formulas, different inputs) — kept in one place so the two never drift apart.
+  function computeRouteSeries(p){
+    function residual(y){ return p.annualBase*(1-p.offsetCeiling)*Math.pow(1+p.esc, y-1); }
+    function gridFull(y){ return p.annualBase*Math.pow(1+p.esc, y-1); }
+    function ppaOffset(y){ return p.ppaOffsetAnnual0*(1-p.ppaDiscount)*Math.pow(1+p.ppaEsc, y-1); }
+    var years = { grid:[], purchase:[], bank:[], rent:[], ppa:[] };
+    var annualCost = { grid:[], purchase:[], bank:[], rent:[], ppa:[] };
+    years.grid.push({y:0,v:0}); years.purchase.push({y:0,v:p.capex}); years.bank.push({y:0,v:p.deposit}); years.rent.push({y:0,v:0}); years.ppa.push({y:0,v:0});
+    var cumG=0,cumP=p.capex,cumB=p.deposit,cumR=0,cumPPA=0;
+    for (var y=1;y<=20;y++){
+      var cG=gridFull(y), cP=residual(y), cB=residual(y)+(y<=p.bankTerm?p.bankAnnual:0), cR=residual(y)+(y<=p.rtoTerm?p.rtoAnnual:0), cPPA=residual(y)+ppaOffset(y);
+      cumG+=cG; cumP+=cP; cumB+=cB; cumR+=cR; cumPPA+=cPPA;
+      years.grid.push({y:y,v:cumG}); years.purchase.push({y:y,v:cumP}); years.bank.push({y:y,v:cumB}); years.rent.push({y:y,v:cumR}); years.ppa.push({y:y,v:cumPPA});
+      annualCost.grid.push(cG); annualCost.purchase.push(cP); annualCost.bank.push(cB); annualCost.rent.push(cR); annualCost.ppa.push(cPPA);
+    }
+    return { years:years, annualCost:annualCost,
+      cum:{ grid:cumG, purchase:cumP, bank:cumB, rent:cumR, ppa:cumPPA },
+      upfront:{ grid:0, purchase:p.capex, bank:p.deposit, rent:0, ppa:0 } };
   }
 
   var ROUTE_ORDER = ["grid","purchase","bank","rent","ppa"];
@@ -1531,7 +1881,7 @@
     $("snapKwp").textContent = result.kwpLow.toFixed(0) + "–" + result.kwpHigh.toFixed(0) + " kWp";
     $("snapCapex").textContent = fmtR(result.capex);
     $("snapYearOne").textContent = fmtR(result.yearOneValue);
-    $("snapRoute").innerHTML = result.routes[result.recommendedKey].label + '<span class="fit-badge" id="snapFitBadge">FIT</span>';
+    $("snapRoute").innerHTML = result.routes[result.recommendedKey].label + '<span class="fit-badge" id="snapFitBadge">RECOMMENDED</span>';
     $("snapConfidence").textContent = result.confLabel + " (" + result.confidence + "/100)";
     $("snapFit").textContent = result.fitLabel + " (" + result.fit + "/100)";
     $("snapSub").textContent = "This snapshot reflects everything entered across Steps 1–3. Share it below, or go back to refine any answer — the numbers update instantly.";
@@ -1546,6 +1896,7 @@
     emptyBanner.style.display = result.hasInput ? "none" : "block";
 
     renderStep4Summary(result);
+    if (typeof renderCockpit === "function") renderCockpit(result);
 
     var dieselCard = $("dieselCard");
     if (result.hasInput && result.dieselSpend > 0){
@@ -1584,7 +1935,7 @@
     $("routeTableBody").innerHTML = ROUTE_ORDER.map(function(key){
       var r = result.routes[key];
       var isFit = key === result.recommendedKey;
-      return '<tr class="'+(isFit?"fit":"")+'"><td><span class="route-dot" style="background:'+ROUTE_COLOR[key]+';"></span>'+r.label+(isFit?'<span class="fit-badge">FIT</span>':'')+'<div style="font-size:10.5px;color:var(--gray);font-weight:400;margin-top:2px;">'+r.sub+'</div></td><td>'+fmtR(r.upfront)+'</td><td>'+fmtR(r.cum)+'</td></tr>';
+      return '<tr class="'+(isFit?"fit":"")+'"><td><span class="route-dot" style="background:'+ROUTE_COLOR[key]+';"></span>'+r.label+(isFit?'<span class="fit-badge">RECOMMENDED</span>':'')+'<div style="font-size:10.5px;color:var(--gray);font-weight:400;margin-top:2px;">'+r.sub+'</div></td><td>'+fmtR(r.upfront)+'</td><td>'+fmtR(r.cum)+'</td></tr>';
     }).join("");
 
     $("outcomePayback").textContent = result.payback>0 ? result.payback.toFixed(1) + " years" : "—";
@@ -1812,6 +2163,541 @@
       text.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</div>";
     window.print();
   });
+
+
+  // ============================================================================
+  // DECISION COCKPIT — full results view shown at Step 4.
+  // Everything below reads from the SAME compute() engine above (no separate
+  // data source, no fabricated figures). Where a figure would require data the
+  // tool doesn't actually collect (a real address pin, measured interval load,
+  // a grid-outage record), the panel says so plainly instead of inventing one.
+  // ============================================================================
+  var DISCOUNT_RATE = 0.10; // used only for the NPV chart mode — a labelled planning assumption, not a client-specific figure
+  var ckState = { chartMode:"cum", loadMode:"weekday", scenario:"base", deepOpen:null };
+
+  function ckFmtSigned(n){
+    var s = fmtR(Math.abs(Math.round(n)));
+    return (n>=0?"+":"–") + s;
+  }
+
+  // ---- editable assumption chips mirror the Step-3 fields two-way ----
+  function ckWireAssumptionMirror(cockpitId, sourceId, isPct){
+    var ck = $(cockpitId), src = $(sourceId);
+    if (!ck || !src) return;
+    ck.value = src.value;
+    ck.addEventListener("input", function(){ src.value = ck.value; recompute(); });
+    src.addEventListener("input", function(){ if (document.activeElement !== ck) ck.value = src.value; });
+  }
+
+  function ckDefaultAssumptions(){
+    $("escalation").value = 9; $("sunhours").value = 4.8; costPerKwpTouched = false; sunHoursTouched = false;
+    $("costPerKwp").value = defaultCostPerKwp(state.resilience !== "cost");
+    recompute();
+  }
+
+  // ---- scenario switcher: a "what if" lens over the cost-projection curves only.
+  // It never touches the real Step-3 inputs or the system sizing/capex figures —
+  // only the escalation rate used for the cockpit's own charts and sensitivity table. ----
+  var SCENARIOS = {
+    base: { label:"Base Case", escDelta:0 },
+    high: { label:"High Escalation", escDelta:0.03 },
+    conservative: { label:"Conservative", escDelta:-0.03 }
+  };
+  function ckScenarioEsc(baseEsc){
+    var s = SCENARIOS[ckState.scenario] || SCENARIOS.base;
+    return Math.max(0.02, baseEsc + s.escDelta);
+  }
+
+  // ============================================================================
+  // KPI STRIP
+  // ============================================================================
+  function ckRingSVG(pct, color){
+    pct = Math.max(0, Math.min(100, pct));
+    var r = 15, c = 2*Math.PI*r;
+    var off = c*(1-pct/100);
+    return '<svg width="38" height="38" viewBox="0 0 38 38">' +
+      '<circle cx="19" cy="19" r="'+r+'" fill="none" stroke="var(--line)" stroke-width="4"></circle>' +
+      '<circle cx="19" cy="19" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 19 19)"></circle>' +
+      '</svg>';
+  }
+  function ckKpiTooltipToggle(id){
+    var kpi = $(id);
+    if (!kpi) return;
+    var btn = kpi.querySelector(".ki");
+    if (!btn) return;
+    btn.addEventListener("click", function(evt){
+      evt.stopPropagation();
+      var wasOpen = kpi.classList.contains("tt-open");
+      document.querySelectorAll(".ck-kpi.tt-open").forEach(function(k){ k.classList.remove("tt-open"); });
+      if (!wasOpen) kpi.classList.add("tt-open");
+    });
+  }
+  document.addEventListener("click", function(){ document.querySelectorAll(".ck-kpi.tt-open").forEach(function(k){ k.classList.remove("tt-open"); }); });
+  ["ckKpiOpportunity","ckKpiConfidence","ckKpiCostToday","ckKpiSaving","ckKpiSystem","ckKpiCoverage","ckKpiSite"].forEach(ckKpiTooltipToggle);
+
+  function renderKpiStrip(r){
+    var fitColor = r.fit>=70?"var(--forest)":(r.fit>=40?"var(--bronze)":"var(--gray)");
+    $("ckKpiOpportunity").querySelector(".ring-wrap").innerHTML = ckRingSVG(r.fit, fitColor) + '<div class="ring-num">'+r.fit+'</div>';
+    $("ckKpiOpportunity").querySelector(".ktag").innerHTML = '<span class="ck-tag '+(r.fit>=70?"good":(r.fit>=40?"warn":"bad"))+'">'+r.fitLabel+' fit</span>';
+
+    var confColor = r.confidence>=70?"var(--forest)":(r.confidence>=40?"var(--bronze)":"var(--gray)");
+    $("ckKpiConfidence").querySelector(".ring-wrap").innerHTML = ckRingSVG(r.confidence, confColor) + '<div class="ring-num">'+r.confidence+'</div>';
+    $("ckKpiConfidence").querySelector(".ktag").innerHTML = '<span class="ck-tag '+(r.confidence>=70?"good":(r.confidence>=40?"warn":"bad"))+'">'+r.confLabel+'</span>';
+
+    var projected5 = r.hasInput ? (r.annualCost.grid[4]/12) : 0;
+    $("ckKpiCostToday").querySelector(".kv").innerHTML = fmtR(r.monthlyBill) + '<small>/mo today</small>';
+    $("ckKpiCostToday").querySelector(".kwhy").textContent = r.hasInput ? ("→ " + fmtR(projected5) + "/mo by Year 5 at " + Math.round(r.esc*100) + "%/yr grid escalation") : "Add your bill to see this project forward.";
+
+    $("ckKpiSaving").querySelector(".kv").innerHTML = fmtR(r.yearOneValue/12) + '<small>/mo</small>';
+    $("ckKpiSaving").querySelector(".ktag").innerHTML = r.hasInput ? '<span class="ck-tag good">'+Math.round(r.offsetCeiling*100)+'% reduction</span>' : "";
+
+    $("ckKpiSystem").querySelector(".kv").innerHTML = r.hasInput ? (r.kwpLow.toFixed(0)+"–"+r.kwpHigh.toFixed(0)+' <small>kWp</small>' + (r.isHybrid ? ' + '+Math.round(r.batteryLow)+'–'+Math.round(r.batteryHigh)+' <small>kWh</small>' : "")) : "—";
+    $("ckKpiSystem").querySelector(".kwhy").textContent = r.hasInput ? "Sized to your daytime load — bigger isn't always better for payback." : "Add your bill and site details to size a system.";
+
+    $("ckKpiCoverage").querySelector(".kv").innerHTML = r.hasInput ? (Math.round(r.offsetCeiling*100)+'% <small>solar</small>') : "—";
+    $("ckKpiCoverage").querySelector(".kwhy").textContent = r.hasInput ? (r.isHybrid ? ckCriticalHoursLabel(r) : "No battery in this design — cost-first, grid covers the rest.") : "";
+
+    var provLabel = r.province ? PROVINCE_LABEL[r.province] : "Not specified";
+    $("ckKpiSite").querySelector(".kv").innerHTML = provLabel;
+    $("ckKpiSite").querySelector(".kwhy").textContent = r.hasInput ? ((r.sunHours||4.8)+" sun hrs/day assumed · "+r.confLabel.toLowerCase()+" data confidence") : "Add your province for a location-based estimate.";
+  }
+
+  function ckCriticalHoursLabel(r){
+    if (!r.isHybrid) return "";
+    var criticalKw = ((r.monthlyKwh/30)/24) * (r.resilience==="continuity"?0.55:0.30);
+    var hrs = criticalKw>0 ? (((r.batteryLow+r.batteryHigh)/2) / criticalKw) : 0;
+    return hrs>0 ? (hrs.toFixed(1)+" hrs of modelled critical-load battery cover") : "Battery sized for backup — hours depend on which loads are marked critical.";
+  }
+
+  // ============================================================================
+  // PRIMARY DECISION VIEW — 20-year chart (Cumulative / Cash flow / NPV) + recs
+  // ============================================================================
+  function ckBuildScenarioSeries(r){
+    var esc = ckScenarioEsc(r.esc);
+    return computeRouteSeries({
+      annualBase:r.annualBase, esc:esc, offsetCeiling:r.offsetCeiling, capex:r.capex,
+      deposit:r.routes.bank.upfront, bankAnnual:r.__bankAnnual, bankTerm:r.__bankTerm,
+      rtoAnnual:r.__rtoAnnual, rtoTerm:r.__rtoTerm, ppaOffsetAnnual0:r.__ppaOffsetAnnual0,
+      ppaDiscount:r.__ppaDiscount, ppaEsc:r.__ppaEsc
+    });
+  }
+
+  function ckNpvSeries(series, routeKey){
+    var out = [{y:0, v: series.upfront[routeKey]}];
+    var running = series.upfront[routeKey];
+    for (var y=1; y<=20; y++){
+      running += series.annualCost[routeKey][y-1] / Math.pow(1+DISCOUNT_RATE, y);
+      out.push({y:y, v:running});
+    }
+    return out;
+  }
+  function ckCashSeries(series, routeKey){
+    var out = [{y:0, v:0}];
+    for (var y=1; y<=20; y++) out.push({y:y, v: series.annualCost[routeKey][y-1]});
+    return out;
+  }
+
+  function renderCkChart(r){
+    if (!r.hasInput) { $("ckChart").innerHTML=""; $("ckChartLegend").innerHTML=""; return; }
+    var series = ckBuildScenarioSeries(r);
+    var svg = $("ckChart");
+    var W = 640, H = 260, padL = 54, padR = 16, padT = 14, padB = 26;
+    var svgns = "http://www.w3.org/2000/svg";
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    function el(tag, attrs){ var e = document.createElementNS(svgns, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+    var seriesByRoute = {};
+    ROUTE_ORDER.forEach(function(key){
+      seriesByRoute[key] = ckState.chartMode==="cum" ? series.years[key] : (ckState.chartMode==="cash" ? ckCashSeries(series, key) : ckNpvSeries(series, key));
+    });
+    var allVals = [];
+    ROUTE_ORDER.forEach(function(key){ seriesByRoute[key].forEach(function(p){ allVals.push(p.v); }); });
+    var maxVal = Math.max.apply(null, allVals) * 1.08;
+    var minVal = Math.min(0, Math.min.apply(null, allVals));
+    if (!isFinite(maxVal) || maxVal<=0) maxVal = 1;
+    function xPos(y){ return padL + (y/20) * (W-padL-padR); }
+    function yPos(v){ return H-padB - ((v-minVal)/(maxVal-minVal)) * (H-padT-padB); }
+
+    var ticks = 4;
+    for (var i=0;i<=ticks;i++){
+      var v = minVal + (maxVal-minVal)*i/ticks, yy = yPos(v);
+      svg.appendChild(el("line",{x1:padL,y1:yy,x2:W-padR,y2:yy,stroke:"#E9EDEE","stroke-width":1}));
+      var t = el("text",{x:padL-8,y:yy+3,"text-anchor":"end",style:"font-size:9.5px;fill:#62676B;font-family:Calibri,Arial,sans-serif;"});
+      t.textContent = fmtRk(v); svg.appendChild(t);
+    }
+    [0,5,10,15,20].forEach(function(yr){
+      var t = el("text",{x:xPos(yr),y:H-8,"text-anchor":"middle",style:"font-size:9.5px;fill:#62676B;font-family:Calibri,Arial,sans-serif;"});
+      t.textContent = "Y"+yr; svg.appendChild(t);
+    });
+    if (minVal < 0){ var zy = yPos(0); svg.appendChild(el("line",{x1:padL,y1:zy,x2:W-padR,y2:zy,stroke:"#62676B","stroke-width":1})); }
+
+    ROUTE_ORDER.forEach(function(key){
+      var pts = seriesByRoute[key];
+      var d = pts.map(function(p,idx){ return (idx===0?"M":"L") + xPos(p.y).toFixed(1) + "," + yPos(p.v).toFixed(1); }).join(" ");
+      var color = getComputedStyle(document.documentElement).getPropertyValue(ROUTE_COLOR[key].match(/--[\w-]+/)[0]).trim() || "#999";
+      svg.appendChild(el("path",{d:d, fill:"none", stroke: color, "stroke-width": key==="grid"?2:2.6, "stroke-dasharray": key==="grid"?"5,4":"none", "stroke-linecap":"round", opacity: key===r.recommendedKey?1:0.8}));
+    });
+
+    var hoverLine = el("line",{x1:0,y1:padT,x2:0,y2:H-padB,stroke:"#111111","stroke-width":1,opacity:0});
+    svg.appendChild(hoverLine);
+    var hoverRect = el("rect",{x:padL,y:padT,width:W-padL-padR,height:H-padT-padB,fill:"transparent"});
+    svg.appendChild(hoverRect);
+    var tooltip = $("ckChartTooltip");
+    var modeLabel = ckState.chartMode==="cum" ? "Cumulative to Year " : (ckState.chartMode==="cash" ? "Annual cost, Year " : "NPV to Year ");
+    function showAt(clientX){
+      var rect = svg.getBoundingClientRect();
+      var mx = (clientX - rect.left) * (W/rect.width);
+      var yearIdx = Math.max(0, Math.min(20, Math.round(((mx-padL)/(W-padL-padR))*20)));
+      var px = xPos(yearIdx);
+      hoverLine.setAttribute("x1", px); hoverLine.setAttribute("x2", px); hoverLine.setAttribute("opacity", 1);
+      var pctX = px/W;
+      var wrapRect = svg.parentElement.getBoundingClientRect();
+      tooltip.style.left = Math.min(wrapRect.width-230, Math.max(0, (rect.left - wrapRect.left + pctX*rect.width) - 100)) + "px";
+      tooltip.style.top = "8px";
+      var lines = "<b>"+modeLabel+yearIdx+"</b><br>";
+      ROUTE_ORDER.forEach(function(key){ lines += result_routeLabel(r,key) + " : " + fmtRk(seriesByRoute[key][yearIdx].v) + "<br>"; });
+      if (yearIdx===8) lines += "<span style=\"opacity:.7;\">Grid tariff compounds past 2× today's rate around here at "+Math.round(ckScenarioEsc(r.esc)*100)+"%/yr.</span>";
+      tooltip.innerHTML = lines;
+      tooltip.style.opacity = 1;
+    }
+    hoverRect.addEventListener("mousemove", function(evt){ showAt(evt.clientX); });
+    hoverRect.addEventListener("mouseleave", function(){ hoverLine.setAttribute("opacity",0); tooltip.style.opacity = 0; });
+    hoverRect.addEventListener("touchstart", function(evt){ var t=evt.touches[0]; if(t){ evt.preventDefault(); showAt(t.clientX); } }, {passive:false});
+    hoverRect.addEventListener("touchmove", function(evt){ var t=evt.touches[0]; if(t){ evt.preventDefault(); showAt(t.clientX); } }, {passive:false});
+
+    $("ckChartLegend").innerHTML = ROUTE_ORDER.map(function(key){ return '<span><i style="background:'+ROUTE_COLOR[key]+';"></i>'+result_routeLabel(r,key)+'</span>'; }).join("");
+  }
+  function result_routeLabel(r, key){ return r.routes[key].label; }
+
+  function renderCkRecs(r){
+    if (!r.hasInput){ $("ckRecStack").innerHTML = '<div class="ck-sub">Add your bill in Step 1 to see recommendations here.</div>'; return; }
+    var fundingKeys = ["purchase","bank","rent","ppa"];
+    var lowestKey = fundingKeys.reduce(function(a,b){ return r.routes[a].cum < r.routes[b].cum ? a : b; });
+    var cards = [];
+    var priorityText = { cashflow:"preserving cash flow", ownership:"eventual ownership", roi:"the fastest ROI" }[r.priority] || "your priority";
+    cards.push({ tag:"Recommended for you", title:r.routes[r.recommendedKey].label, body:"You told us "+priorityText+" matters most — this route fits that best given your inputs." });
+    if (lowestKey !== r.recommendedKey){
+      cards.push({ tag:"Lowest lifetime cost", title:r.routes[lowestKey].label, body:"Lowest modelled 20-year total ("+fmtRk(r.routes[lowestKey].cum)+") among the four routes compared, at today's assumptions." });
+    }
+    var zeroKey = r.recommendedKey==="ppa" ? "rent" : "ppa";
+    cards.push({ tag: zeroKey==="ppa"?"Zero upfront option":"Fixed monthly, own it later", title:r.routes[zeroKey].label, body: zeroKey==="ppa" ? "No capital outlay — pay only for power used, at a rate below grid." : "Fixed monthly payment; the system becomes yours at the end of the term." });
+    $("ckRecStack").innerHTML = cards.map(function(c){
+      return '<div class="ck-rec"><div class="rl">'+c.tag+'</div><h5>'+c.title+'</h5><p>'+c.body+'</p></div>';
+    }).join("");
+  }
+
+  $("ckChartSeg").querySelectorAll("button").forEach(function(b){
+    b.addEventListener("click", function(){
+      $("ckChartSeg").querySelectorAll("button").forEach(function(x){ x.classList.remove("active"); });
+      b.classList.add("active");
+      ckState.chartMode = b.getAttribute("data-mode");
+      renderCockpit(lastResult);
+    });
+  });
+  $("ckScenarioSeg").querySelectorAll("button").forEach(function(b){
+    b.addEventListener("click", function(){
+      $("ckScenarioSeg").querySelectorAll("button").forEach(function(x){ x.classList.remove("active"); });
+      b.classList.add("active");
+      ckState.scenario = b.getAttribute("data-v");
+      renderCockpit(lastResult);
+    });
+  });
+
+  // ============================================================================
+  // LOAD & GENERATION MATCH — an illustrative shape from your answers, not measured interval data
+  // ============================================================================
+  function ckLoadShape(loadTiming, mode, sector){
+    // 24-point illustrative day shape, normalised 0..1. Purely a planning illustration.
+    var base = { high:[.15,.12,.1,.1,.12,.2,.35,.55,.75,.9,1,1,.98,.95,.9,.85,.7,.5,.3,.22,.2,.18,.16,.15],
+                 medium:[.4,.35,.32,.3,.32,.4,.5,.6,.7,.78,.82,.85,.85,.82,.78,.75,.72,.7,.68,.62,.55,.5,.45,.42],
+                 low:[.55,.5,.45,.42,.42,.45,.5,.55,.55,.55,.55,.55,.55,.55,.58,.62,.7,.85,1,.95,.85,.75,.65,.6] }[loadTiming] || null;
+    if (!base) base = { high:[.15,.12,.1,.1,.12,.2,.35,.55,.75,.9,1,1,.98,.95,.9,.85,.7,.5,.3,.22,.2,.18,.16,.15] }.high;
+    var weekendFactor = (sector==="farm" || sector==="mining") ? 0.92 : 0.55;
+    var seasonalFactor = 1;
+    var arr = base.slice();
+    if (mode==="weekend") arr = arr.map(function(v){ return v*weekendFactor; });
+    if (mode==="seasonal") seasonalFactor = 0.75; // winter generation de-rate shown as a ghost line, load unchanged
+    var sun = [0,0,0,0,0,0,.05,.25,.55,.8,.95,1,1,.95,.8,.55,.25,.05,0,0,0,0,0,0];
+    return { load: arr, sun: sun.map(function(v){ return v*seasonalFactor; }), sunWinter: mode==="seasonal" ? sun.map(function(v){ return v*0.55; }) : null };
+  }
+  function renderCkLoadChart(r){
+    var svg = $("ckLoadChart");
+    if (!r.hasInput){ svg.innerHTML=""; return; }
+    var shape = ckLoadShape(r.loadTiming, ckState.loadMode, r.sector);
+    var svgns = "http://www.w3.org/2000/svg";
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    function el(tag, attrs){ var e = document.createElementNS(svgns, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+    var W=560,H=190,padL=8,padR=8,padT=10,padB=20;
+    function xPos(i){ return padL + (i/23)*(W-padL-padR); }
+    function yPos(v){ return H-padB - v*(H-padT-padB); }
+    function pathFor(arr){ return arr.map(function(v,i){ return (i===0?"M":"L")+xPos(i).toFixed(1)+","+yPos(v).toFixed(1); }).join(" "); }
+    var forest = getComputedStyle(document.documentElement).getPropertyValue("--forest").trim();
+    var grid = getComputedStyle(document.documentElement).getPropertyValue("--gray").trim();
+    // solar fill
+    var solarArea = pathFor(shape.sun) + " L "+xPos(23)+","+yPos(0)+" L "+xPos(0)+","+yPos(0)+" Z";
+    svg.appendChild(el("path",{d:solarArea, fill:forest, opacity:.16}));
+    svg.appendChild(el("path",{d:pathFor(shape.sun), fill:"none", stroke:forest, "stroke-width":2}));
+    if (shape.sunWinter) svg.appendChild(el("path",{d:pathFor(shape.sunWinter), fill:"none", stroke:forest, "stroke-width":1.4, "stroke-dasharray":"3,3", opacity:.6}));
+    svg.appendChild(el("path",{d:pathFor(shape.load), fill:"none", stroke:"#111111", "stroke-width":2}));
+    [0,6,12,18,23].forEach(function(h){
+      var t = el("text",{x:xPos(h),y:H-6,"text-anchor":"middle",style:"font-size:9px;fill:"+grid+";font-family:Calibri,Arial,sans-serif;"});
+      t.textContent = (h===23?"24:00":(h<10?"0"+h:h)+":00"); svg.appendChild(t);
+    });
+  }
+  function renderCkLoadPanel(r){
+    if (!r.hasInput){ $("ckCritRows").innerHTML=""; $("ckPeakCallout").style.display="none"; renderCkLoadChart(r); return; }
+    var criticalKw = ((r.monthlyKwh/30)/24) * 0.30;
+    var priorityKw = ((r.monthlyKwh/30)/24) * 0.55;
+    var battAvg = (r.batteryLow+r.batteryHigh)/2;
+    var critHrs = r.isHybrid && criticalKw>0 ? (battAvg/criticalKw) : 0;
+    var rows = [];
+    if (r.isHybrid){
+      rows.push({label:"Critical loads", val: critHrs>0 ? critHrs.toFixed(1)+" hrs cover" : "—", dot:"var(--forest)"});
+      rows.push({label:"Priority loads", val: (critHrs*0.4).toFixed(1)+" hrs cover", dot:"var(--bronze)"});
+    } else {
+      rows.push({label:"Critical loads", val:"No battery in this design", dot:"var(--gray)"});
+    }
+    rows.push({label:"Non-critical", val:"Grid on outage", dot:"var(--line)"});
+    $("ckCritRows").innerHTML = rows.map(function(x){ return '<div class="ck-row"><span class="route-dot" style="background:'+x.dot+';"></span>'+x.label+'<b>'+x.val+'</b></div>'; }).join("");
+
+    var peakCallout = $("ckPeakCallout");
+    if (r.peakDemand > 0){
+      peakCallout.style.display = "block";
+      var demandRate = 220; // R/kVA/month — a labelled generic municipal-scale planning default, not this client's actual tariff schedule
+      var monthlyCharge = r.peakDemand*demandRate;
+      var shavePct = Math.min(30, Math.round(r.offsetCeiling*40));
+      peakCallout.innerHTML = "⚡ Peak demand charge exposure: "+fmtR(monthlyCharge)+"/month at "+r.peakDemand+" kVA (illustrative rate) — solar"+(r.isHybrid?" + battery":"")+" can typically shave an estimated "+shavePct+"% off site peak, confirmed against your actual demand tariff.";
+    } else {
+      peakCallout.style.display = "none";
+    }
+    renderCkLoadChart(r);
+  }
+  $("ckLoadSeg").querySelectorAll("button").forEach(function(b){
+    b.addEventListener("click", function(){
+      $("ckLoadSeg").querySelectorAll("button").forEach(function(x){ x.classList.remove("active"); });
+      b.classList.add("active");
+      ckState.loadMode = b.getAttribute("data-v");
+      renderCkLoadPanel(lastResult);
+    });
+  });
+
+  // ============================================================================
+  // FUNDING OPTIONS DEEP DIVE + sensitivity table
+  // ============================================================================
+  var FUND_META = {
+    purchase:{ icon:"building", pros:["Lowest total cost","Full ownership from day one","Maximise Sec. 12B relief"] },
+    bank:{ icon:"handshake", pros:["Uses existing banking relationship","Own it sooner than Rent-to-Own","Subject to credit approval"] },
+    rent:{ icon:"calendarclock", pros:["Fixed monthly payment","Own the system at end of term","No buyout fee"] },
+    ppa:{ icon:"lightbulb", pros:["No capital outlay","Predictable payments","Performance-backed"] }
+  };
+  function renderCkFunding(r){
+    var grid = $("ckFundGrid");
+    if (!r.hasInput){ grid.innerHTML = '<div class="ck-sub">Add your bill to compare funding routes.</div>'; $("ckSensBody").innerHTML=""; return; }
+    var order = ["ppa","rent","bank","purchase"];
+    var lowestKey = order.reduce(function(a,b){ return r.routes[a].cum < r.routes[b].cum ? a : b; });
+    grid.innerHTML = order.map(function(key){
+      var route = r.routes[key];
+      var isBest = key === lowestKey;
+      return '<div class="ck-fcard'+(isBest?" best":"")+'">' +
+        (isBest?'<span class="fbadge">Lowest lifetime cost</span>':'') +
+        '<h5>'+route.label+'</h5>' +
+        '<div class="fp">'+fmtR(route.upfront)+'<small>upfront</small></div>' +
+        '<div class="fp" style="font-size:14px;margin-top:6px;">'+fmtR(route.cum)+'<small>20-yr total</small></div>' +
+        '<ul>'+FUND_META[key].pros.map(function(p){ return '<li>'+p+'</li>'; }).join('')+'</ul>' +
+        '</div>';
+    }).join("");
+
+    var shifts = [
+      { label:"Tariff +1%/yr", esc: r.esc+0.01, offset: r.offsetCeiling },
+      { label:"Tariff –1%/yr", esc: Math.max(0.01,r.esc-0.01), offset: r.offsetCeiling },
+      { label:"Yield –10%", esc: r.esc, offset: r.offsetCeiling*0.9 }
+    ];
+    var rows = shifts.map(function(s){
+      var series = computeRouteSeries({
+        annualBase:r.annualBase, esc:s.esc, offsetCeiling:s.offset, capex:r.capex,
+        deposit:r.routes.bank.upfront, bankAnnual:r.__bankAnnual, bankTerm:r.__bankTerm,
+        rtoAnnual:r.__rtoAnnual, rtoTerm:r.__rtoTerm,
+        ppaOffsetAnnual0: r.annualBase*s.offset, ppaDiscount:r.__ppaDiscount, ppaEsc:r.__ppaEsc
+      });
+      var cells = order.map(function(key){
+        var delta = series.cum[key] - r.routes[key].cum;
+        return '<td class="'+(delta<0?"ck-pos":"ck-neg")+'">'+ckFmtSigned(delta)+'</td>';
+      }).join("");
+      return '<tr><td>'+s.label+'</td>'+cells+'</tr>';
+    }).join("");
+    $("ckSensBody").innerHTML = rows;
+  }
+
+  // ============================================================================
+  // RISK & RESILIENCE PANEL
+  // ============================================================================
+  function renderCkRisk(r){
+    if (!r.hasInput){ $("ckRiskChart").innerHTML=""; return; }
+    var svg = $("ckRiskChart");
+    var svgns = "http://www.w3.org/2000/svg";
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    function el(tag, attrs){ var e = document.createElementNS(svgns, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+    var W=260,H=110,padL=28,padR=8,padT=8,padB=18;
+    var esc = ckScenarioEsc(r.esc);
+    var vals = [1,2,3,4,5].map(function(y){ return r.monthlyBill*12*Math.pow(1+esc,y-1); });
+    var maxV = Math.max.apply(null, vals)*1.05;
+    function xPos(i){ return padL + (i/4)*(W-padL-padR); }
+    function yPos(v){ return H-padB - (v/maxV)*(H-padT-padB); }
+    var d = vals.map(function(v,i){ return (i===0?"M":"L")+xPos(i).toFixed(1)+","+yPos(v).toFixed(1); }).join(" ");
+    var area = d + " L "+xPos(4)+","+yPos(0)+" L "+xPos(0)+","+yPos(0)+" Z";
+    svg.appendChild(el("path",{d:area, fill:"var(--bad-tint)"}));
+    svg.appendChild(el("path",{d:d, fill:"none", stroke:"var(--bad)", "stroke-width":2}));
+    ["Y1","Y2","Y3","Y4","Y5"].forEach(function(lbl,i){
+      var t = el("text",{x:xPos(i),y:H-4,"text-anchor":"middle",style:"font-size:8.5px;fill:#62676B;font-family:Calibri,Arial,sans-serif;"});
+      t.textContent = lbl; svg.appendChild(t);
+    });
+    var expLevel = esc>=0.10 ? "HIGH" : (esc>=0.06 ? "MEDIUM" : "LOW");
+    $("ckRiskTag").textContent = expLevel;
+    $("ckRiskTag").className = "ck-tag " + (expLevel==="HIGH"?"bad":(expLevel==="MEDIUM"?"warn":"good"));
+    $("ckRiskNote").textContent = "At your "+Math.round(esc*100)+"%/yr assumption, grid-only cost roughly "+(Math.pow(1+esc,7)>1.9?"doubles":"rises steeply")+" by Year 8. Locking a PPA or Rent-to-Own rate today caps that exposure.";
+
+    var dieselBlock = $("ckDieselBlock");
+    if (r.dieselSpend>0){
+      dieselBlock.innerHTML = '<div class="kv">'+fmtR(r.dieselAnnualSaving/12)+'/mo</div><div class="ck-sub" style="margin:2px 0 0;">avoided diesel, modelled on your R'+Math.round(r.dieselSpend).toLocaleString()+'/mo generator spend</div>';
+    } else {
+      dieselBlock.innerHTML = '<div class="kv" style="font-size:13px;color:var(--gray);">Not modelled</div><div class="ck-sub" style="margin:2px 0 0;">No generator/diesel spend entered in Step 2</div>';
+    }
+
+    var backupBlock = $("ckBackupBlock");
+    var backupLabels = { none:"No backup on site today — grid supply is the only source.", diesel:"Diesel generator already in use — a sign grid supply here isn't fully dependable.", ups:"Small inverter/UPS in place today.", solar:"Some solar already installed on site.", other:"Other backup already in place." };
+    backupBlock.textContent = backupLabels[r.existingBackup] || backupLabels.none;
+
+    var battRows = $("ckBatteryRows");
+    if (r.isHybrid){
+      var critKw = ((r.monthlyKwh/30)/24)*0.30;
+      var hrsToday = critKw>0 ? ((r.batteryLow+r.batteryHigh)/2/critKw) : 0;
+      var hrsPhase2 = hrsToday*3;
+      battRows.innerHTML =
+        '<div class="ck-row"><span class="route-dot" style="background:var(--forest);"></span>Critical loads today<b>'+hrsToday.toFixed(1)+' hrs</b></div>' +
+        '<div class="ck-row"><span class="route-dot" style="background:var(--bronze);"></span>With added storage (illustrative)<b>'+hrsPhase2.toFixed(1)+' hrs</b></div>';
+    } else {
+      battRows.innerHTML = '<div class="ck-sub">No battery in the current design — cost-first resilience setting.</div>';
+    }
+  }
+
+  // ============================================================================
+  // ASSUMPTIONS & DATA CONFIDENCE + AI-style recommendations
+  // ============================================================================
+  function renderCkAssumptions(r){
+    if (!r.hasInput){ $("ckConfList").innerHTML=""; $("ckAiList").innerHTML=""; $("ckConfRing").innerHTML=""; return; }
+    $("ckConfRing").innerHTML = ckRingSVG(r.confidence, "var(--forest)") + '<div class="ring-num">'+r.confidence+'%</div>';
+    var items = [
+      { label:"12 months of electricity bills", on: r.historyMonths>=12 },
+      { label:"Peak demand or interval data", on: r.peakDemand>0 },
+      { label:"Energy-only tariff breakdown", on: r.tariffProvided },
+      { label:"Roof or ground-space confirmation", on: !!r.solarSpace }
+    ];
+    $("ckConfList").innerHTML = items.map(function(it){
+      return '<div class="ck-conf-row"><span>'+it.label+'</span><b class="'+(it.on?"ok":"missing")+'">'+(it.on?"✓ received":"missing")+'</b></div>';
+    }).join("");
+    var missing = items.filter(function(it){ return !it.on; });
+    var ai = [];
+    if (missing.length){
+      var next = missing[0];
+      ai.push("Add "+next.label.toLowerCase()+" — moves data confidence from "+r.confidence+"% toward a stronger score.");
+    }
+    if (!r.solarSpace) ai.push("Confirm roof or ground space — sharpens the system-sizing range above.");
+    if (r.peakDemand<=0) ai.push("Share your peak demand (kVA) if you have it — lets us model demand-charge savings, not just energy savings.");
+    if (missing.length===0) ai.push("Your inputs already cover the essentials — the next step is a site visit to confirm real numbers.");
+    $("ckAiList").innerHTML = ai.slice(0,3).map(function(t,i){ return '<div class="ck-ai-item"><span class="ck-ai-num">'+(i+1)+'</span>'+t+'</div>'; }).join("");
+  }
+
+  // ============================================================================
+  // SITE & SYSTEM SNAPSHOT
+  // ============================================================================
+  function renderCkSite(r){
+    var loc = r.province ? PROVINCE_LABEL[r.province] : "Not specified";
+    $("ckSiteLoc").textContent = loc + (SECTOR_LABEL[r.sector] ? " · " + SECTOR_LABEL[r.sector] : "");
+    if (!r.hasInput){ $("ckSiteFacts").innerHTML=""; return; }
+    var facts = [
+      ["Sun hours", (r.sunHours||4.8)+" hrs/day assumed"],
+      ["Configuration", (r.solarSpace ? ({roof:"Roof-mount",ground:"Ground-mount",both:"Roof + ground"}[r.solarSpace]||r.solarSpace) : "Not yet specified") + ", " + Math.round(r.kwpMid||((r.kwpLow+r.kwpHigh)/2)) + " kWp modules"],
+      ["Storage", r.isHybrid ? (Math.round((r.batteryLow+r.batteryHigh)/2)+" kWh, modular") : "None in this design"],
+      ["System route", r.systemRoute],
+      ["Design note", "Modular — the system can be staged or expanded as load grows"]
+    ];
+    $("ckSiteFacts").innerHTML = facts.map(function(f){ return '<div class="ck-fact"><dt>'+f[0]+'</dt><dd>'+f[1]+'</dd></div>'; }).join("");
+  }
+
+  // ============================================================================
+  // ONE CLICK DEEPER
+  // ============================================================================
+  function ckIRR(cashflows){
+    function npv(rate){ return cashflows.reduce(function(acc,cf,i){ return acc + cf/Math.pow(1+rate,i); }, 0); }
+    var lo=-0.5, hi=2.0, mid;
+    for (var i=0;i<80;i++){ mid=(lo+hi)/2; if (npv(mid)>0) lo=mid; else hi=mid; }
+    return mid;
+  }
+  function renderCkDeeper(r){
+    var container = $("ckDeepDetail");
+    if (!r.hasInput){ container.style.display="none"; return; }
+    var cards = $("ckDeeperRow").querySelectorAll(".ck-deeper");
+    cards.forEach(function(c){ c.onclick = function(){ ckState.deepOpen = c.getAttribute("data-k"); renderCkDeeperDetail(r); }; });
+    if (ckState.deepOpen) renderCkDeeperDetail(r);
+  }
+  function renderCkDeeperDetail(r){
+    var container = $("ckDeepDetail");
+    container.style.display = "block";
+    var k = ckState.deepOpen;
+    if (k==="payback"){
+      var cashflows = [-r.capex];
+      for (var y=1;y<=20;y++) cashflows.push(r.annualCost.grid[y-1]-r.annualCost.purchase[y-1]);
+      var irr = ckIRR(cashflows);
+      container.innerHTML = '<h5>Payback &amp; IRR — Outright purchase</h5><div class="ck-deep-grid"><div><b>'+r.payback.toFixed(1)+' yrs</b><span>simple payback</span></div><div><b>'+(irr*100).toFixed(1)+'%</b><span>modelled IRR over 20 years</span></div></div><p class="ck-sub">Based on avoided grid cost each year vs. today\'s capex, at your current escalation assumption. Confirmed after a site assessment.</p>';
+    } else if (k==="waterfall"){
+      var oldBill = r.monthlyBill;
+      var saving = r.yearOneValue/12;
+      var routeMonthly = (r.annualCost[r.recommendedKey][0])/12 - (r.annualBase*(1-r.offsetCeiling))/12;
+      var newOutlay = oldBill - saving + Math.max(0, routeMonthly);
+      container.innerHTML = '<h5>Year-1 monthly cash flow — '+r.routes[r.recommendedKey].label+'</h5><div class="ck-waterfall">' +
+        '<div class="ck-wf-step"><span>Bill today</span><b>'+fmtR(oldBill)+'</b></div>' +
+        '<div class="ck-wf-step down"><span>− Solar savings</span><b>'+fmtR(saving)+'</b></div>' +
+        '<div class="ck-wf-step up"><span>+ '+r.routes[r.recommendedKey].label+' payment</span><b>'+fmtR(Math.max(0,routeMonthly))+'</b></div>' +
+        '<div class="ck-wf-step total"><span>= New monthly outlay</span><b>'+fmtR(newOutlay)+'</b></div></div>';
+    } else if (k==="stage"){
+      if (r.isHybrid){
+        var phase1 = r.kwpMid*r.costPerKwp;
+        var phase2 = r.capex - phase1;
+        container.innerHTML = '<h5>Stage the system</h5><div class="ck-deep-grid"><div><b>'+fmtR(phase1)+'</b><span>Phase 1 — solar only</span></div><div><b>'+fmtR(phase2)+'</b><span>Phase 2 — add storage</span></div></div><p class="ck-sub">Splitting capex into solar-first, storage-second lets the operation phase spend without losing the core saving.</p>';
+      } else {
+        container.innerHTML = '<h5>Stage the system</h5><p class="ck-sub">Cost-first design has no storage to stage — full solar-only capex is '+fmtR(r.capex)+'. Switch resilience to "Critical loads" or "Continuity first" in Step 2 to see a phased solar+battery build.</p>';
+      }
+    } else if (k==="docs"){
+      var docs = [
+        { label:"Electricity bill", on: r.hasInput },
+        { label:"12 months of billing history", on: r.historyMonths>=12 },
+        { label:"Peak demand / interval data", on: r.peakDemand>0 },
+        { label:"Roof or ground-space confirmation", on: !!r.solarSpace }
+      ];
+      var received = docs.filter(function(d){ return d.on; }).length;
+      container.innerHTML = '<h5>Document checklist — '+received+' of '+docs.length+' received</h5><div class="ck-doclist">'+docs.map(function(d){ return '<div class="ck-row"><span>'+d.label+'</span><b class="'+(d.on?"ok":"missing")+'">'+(d.on?"✓":"—")+'</b></div>'; }).join("")+'</div>';
+    }
+  }
+
+  // ============================================================================
+  // ORCHESTRATOR
+  // ============================================================================
+  function renderCockpit(r){
+    if (!r) return;
+    renderKpiStrip(r);
+    renderCkChart(r);
+    renderCkRecs(r);
+    renderCkLoadPanel(r);
+    renderCkFunding(r);
+    renderCkRisk(r);
+    renderCkAssumptions(r);
+    renderCkSite(r);
+    renderCkDeeper(r);
+  }
+  ckWireAssumptionMirror("ckAssumpEsc","escalation");
+  ckWireAssumptionMirror("ckAssumpYield","sunhours");
+  ckWireAssumptionMirror("ckAssumpCost","costPerKwp");
+  $("ckAssumpReset").addEventListener("click", ckDefaultAssumptions);
 
 })();
 </script>
