@@ -443,6 +443,12 @@
   .ck-deeper:hover{border-color:var(--forest);}
   .ck-deeper h5{font-size:12.5px;margin:0 0 3px;}
   .ck-deeper p{font-size:10.5px;color:var(--gray);margin:0;line-height:1.4;}
+  .ck-next-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+  @media (max-width:760px){ .ck-next-row{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .ck-next-item{background:var(--mineral);border:1px solid var(--line);border-radius:9px;padding:12px 13px;}
+  .ck-next-item .ni-num{font-size:10.5px;font-weight:700;color:var(--forest);letter-spacing:.5px;margin-bottom:4px;}
+  .ck-next-item h5{font-size:12.5px;margin:0 0 3px;font-family:Calibri,Arial,sans-serif;}
+  .ck-next-item p{font-size:10.5px;color:var(--gray);margin:0;line-height:1.4;}
   .ck-deep-detail{display:none;margin-top:12px;background:#fff;border:1px solid var(--forest);border-radius:9px;padding:16px 18px;}
   .ck-deep-detail h5{font-family:Cambria,Georgia,serif;font-size:14.5px;margin:0 0 10px;}
   .ck-deep-grid{display:flex;gap:26px;margin-bottom:8px;flex-wrap:wrap;}
@@ -985,6 +991,19 @@
 
         </div>
         <!-- ================= /DECISION COCKPIT ================= -->
+
+        <!-- WHAT HAPPENS NEXT (generic, non-binding — see .ck-adisc-style disclaimer below) -->
+        <div class="ck-panel">
+          <h4>What happens after you submit</h4>
+          <div class="ck-sub" style="margin:2px 0 12px;">The shape of our process — not a list of requirements, and not a guarantee of approval.</div>
+          <div class="ck-next-row">
+            <div class="ck-next-item"><div class="ni-num">STEP 1</div><h5>We check your usage data</h5><p>Your bill, tariff and site details against real system design assumptions.</p></div>
+            <div class="ck-next-item"><div class="ni-num">STEP 2</div><h5>Company verification</h5><p>Standard checks so a formal agreement can be put in your company's name.</p></div>
+            <div class="ck-next-item"><div class="ni-num">STEP 3</div><h5>Site review</h5><p>A quick on-site or desktop check confirms the system fits your roof, ground space and connection.</p></div>
+            <div class="ck-next-item"><div class="ni-num">STEP 4</div><h5>Confirm terms &amp; sign</h5><p>You choose PPA, Rent-to-Own or Purchase, and we confirm final terms before anything is installed.</p></div>
+          </div>
+          <div class="ck-sub" style="margin:12px 0 0;">Our team walks you through every step directly — this is just so nothing here feels like a black box. Exact requirements, timelines and eligibility are confirmed with you personally, subject to credit approval and final commercial terms.</div>
+        </div>
 
         <!-- ACTION LAYER -->
         <div class="ck-action-bar" id="ckActionBar">
