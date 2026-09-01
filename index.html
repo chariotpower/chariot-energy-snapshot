@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-ZA">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -10,19 +10,20 @@
   <meta property="og:description" content="See what solar could mean for your site, cash flow and energy risk.">
   <meta property="og:image" content="og-image.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon-192.png">
+  <link rel="icon" href="chariot-logo.svg">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynh6RlyHh6t4p2VRC1aQ9uJ0qQ+E=" crossorigin="">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
-  <link rel="stylesheet" href="styles.css?v=20260901b">
+  <link rel="stylesheet" href="styles.css?v=20260901c">
 </head>
 <body>
   <a class="skip-link" href="#workspace">Skip to assessment</a>
   <header class="topbar">
     <a class="brand" href="#" aria-label="Chariot Energy Snapshot home">
-      <span class="brand-mark" aria-hidden="true">C</span>
-      <span><strong>CHARIOT POWER</strong><small>ENERGY SNAPSHOT</small></span>
+      <img class="brand-logo" src="chariot-logo.svg" alt="Chariot Power">
+      <span class="brand-product">ENERGY SNAPSHOT</span>
     </a>
     <div class="top-actions">
+      <label class="language-control" for="languageSelect"><span>Language</span><select id="languageSelect" aria-label="Language"><option value="en">English</option><option value="zu">isiZulu</option><option value="af">Afrikaans</option></select></label>
       <button class="text-btn" id="saveBtn" type="button">Save progress</button>
       <button class="text-btn" id="restartBtn" type="button">Start again</button>
       <button class="help-btn" id="helpBtn" type="button">Need help?</button>
@@ -238,7 +239,7 @@
 
           <section class="step results-step" data-step="5">
             <div class="result-hero">
-              <div><div class="eyebrow light">YOUR PRE-FEASIBILITY SNAPSHOT</div><h2 id="resultHeadline">A clearer energy path starts here.</h2><p id="resultSubhead"></p></div>
+              <div><div class="result-brand"><img src="chariot-logo.svg" alt="Chariot Power"><span>ENERGY SNAPSHOT</span></div><div class="eyebrow light">YOUR PRE-FEASIBILITY SNAPSHOT</div><h2 id="resultHeadline">A clearer energy path starts here.</h2><p id="resultSubhead"></p></div>
               <div class="confidence-ring"><strong id="confidenceScore">—</strong><span>data confidence</span></div>
             </div>
             <div class="result-kpis" id="resultKpis"></div>
@@ -301,6 +302,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="app.js?v=20260901b" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="i18n.js?v=20260901c" defer></script>
+  <script src="app.js?v=20260901c" defer></script>
 </body>
 </html>
