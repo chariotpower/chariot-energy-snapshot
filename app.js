@@ -51,8 +51,8 @@
     {id:'om',name:'Performance & O&M plan',copy:'Monitoring, preventative maintenance and reporting allowance.',impact:'Protects long-term performance'}
   ];
 
-  const state={mode:'guided',step:1,energyMode:'bill',sector:'',timing:'mixed',priority:'cashflow',resilience:'saving',loads:new Set(),upgrades:new Set(),customLoads:[],equipmentDetails:{},location:null,siteArea:0,cableRunM:0,files:[],extracted:[],scenario:'base',model:null};
-  let map=null,drawnItems=null,siteMarker=null,activeDraw=null,mapToolsBound=false;
+  const state={mode:'guided',step:1,energyMode:'bill',sector:'',timing:'mixed',priority:'cashflow',resilience:'saving',loads:new Set(),upgrades:new Set(),customLoads:[],equipmentDetails:{},location:null,siteArea:0,cableRunM:0,sitePins:[],solarResource:null,files:[],extracted:[],scenario:'base',model:null};
+  let map=null,drawnItems=null,siteMarker=null,activeDraw=null,mapToolsBound=false,freehandCleanup=null;
 
   function init(){
     renderLoads('farm'); renderUpgrades(); bind(); restore(); recompute();
@@ -76,6 +76,7 @@
     $('siteAddress').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchAddress()}});
     $('coordinateBtn').addEventListener('click',useManualCoordinates);
     $('manualCoordinates').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();useManualCoordinates()}});
+    $('solarDataBtn').addEventListener('click',fetchSolarResource);
     $('addCustomLoad').addEventListener('click',addCustomLoad);
     $('saveBtn').addEventListener('click',save);
     $('restartBtn').addEventListener('click',restart);
@@ -84,7 +85,7 @@
     $('requestMeetingBtn').addEventListener('click',requestMeeting);
     $('whatsappBtn').addEventListener('click',shareWhatsapp);
     $('emailBtn').addEventListener('click',shareEmail);
-    $('printBtn').addEventListener('click',()=>window.print());
+    $('printBtn').addEventListener('click',printOnePage);
     $('editBtn').addEventListener('click',()=>go(1));
     $$('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{state.scenario=b.dataset.scenario;$$('[data-scenario]').forEach(x=>x.classList.toggle('active',x===b));recompute()}));
     document.addEventListener('chariot:languagechange',()=>recompute());
@@ -178,14 +179,84 @@
     const lat=+match[1],lon=+match[2];if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){$('geoStatus').className='status-line bad';$('geoStatus').textContent='Those coordinates are outside the valid latitude and longitude range.';return}
     applyLocation(lat,lon,`${lat.toFixed(6)}, ${lon.toFixed(6)}`,'','manual-coordinates');
   }
-  function applyLocation(lat,lon,label,province,source,accuracy){state.location={lat,lon,label,province,source,accuracy:accuracy||null,confirmedAt:new Date().toISOString()};$('siteAddress').value=label;$('manualCoordinates').value=`${lat.toFixed(6)}, ${lon.toFixed(6)}`;if(province)$('province').value=province;$('geoStatus').className='status-line good';$('geoStatus').textContent='✓ Location confirmed · '+label+(accuracy?` · accuracy ±${Math.round(accuracy)} m`:'');showMap(lat,lon);recompute()}
+  function applyLocation(lat,lon,label,province,source,accuracy){const changed=!state.location||Math.abs(state.location.lat-lat)>.00001||Math.abs(state.location.lon-lon)>.00001;state.location={lat,lon,label,province,source,accuracy:accuracy||null,confirmedAt:new Date().toISOString()};if(changed)state.solarResource=null;$('siteAddress').value=label;$('manualCoordinates').value=`${lat.toFixed(6)}, ${lon.toFixed(6)}`;if(province)$('province').value=province;$('geoStatus').className='status-line good';$('geoStatus').textContent='✓ Location confirmed · '+label+(accuracy?` · accuracy ±${Math.round(accuracy)} m`:'');$('solarResourceCard').hidden=false;$('pvgisLink').href=`https://re.jrc.ec.europa.eu/pvg_tools/en/#PVP?lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}`;$('solarDataStatus').textContent=state.solarResource?'NASA POWER climatology loaded.':'Provincial climatology fallback is active until you choose to retrieve free solar data.';showMap(lat,lon);recompute()}
   function showMap(lat,lon){
-    const el=$('siteMap');el.hidden=false;$('mapReadout').hidden=false;if(!window.L){$('mapReadout').textContent=`Coordinates ${lat.toFixed(6)}, ${lon.toFixed(6)} confirmed. Satellite drawing is unavailable in this browser.`;return}
-    if(!map){map=L.map(el,{zoomControl:true}).setView([lat,lon],18);L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,attribution:'Imagery © Esri'}).addTo(map);drawnItems=new L.FeatureGroup().addTo(map);if(L.Draw){map.on(L.Draw.Event.CREATED,e=>{if(e.layerType==='marker'){const p=e.layer.getLatLng();applyLocation(p.lat,p.lng,`${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,'','map-pin');return}drawnItems.addLayer(e.layer);updateMappedMeasurements()});map.on(L.Draw.Event.EDITED,updateMappedMeasurements);map.on(L.Draw.Event.DELETED,updateMappedMeasurements)}}
-    bindMapTools();$('mapTools').hidden=false;map.setView([lat,lon],18);if(siteMarker)map.removeLayer(siteMarker);siteMarker=L.marker([lat,lon]).addTo(map).bindPopup('Confirmed site').openPopup();setTimeout(()=>map.invalidateSize(),100);updateMappedMeasurements();
+    const el=$('siteMap');el.hidden=false;$('mapReadout').hidden=false;
+    if(!window.L){$('mapReadout').textContent=`Coordinates ${lat.toFixed(6)}, ${lon.toFixed(6)} confirmed. Interactive mapping is unavailable, but your location is saved.`;return}
+    if(!map){
+      map=L.map(el,{zoomControl:true}).setView([lat,lon],18);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+      drawnItems=new L.FeatureGroup().addTo(map);
+      if(L.Draw){
+        map.on(L.Draw.Event.CREATED,e=>{
+          if(e.layerType==='marker'){
+            const type=$('pinType')?.value||'inverter',names={inverter:'Inverter',battery:'Battery',grid:'Grid point',critical:'Critical load'};
+            e.layer.bindPopup(names[type]).openPopup();e.layer._chariotPinType=type;drawnItems.addLayer(e.layer);
+            state.sitePins.push({type,lat:e.layer.getLatLng().lat,lon:e.layer.getLatLng().lng});updateMappedMeasurements();return
+          }
+          drawnItems.addLayer(e.layer);updateMappedMeasurements()
+        });
+        map.on(L.Draw.Event.EDITED,updateMappedMeasurements);map.on(L.Draw.Event.DELETED,updateMappedMeasurements)
+      }
+    }
+    bindMapTools();$('mapTools').hidden=false;map.setView([lat,lon],18);
+    if(siteMarker)map.removeLayer(siteMarker);siteMarker=L.circleMarker([lat,lon],{radius:7,color:'#073d49',weight:3,fillColor:'#00a9d6',fillOpacity:1}).addTo(map).bindPopup('Confirmed site coordinate').openPopup();
+    setTimeout(()=>map.invalidateSize(),100);updateMappedMeasurements();
   }
-  function bindMapTools(){if(mapToolsBound)return;mapToolsBound=true;$('mapTools').addEventListener('click',e=>{const b=e.target.closest('[data-map-tool]');if(!b)return;const type=b.dataset.mapTool;if(type==='clear'){if(activeDraw)activeDraw.disable();drawnItems.clearLayers();state.siteArea=0;state.cableRunM=0;$('roofArea').value='';updateMappedMeasurements();return}if(!window.L?.Draw){$('mapReadout').textContent='Mapping tools could not load. Your confirmed coordinates have still been saved.';return}if(activeDraw)activeDraw.disable();const constructors={polygon:L.Draw.Polygon,rectangle:L.Draw.Rectangle,marker:L.Draw.Marker,polyline:L.Draw.Polyline};activeDraw=new constructors[type](map,{shapeOptions:{color:'#00a8d2',weight:3}});activeDraw.enable();$('mapTools').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b))})}
-  function updateMappedMeasurements(){let area=0,length=0;if(drawnItems)drawnItems.eachLayer(layer=>{const points=layer.getLatLngs?.();if(!points)return;if(layer instanceof L.Polygon){const ring=Array.isArray(points[0])?points[0]:points;area+=polygonArea(ring)}else{const line=Array.isArray(points[0])?points[0]:points;for(let i=1;i<line.length;i++)length+=line[i-1].distanceTo(line[i])}});state.siteArea=Math.round(area);state.cableRunM=Math.round(length);if(state.siteArea)$('roofArea').value=state.siteArea;const loc=state.location;let text=loc?`<strong>Coordinates:</strong> ${loc.lat.toFixed(6)}, ${loc.lon.toFixed(6)}`:'';if(state.siteArea)text+=` · <strong>Mapped area:</strong> ${state.siteArea.toLocaleString('en-ZA')} m² (approximately ${Math.round(state.siteArea/5.2)} kWp before setbacks)`;if(state.cableRunM)text+=` · <strong>Cable run:</strong> ${state.cableRunM.toLocaleString('en-ZA')} m`;if(!state.siteArea&&!state.cableRunM)text+=' · Choose a tool, then draw directly on the map.';$('mapReadout').innerHTML=text;$('mapTools')?.querySelectorAll('button').forEach(x=>x.classList.remove('active'));recompute()}
+  function bindMapTools(){
+    if(mapToolsBound)return;mapToolsBound=true;
+    $('mapTools').addEventListener('click',e=>{
+      const b=e.target.closest('[data-map-tool]');if(!b)return;const type=b.dataset.mapTool;
+      if(freehandCleanup){freehandCleanup();freehandCleanup=null}
+      if(type==='clear'){if(activeDraw?.disable)activeDraw.disable();drawnItems.clearLayers();state.siteArea=0;state.cableRunM=0;state.sitePins=[];$('roofArea').value='';updateMappedMeasurements();return}
+      if(type==='freehand'){startFreehand(b);return}
+      if(!window.L?.Draw){$('mapReadout').textContent='Mapping tools could not load. Your confirmed coordinates have still been saved.';return}
+      if(activeDraw?.disable)activeDraw.disable();
+      const constructors={rectangle:L.Draw.Rectangle,marker:L.Draw.Marker,polyline:L.Draw.Polyline};activeDraw=new constructors[type](map,{shapeOptions:{color:'#00a8d2',weight:3}});
+      activeDraw.enable();$('mapTools').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b))
+    })
+  }
+  function startFreehand(button){
+    if(!map)return;const el=map.getContainer();let points=[],guide=null,drawing=false;
+    if(activeDraw?.disable)activeDraw.disable();map.dragging.disable();button.classList.add('active');
+    const point=e=>map.mouseEventToLatLng(e);
+    const down=e=>{if(e.button!==undefined&&e.button!==0)return;e.preventDefault();drawing=true;points=[point(e)];guide=L.polyline(points,{color:'#00a8d2',weight:3,dashArray:'6 4'}).addTo(map);el.setPointerCapture?.(e.pointerId)};
+    const move=e=>{if(!drawing)return;e.preventDefault();const p=point(e),last=points[points.length-1];if(!last||last.distanceTo(p)>1.5){points.push(p);guide.setLatLngs(points)}};
+    const up=e=>{if(!drawing)return;drawing=false;e.preventDefault();if(guide)map.removeLayer(guide);if(points.length>2){drawnItems.addLayer(L.polygon(points,{color:'#00a8d2',weight:3,fillOpacity:.18}));updateMappedMeasurements()}cleanup()};
+    const cleanup=()=>{el.removeEventListener('pointerdown',down);el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);map.dragging.enable();button.classList.remove('active');freehandCleanup=null};
+    freehandCleanup=cleanup;el.addEventListener('pointerdown',down,{passive:false});el.addEventListener('pointermove',move,{passive:false});el.addEventListener('pointerup',up,{passive:false});el.addEventListener('pointercancel',up,{passive:false});
+    $('mapReadout').innerHTML='<strong>Freehand active:</strong> press and drag around the usable roof or ground area. Release to finish.'
+  }
+  function updateMappedMeasurements(){
+    let area=0,length=0,pins=[];
+    if(drawnItems)drawnItems.eachLayer(layer=>{
+      if(layer._chariotPinType){const p=layer.getLatLng();pins.push({type:layer._chariotPinType,lat:p.lat,lon:p.lng});return}
+      const points=layer.getLatLngs?.();if(!points)return;
+      if(layer instanceof L.Polygon){const ring=Array.isArray(points[0])?points[0]:points;area+=polygonArea(ring)}
+      else{const line=Array.isArray(points[0])?points[0]:points;for(let i=1;i<line.length;i++)length+=line[i-1].distanceTo(line[i])}
+    });
+    state.siteArea=Math.round(area);state.cableRunM=Math.round(length);state.sitePins=pins;if(state.siteArea)$('roofArea').value=state.siteArea;
+    const loc=state.location;let text=loc?`<strong>Coordinates:</strong> ${loc.lat.toFixed(6)}, ${loc.lon.toFixed(6)}`:'';
+    if(state.siteArea)text+=` · <strong>Mapped area:</strong> ${state.siteArea.toLocaleString('en-ZA')} m² (about ${Math.round(state.siteArea/5.2)} kWp before setbacks)`;
+    if(state.cableRunM)text+=` · <strong>Cable run:</strong> ${state.cableRunM.toLocaleString('en-ZA')} m`;
+    if(state.sitePins.length)text+=` · <strong>Equipment pins:</strong> ${state.sitePins.length}`;
+    if(!state.siteArea&&!state.cableRunM&&!state.sitePins.length)text+=' · Choose a tool, then draw directly on the map.';
+    $('mapReadout').innerHTML=text;$('mapTools')?.querySelectorAll('button').forEach(x=>x.classList.remove('active'));recompute()
+  }
+  async function fetchSolarResource(){
+    const status=$('solarDataStatus'),btn=$('solarDataBtn');if(!state.location){status.textContent='Confirm the site coordinates first.';return}
+    btn.disabled=true;status.textContent='Retrieving long-term NASA POWER solar climatology…';
+    const {lat,lon}=state.location,endpoint=`https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude=${lon}&latitude=${lat}&format=JSON`;
+    try{
+      const response=await fetch(endpoint,{mode:'cors'});if(!response.ok)throw new Error('NASA POWER unavailable');
+      const data=await response.json(),series=data?.properties?.parameter?.ALLSKY_SFC_SW_DWN;if(!series)throw new Error('Solar series unavailable');
+      const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],monthly=months.map(k=>Number(series[k])).filter(Number.isFinite);
+      const annualDaily=Number(series.ANN)||monthly.reduce((a,b)=>a+b,0)/monthly.length;if(!Number.isFinite(annualDaily))throw new Error('Solar value unavailable');
+      state.solarResource={source:'NASA POWER',parameter:'ALLSKY_SFC_SW_DWN',annualDaily,monthly,endpoint,fetchedAt:new Date().toISOString()};
+      status.innerHTML=`<strong>NASA POWER loaded:</strong> ${annualDaily.toFixed(2)} kWh/m²/day long-term annual average. The model has updated.`;recompute()
+    }catch(err){state.solarResource=null;status.innerHTML='<strong>Live source unavailable.</strong> The assessment remains operational using the transparent provincial climatology fallback. Retry later or validate in PVGIS.';recompute()}
+    finally{btn.disabled=false}
+  }
   function polygonArea(points){if(points.length<3)return 0;const lat0=points.reduce((s,p)=>s+p.lat,0)/points.length*Math.PI/180;const xy=points.map(p=>({x:p.lng*111320*Math.cos(lat0),y:p.lat*110540}));let a=0;for(let i=0,j=xy.length-1;i<xy.length;j=i++)a+=(xy[j].x+xy[i].x)*(xy[j].y-xy[i].y);return Math.abs(a/2)}
 
   function voiceCapture(){
@@ -198,7 +269,7 @@
     const tariff=num('tariff')||2.65;let monthlyBill=num('monthlyBill'),monthlyKwh=num('monthlyKwh');
     if(!monthlyKwh&&monthlyBill)monthlyKwh=monthlyBill/tariff;if(!monthlyBill&&monthlyKwh)monthlyBill=monthlyKwh*tariff;
     const growth=num('growth')/100,annualKwh=monthlyKwh*12*(1+growth);const timing={day:.72,mixed:.48,night:.27}[state.timing]||.48;
-    const province=$('province').value||(state.location&&state.location.province)||'';const sun=PROVINCES[province]||5.2;const pr=(num('performanceRatio')||79)/100;const degradation=(num('degradation')||.5)/100;
+    const province=$('province').value||(state.location&&state.location.province)||'';const sun=(state.solarResource&&state.solarResource.annualDaily)||PROVINCES[province]||5.2;const pr=(num('performanceRatio')||79)/100;const degradation=(num('degradation')||.5)/100;
     const selected=selectedLoadData();let connectedKw=0,selectedEnergy=0,criticalConnected=0;
     selected.forEach(l=>{const d=state.equipmentDetails[l[0]]||{qty:1,kw:l[3],hours:l[4],months:l[6],duty:70,pf:.9,critical:l[7]?'yes':'no'};const kw=d.qty*d.kw;connectedKw+=kw;selectedEnergy+=kw*d.hours*30*(d.months/12)*(d.duty/100);if(d.critical==='yes')criticalConnected+=kw});
     connectedKw+=state.customLoads.reduce((s,l)=>s+(+l.kw||0),0);selectedEnergy+=state.customLoads.reduce((s,l)=>s+(+l.kw||0)*(+l.hours||8)*30,0);
@@ -208,8 +279,19 @@
     const batteryOn=state.upgrades.has('battery')||state.resilience!=='saving';const outage=num('outageHours')||2;let batteryKwh=0;if(batteryOn){const critKw=Math.max(criticalConnected,peak*criticalPct/100,targetKwp*.12);batteryKwh=critKw*outage/(.9*.85);if(state.resilience==='full')batteryKwh=Math.max(batteryKwh,peak*4/(.9*.85));batteryKwh=Math.ceil(batteryKwh/10)*10}
     let baseCapex=targetKwp*13000;let additions=0;
     if(batteryKwh)additions+=batteryKwh*7200;if(state.upgrades.has('generator'))additions+=Math.max(120000,peak*2300);if(state.upgrades.has('ems'))additions+=Math.max(65000,baseCapex*.025);if(state.upgrades.has('pfc'))additions+=Math.max(45000,peak*650);if(state.upgrades.has('carport'))additions+=targetKwp*2800;if(state.upgrades.has('ground'))additions+=targetKwp*1600;if(state.upgrades.has('ev'))additions+=180000;if(state.upgrades.has('export'))additions+=Math.max(45000,targetKwp*350);if(state.upgrades.has('roof'))additions+=baseCapex*.08;if(state.upgrades.has('warranty'))additions+=baseCapex*.025;if(state.upgrades.has('gridapp'))additions+=Math.max(55000,targetKwp*250);
-    const capex=baseCapex+additions;const solarGen=targetKwp*sun*365*pr;let usableSolar=Math.min(annualKwh,solarGen*(batteryOn?.96:.88),annualKwh*(timing+(batteryOn?.32:0)));
-    if(state.upgrades.has('ems'))usableSolar=Math.min(annualKwh,usableSolar*1.025);const energySaving=usableSolar*tariff;const demandSaving=state.upgrades.has('pfc')?peak*num('demandCharge')*12*.18:0;const dieselSpend=num('dieselSpend')*12;const dieselSaving=state.upgrades.has('generator')?dieselSpend*.45:batteryOn?dieselSpend*.3:0;const om=state.upgrades.has('om')?capex*.014:capex*.01;const annualBenefit=Math.max(0,energySaving+demandSaving+dieselSaving-om);
+    const capex=baseCapex+additions;const solarGen=targetKwp*sun*365*pr;
+    const directRatio={day:.82,mixed:.62,night:.34}[state.timing]||.62;
+    const directUse=Math.min(annualKwh,solarGen*directRatio,annualKwh*Math.min(.94,timing+.18));
+    const surplus=Math.max(0,solarGen-directUse);
+    const batteryShift=batteryOn?Math.min(surplus,batteryKwh*.85*300,Math.max(0,annualKwh-directUse)):0;
+    let usableSolar=Math.min(annualKwh,directUse+batteryShift);
+    if(state.upgrades.has('ems'))usableSolar=Math.min(annualKwh,usableSolar*1.025);
+    const selfConsumptionPct=solarGen?usableSolar/solarGen*100:0,solarCoveragePct=annualKwh?usableSolar/annualKwh*100:0;
+    const criticalKw=Math.max(criticalConnected,peak*criticalPct/100,targetKwp*.12,1);
+    const backupHours=batteryKwh?batteryKwh*.9*.85/criticalKw:0;
+    const peakReductionKw=batteryOn?Math.min(peak*.25,batteryKwh/2):0;
+    const energySaving=usableSolar*tariff;
+    const demandSaving=(state.upgrades.has('pfc')?peak*num('demandCharge')*12*.18:0)+(batteryOn?peakReductionKw*num('demandCharge')*12*.35:0);const dieselSpend=num('dieselSpend')*12;const dieselSaving=state.upgrades.has('generator')?dieselSpend*.45:batteryOn?dieselSpend*.3:0;const om=state.upgrades.has('om')?capex*.014:capex*.01;const annualBenefit=Math.max(0,energySaving+demandSaving+dieselSaving-om);
     const gridEsc=num('gridEscalation')/100||.08,discount=num('discountRate')/100||.1,years=num('analysisYears')||20;const ppaEsc=num('ppaEscalation')/100||.06,ppaDiscount=num('ppaDiscount')/100||.15;const interest=num('interestRate')/100||.1175,term=num('loanTerm')||10,deposit=num('deposit')/100;const ppaRate=num('ppaRate')||tariff*(1-ppaDiscount);
     const currentAnnual=monthlyBill*12+dieselSpend;const residualGrid=Math.max(0,currentAnnual-energySaving-demandSaving-dieselSaving+om);const loanPrincipal=capex*(1-deposit);const loanMonthly=annuity(loanPrincipal,interest/12,term*12);const rentMonthly=capex*1.3/(10*12);const ppaAnnual=usableSolar*ppaRate+Math.max(0,currentAnnual-energySaving-dieselSaving);
     const routeFlows={grid:[],cash:[],bank:[],rent:[],ppa:[]};
@@ -222,7 +304,7 @@
     const recommendedMonthly={cash:residualGrid/12,bank:residualGrid/12+loanMonthly,rent:residualGrid/12+rentMonthly,ppa:ppaAnnual/12}[route]||0;const monthlyImpact=monthlyBill+num('dieselSpend')-recommendedMonthly;
     const cashflows=[-capex];for(let y=1;y<=years;y++)cashflows.push(annualBenefit*Math.pow(1+gridEsc,y-1)-(y===12&&batteryKwh?batteryKwh*4200:0));const irrVal=irr(cashflows);const payback=annualBenefit?capex/annualBenefit:0;
     const confidence=confidenceScore({monthlyBill,monthlyKwh,province,selected,peak,spaceCap});
-    return {monthlyBill,monthlyKwh,annualKwh,tariff,timing,province,sun,pr,degradation,peak,connectedKw,selectedEnergy,targetKwp,batteryKwh,capex,baseCapex,additions,solarGen,usableSolar,energySaving,demandSaving,dieselSaving,om,annualBenefit,currentAnnual,residualGrid,loanMonthly,rentMonthly,ppaAnnual,ppaRate,route,routeFlows,totals,monthlyImpact,recommendedMonthly,irr:irrVal,payback,confidence,years,selected};
+    return {monthlyBill,monthlyKwh,annualKwh,tariff,timing,province,sun,pr,degradation,peak,connectedKw,selectedEnergy,targetKwp,batteryKwh,capex,baseCapex,additions,solarGen,directUse,batteryShift,usableSolar,selfConsumptionPct,solarCoveragePct,backupHours,peakReductionKw,energySaving,demandSaving,dieselSaving,om,annualBenefit,currentAnnual,residualGrid,loanMonthly,rentMonthly,ppaAnnual,ppaRate,route,routeFlows,totals,monthlyImpact,recommendedMonthly,irr:irrVal,payback,confidence,years,selected};
   }
   function annuity(p,r,n){if(!p||!n)return 0;if(!r)return p/n;return p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1)}
   function irr(flows){let lo=-.9,hi=2;for(let j=0;j<80;j++){const m=(lo+hi)/2;const npv=flows.reduce((s,c,i)=>s+c/Math.pow(1+m,i),0);if(npv>0)lo=m;else hi=m}const out=(lo+hi)/2;return isFinite(out)?out:0}
@@ -258,7 +340,7 @@
     const m=state.model,route=routeName(m.route);$('confidenceScore').textContent=m.confidence+'%';$('resultHeadline').textContent=m.monthlyImpact>=0?'Your energy spend can become a strategic advantage.':'Your site requires a more detailed commercial and technical review.';$('resultSubhead').textContent=`Based on the information supplied, a ${Math.round(m.targetKwp)} kWp configuration with ${route.toLowerCase()} presents a preliminary starting case. All sizing, performance and commercial outcomes remain subject to full assessment.`;
     $('resultKpis').innerHTML=[['Indicative system size',Math.round(m.targetKwp)+' kWp','Subject to technical design'],['Indicative net monthly impact',money(m.monthlyImpact),m.monthlyImpact>=0?'Subject to tariff and funding validation':'Requires further assessment'],['Indicative 20-year NPV benefit',compactMoney(m.totals.grid.npv-m.totals[m.route].npv),'Subject to verified assumptions'],['Indicative return',m.irr>0?pct(m.irr*100)+' IRR':'To validate',m.payback?m.payback.toFixed(1)+' year simple payback':'Insufficient data']].map(x=>`<div><span>${x[0]}</span><strong>${x[1]}</strong><small>${x[2]}</small></div>`).join('');
     $('recommendation').textContent=route;$('recommendationWhy').textContent=recommendationWhy(m);$('fitBadge').textContent=m.confidence>=70?'PRIORITY FOR VALIDATION':m.confidence>=45?'FURTHER ASSESSMENT REQUIRED':'EARLY INDICATION';
-    renderCostChart(m);renderLoadChart(m);renderSystem(m);renderMonthlyChart(m);renderWaterfall(m);renderEnergyFlow(m);renderSensitivity(m);renderTable(m);renderConfidence(m);renderRisks(m);
+    renderCostChart(m);renderLoadChart(m);renderSystem(m);renderMonthlyChart(m);renderWaterfall(m);renderEnergyFlow(m);renderSensitivity(m);renderTable(m);renderConfidence(m);renderRisks(m);renderStagedPlan(m);
   }
   function recommendationWhy(m){if(m.route==='cash')return'Highest indicative long-term value where capital is available and ownership is the priority.';if(m.route==='bank')return'Balances ownership with staged repayment; final affordability depends on approved lending terms.';if(m.route==='rent')return'Provides a structured ownership path while reducing initial capital pressure.';return'Preserves capital and aligns payments to delivered energy, subject to credit approval and final PPA pricing.'}
   function scenarioModel(m){const factor=state.scenario==='conservative'?1.12:(state.scenario==='upside'?.91:1);return {factor}}
@@ -272,12 +354,78 @@
   function renderWaterfall(m){const vals=[m.energySaving,m.demandSaving,m.dieselSaving,-m.om],labels=['Energy','Demand','Diesel','O&M'],w=390,h=230,p=30,max=Math.max(...vals.map(Math.abs),1),bw=55;$('waterfallChart').innerHTML=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Year-one value waterfall">${vals.map((v,i)=>{const bh=Math.abs(v)/max*(h-2*p-25),x=45+i*80,y=v>=0?h-p-bh:h-p;return`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="5" fill="${v>=0?'#1c775e':'#b74b4b'}"/><text x="${x+bw/2}" y="${v>=0?y-6:y+bh+12}" text-anchor="middle" font-size="8">${compactMoney(Math.abs(v))}</text><text x="${x+bw/2}" y="${h-8}" text-anchor="middle" font-size="8" fill="#788589">${labels[i]}</text>`}).join('')}</svg>`}
   function renderEnergyFlow(m){const grid=Math.max(0,m.annualKwh-m.usableSolar);$('energyFlow').innerHTML=`<div class="energy-flow"><div class="flow-source"><div class="flow-box">Solar generation<b>${Math.round(m.solarGen/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Grid retained<b>${Math.round(grid/1000).toLocaleString('en-ZA')} MWh</b></div>${m.dieselSaving?`<div class="flow-box">Diesel avoided<b>${compactMoney(m.dieselSaving)}</b></div>`:''}</div><div class="flow-arrow">→</div><div class="flow-use"><div class="flow-box">Site consumption<b>${Math.round(m.annualKwh/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Solar used on site<b>${Math.round(m.usableSolar/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Battery allowance<b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'None'}</b></div></div></div>`}
   function renderSensitivity(m){const tariffs=[-.15,0,.15],production=[-.1,0,.1];let html='<div class="sensitivity"><div class="head">Production ↓ / Tariff →</div>'+tariffs.map(t=>`<div class="head">${t<0?'−15%':t>0?'+15%':'Base'}</div>`).join('');production.forEach(p=>{html+=`<div class="head">${p<0?'−10%':p>0?'+10%':'Base'}</div>`;tariffs.forEach(t=>{const benefit=m.annualBenefit*(1+p)*(1+t),npv=benefit*7.9-m.capex,cls=npv>m.capex*.5?'cell':npv>0?'cell medium':'cell low';html+=`<div class="${cls}">${compactMoney(npv)} NPV</div>`})});$('sensitivityMatrix').innerHTML=html+'</div>'}
-  function renderSystem(m){const upgrades=UPGRADES.filter(u=>state.upgrades.has(u.id)).map(u=>u.name).join(', ')||'Solar-only starting case';$('systemSnapshot').innerHTML=`<div class="system-list"><div><span>PV capacity</span><b>${Math.round(m.targetKwp)} kWp</b></div><div><span>Annual generation</span><b>${Math.round(m.solarGen).toLocaleString('en-ZA')} kWh</b></div><div><span>Battery allowance</span><b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'Not included'}</b></div><div><span>Indicative capex</span><b>${money(m.capex)}</b></div><div><span>Solar-resource source</span><b>${state.location?'Confirmed coordinates + provincial climatology':'Provincial climatology assumption'}</b></div><div><span>Performance ratio / degradation</span><b>${Math.round(m.pr*100)}% / ${(m.degradation*100).toFixed(1)}% p.a.</b></div><div><span>Mapped usable area</span><b>${state.siteArea?state.siteArea.toLocaleString('en-ZA')+' m²':'Requires site confirmation'}</b></div><div><span>Options</span><b>${esc(upgrades)}</b></div><div><span>Model version / date</span><b>Snapshot 2.0 · ${new Date().toLocaleDateString('en-ZA')}</b></div></div>`}
+  function renderSystem(m){
+    const upgrades=UPGRADES.filter(u=>state.upgrades.has(u.id)).map(u=>u.name).join(', ')||'Solar-only starting case';
+    const resource=state.solarResource?`NASA POWER climatology · ${m.sun.toFixed(2)} kWh/m²/day`:`${m.province||'South Africa'} provincial climatology · ${m.sun.toFixed(2)} peak-sun-hours/day`;
+    $('systemSnapshot').innerHTML=`<div class="system-list">
+      <div><span>PV capacity</span><b>${Math.round(m.targetKwp)} kWp</b></div>
+      <div><span>Annual generation</span><b>${Math.round(m.solarGen).toLocaleString('en-ZA')} kWh</b></div>
+      <div><span>Solar used on site</span><b>${m.selfConsumptionPct.toFixed(0)}% of generation</b></div>
+      <div><span>Site energy covered</span><b>${m.solarCoveragePct.toFixed(0)}% of annual use</b></div>
+      <div><span>Battery allowance</span><b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh · '+m.backupHours.toFixed(1)+' h critical-load proxy':'Not included'}</b></div>
+      <div><span>Peak-shaving proxy</span><b>${m.peakReductionKw?m.peakReductionKw.toFixed(0)+' kW':'Not modelled'}</b></div>
+      <div><span>Indicative capex</span><b>${money(m.capex)}</b></div>
+      <div><span>Solar-resource source</span><b>${esc(resource)}</b></div>
+      <div><span>Performance ratio / degradation</span><b>${Math.round(m.pr*100)}% / ${(m.degradation*100).toFixed(1)}% p.a.</b></div>
+      <div><span>Mapped site intelligence</span><b>${state.siteArea?state.siteArea.toLocaleString('en-ZA')+' m²':'Area not mapped'} · ${state.cableRunM?state.cableRunM.toFixed(0)+' m cable':'Cable run not measured'} · ${state.sitePins.length} pins</b></div>
+      <div><span>Options</span><b>${esc(upgrades)}</b></div>
+      <div><span>Model version / date</span><b>Snapshot 3.0 · ${new Date().toLocaleDateString('en-ZA')}</b></div>
+    </div>`;
+  }
+  function renderStagedPlan(m){
+    const storage=m.batteryKwh?`${Math.round(m.batteryKwh)} kWh allowance, subject to critical-load and cycling validation`:'Battery-ready design; add storage after interval-data and outage-duty review';
+    $('stagedPlan').innerHTML=`<div class="stage-plan">
+      <div class="stage-row"><span>01</span><div><b>Solar-first core</b><p>${Math.round(m.targetKwp)} kWp indicative PV, monitoring and export-ready controls. Prioritise verified daytime consumption.</p></div></div>
+      <div class="stage-row"><span>02</span><div><b>Storage-ready</b><p>${storage}. Reserve switchgear, communications and safe equipment space now.</p></div></div>
+      <div class="stage-row"><span>03</span><div><b>Optimise and expand</b><p>Validate EMS, peak shaving, generator integration, EV charging and planned load growth against measured data.</p></div></div>
+      <small>Each stage is indicative and remains subject to full technical, commercial, structural, grid and credit assessment.</small>
+    </div>`;
+  }
   function renderTable(m){const ks=['grid','cash','bank','rent','ppa'],term=num('loanTerm')||10;$('comparisonTable').innerHTML=`<thead><tr><th>Route</th><th>Upfront</th><th>Monthly</th><th>Escalation / term</th><th>20-year nominal</th><th>20-year NPV</th><th>Year-one cash benefit</th><th>Break-even</th><th>Ownership / condition</th></tr></thead><tbody>${ks.map(k=>{const monthly=k==='grid'?m.monthlyBill:k==='cash'?m.residualGrid/12:k==='bank'?m.residualGrid/12+m.loanMonthly:k==='rent'?m.residualGrid/12+m.rentMonthly:m.ppaAnnual/12;const benefit=(m.monthlyBill+num('dieselSpend')-monthly)*12;return`<tr class="${k===m.route?'recommended-row':''}"><td>${routeName(k)}${k===m.route?' · Recommended':''}</td><td>${k==='cash'?compactMoney(m.capex):k==='bank'?compactMoney(m.capex*num('deposit')/100):k==='grid'?'R0':'Indicative R0'}</td><td>${money(monthly)}</td><td>${k==='grid'?num('gridEscalation')+'% assumed':k==='ppa'?num('ppaEscalation')+'% PPA':k==='bank'?term+' years':'Modelled term'}</td><td>${compactMoney(m.totals[k].nominal)}</td><td>${compactMoney(m.totals[k].npv)}</td><td>${compactMoney(benefit)}</td><td>${k==='cash'&&m.payback?m.payback.toFixed(1)+' yrs':k==='grid'?'Never':'Terms dependent'}</td><td>${k==='grid'?'None':k==='ppa'?'Credit + service agreement':k==='rent'?'Ownership at term end':'Client asset'}</td></tr>`}).join('')}</tbody>`}
-  function renderConfidence(m){const extracted=state.extracted.length?`${state.extracted.length} document${state.extracted.length>1?'s':''} extracted`:'No document extracted';const rows=[['Electricity spend',m.monthlyBill?'Client supplied':'System assumed'],['Uploaded evidence',extracted],['Energy usage',num('monthlyKwh')?'Client supplied or extracted':'Derived from bill'],['Site location',state.location?'Externally verified map location':m.province?'Province supplied':'National assumption'],['Load profile',state.loads.size?'Client guided + editable':'Sector profile assumed'],['Peak demand',num('peakKva')?'Client supplied':'Requires technical validation'],['Solar space',num('roofArea')||num('groundArea')?'Client supplied / mapped':'Requires technical validation'],['Finance inputs',state.mode==='advanced'?'Client adjustable':'Standard assumptions']];$('confidencePanel').innerHTML=`<div class="confidence-list">${rows.map(r=>`<div><span>${r[0]}</span><i class="${/supplied|verified|extracted|editable/i.test(r[1])?'known':'assumed'}">${r[1]}</i></div>`).join('')}</div>`}
-  function renderRisks(m){const risks=[];if(!state.files.length)risks.push(['Billing verification','Obtain 12 months of bills and interval data where available.']);if(!num('peakKva'))risks.push(['Demand profile','Confirm maximum demand, tariff structure and time-of-use charges.']);if(!num('roofArea')&&!num('groundArea'))risks.push(['Installation space','Confirm roof structure, shading, usable area or ground conditions.']);if(m.batteryKwh)risks.push(['Storage duty','Validate critical-load list, autonomy and battery cycling objective.']);risks.push(['Funding and approvals','Final rates, credit approval, grid permissions and tax treatment remain subject to review.']);$('riskPanel').innerHTML=`<div class="risk-list">${risks.slice(0,5).map(r=>`<div><b>${r[0]}</b><span>${r[1]}</span></div>`).join('')}</div>`}
+  function renderConfidence(m){
+    const extracted=state.extracted.length?`${state.extracted.length} document${state.extracted.length>1?'s':''} extracted`:'No document extracted';
+    const rows=[
+      ['Electricity spend',m.monthlyBill?'Client supplied':'System assumed'],
+      ['Uploaded evidence',extracted],
+      ['Energy usage',num('monthlyKwh')?'Client supplied or extracted':'Derived from bill'],
+      ['Site location',state.location?'Coordinates confirmed by client':m.province?'Province supplied':'National assumption'],
+      ['Solar resource',state.solarResource?'NASA POWER climatology retrieved':'Provincial fallback assumption'],
+      ['Load profile',state.loads.size?'Client guided + editable':'Sector profile assumed'],
+      ['Peak demand',num('peakKva')?'Client supplied':'Requires technical validation'],
+      ['Solar space',state.siteArea?'Client mapped on site plan':num('roofArea')||num('groundArea')?'Client supplied':'Requires technical validation'],
+      ['Finance inputs',state.mode==='advanced'?'Client adjustable':'Standard assumptions']
+    ];
+    const missing=rows.filter(r=>/assumed|fallback|requires|derived|no document/i.test(r[1])).length;
+    $('confidencePanel').innerHTML=`<div class="confidence-list">${rows.map(r=>`<div><span>${r[0]}</span><i class="${/supplied|confirmed|retrieved|extracted|editable|mapped/i.test(r[1])?'known':'assumed'}">${r[1]}</i></div>`).join('')}</div><p class="confidence-foot"><b>${missing} validation item${missing===1?'':'s'} remain.</b> Confidence improves as bills, interval data, site geometry and decision-maker requirements are confirmed.</p>`;
+  }
+  function renderRisks(m){
+    const items=[];
+    if(!state.files.length)items.push(['Strengthen billing evidence','Add 12 months of bills and interval data where available.']);
+    if(!num('peakKva'))items.push(['Strengthen demand modelling','Confirm maximum demand, tariff structure and time-of-use charges.']);
+    if(!state.solarResource&&state.location)items.push(['Strengthen solar evidence','Retrieve the free NASA POWER climatology for the confirmed coordinates.']);
+    if(!state.siteArea)items.push(['Strengthen site feasibility','Map roof or ground area, equipment points and cable route.']);
+    if(m.batteryKwh)items.push(['Validate storage duty',`Confirm critical loads and outage objective; current runtime proxy is ${m.backupHours.toFixed(1)} hours.`]);
+    items.push(['Validate funding and approvals','Final rates, credit approval, grid permissions, structural suitability and tax treatment remain subject to review.']);
+    $('riskPanel').innerHTML=`<div class="risk-list">${items.slice(0,6).map(r=>`<div><b>${r[0]}</b><span>${r[1]}</span></div>`).join('')}</div>`;
+  }
 
-  function summaryText(){const m=state.model;return`Chariot Energy Snapshot\n\n${tr('Site')}: ${state.sector||tr('Not specified')} · ${m.province||tr('Location to confirm')}\n${tr('Monthly bill')}: ${money(m.monthlyBill)}\n${tr('Indicative solar')}: ${Math.round(m.targetKwp)} kWp\n${tr('Battery allowance')}: ${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':tr('Not included')}\n${tr('Indicative capex')}: ${money(m.capex)}\n${tr('Year-one benefit')}: ${money(m.annualBenefit)}\n${tr('Recommended first route')}: ${tr(routeName(m.route))}\n${tr('Data confidence')}: ${m.confidence}%\n\n${tr('Client notes')}: ${$('clientNotes').value||$('voiceNotes').value||tr('None supplied')}\n\n${tr('Indicative pre-feasibility only. Please contact me to validate the assessment.')}`}
+  function printOnePage(){
+    const m=state.model;if(!m)return;
+    const w=window.open('','_blank');if(!w){alert(tr('Please allow pop-ups to print the board summary.'));return}
+    const resource=state.solarResource?`NASA POWER · ${m.sun.toFixed(2)} kWh/m²/day`:'Provincial climatology fallback';
+    const notes=esc($('clientNotes').value||$('voiceNotes').value||'None supplied');
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Chariot Energy Snapshot</title><style>
+      *{box-sizing:border-box}body{margin:0;font:13px Arial,sans-serif;color:#0b3040;background:#fff}.page{max-width:980px;margin:auto;padding:28px}.head{display:flex;justify-content:space-between;gap:24px;border-bottom:4px solid #00a9d6;padding-bottom:16px}.brand{font-size:26px;font-weight:800}.brand small{display:block;font-size:11px;letter-spacing:1.6px;color:#54707a;margin-top:6px}.status{background:#eef9fc;border:1px solid #bce8f1;border-radius:10px;padding:10px 14px;text-align:right}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}.kpi,.card{border:1px solid #dbe7ea;border-radius:12px;padding:14px}.kpi span,.muted{color:#667d85;font-size:10px;text-transform:uppercase;letter-spacing:.6px}.kpi b{display:block;font-size:20px;margin-top:7px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card h2{font-size:14px;margin:0 0 10px}.row{display:flex;justify-content:space-between;border-top:1px solid #edf2f3;padding:7px 0;gap:20px}.row:first-of-type{border:0}.stages{counter-reset:s}.stage{padding:8px 0;border-top:1px solid #edf2f3}.stage b{color:#007fa8}.foot{margin-top:16px;padding:12px;background:#f5f8f9;border-left:4px solid #e2a62c;font-size:10px;line-height:1.45}@media print{.page{padding:10mm}@page{size:A4 landscape;margin:7mm}}</style></head><body><main class="page">
+      <div class="head"><div class="brand">CHARIOT POWER<small>ENERGY SNAPSHOT · BOARD SUMMARY</small></div><div class="status"><b>${m.confidence}% data confidence</b><br><small>${new Date().toLocaleDateString('en-ZA')} · Snapshot 3.0</small></div></div>
+      <div class="kpis"><div class="kpi"><span>Indicative PV</span><b>${Math.round(m.targetKwp)} kWp</b></div><div class="kpi"><span>Capital allowance</span><b>${compactMoney(m.capex)}</b></div><div class="kpi"><span>Year-one benefit</span><b>${compactMoney(m.annualBenefit)}</b></div><div class="kpi"><span>20-year NPV benefit</span><b>${compactMoney(m.totals.grid.npv-m.totals[m.route].npv)}</b></div></div>
+      <div class="grid"><section class="card"><h2>Recommended starting strategy</h2><p><b>${routeName(m.route)}</b></p><p>${recommendationWhy(m)}</p><div class="row"><span>Solar coverage</span><b>${m.solarCoveragePct.toFixed(0)}%</b></div><div class="row"><span>Self-consumption</span><b>${m.selfConsumptionPct.toFixed(0)}%</b></div><div class="row"><span>Battery / runtime proxy</span><b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh / '+m.backupHours.toFixed(1)+' h':'Not included'}</b></div><div class="row"><span>Solar resource</span><b>${resource}</b></div></section>
+      <section class="card"><h2>Staged delivery view</h2><div class="stage"><b>1 · Solar-first</b><br>${Math.round(m.targetKwp)} kWp indicative core with monitoring.</div><div class="stage"><b>2 · Storage-ready</b><br>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh allowance':'Provision now; size after interval-data review'}.</div><div class="stage"><b>3 · Optimise</b><br>Peak management, generator integration and future loads.</div><h2 style="margin-top:12px">Client notes</h2><p>${notes}</p></section></div>
+      <div class="foot"><b>Indicative pre-feasibility only — subject to full assessment.</b> This summary is not a quotation, credit decision, engineering design, performance guarantee, tax advice or grid approval. Final outcomes require verified bills and interval data, technical design, structural and electrical review, site survey, tariff confirmation, finance approval and applicable grid permissions.</div>
+    </main></body></html>`);
+    w.document.close();setTimeout(()=>w.print(),250);
+  }
+
+  function summaryText(){const m=state.model;return`Chariot Energy Snapshot\n\n${tr('Site')}: ${state.sector||tr('Not specified')} · ${m.province||tr('Location to confirm')}\n${tr('Monthly bill')}: ${money(m.monthlyBill)}\n${tr('Indicative solar')}: ${Math.round(m.targetKwp)} kWp\n${tr('Battery allowance')}: ${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':tr('Not included')}\n${tr('Indicative capex')}: ${money(m.capex)}\n${tr('Year-one benefit')}: ${money(m.annualBenefit)}\n${tr('Recommended first route')}: ${tr(routeName(m.route))}\n${tr('Data confidence')}: ${m.confidence}%\n${tr('Solar resource')}: ${state.solarResource?'NASA POWER '+m.sun.toFixed(2)+' kWh/m²/day':'Provincial fallback'}\n${tr('Self-consumption')}: ${m.selfConsumptionPct.toFixed(0)}%\n${tr('Solar coverage')}: ${m.solarCoveragePct.toFixed(0)}%\n${tr('Mapped site')}: ${state.siteArea?state.siteArea.toFixed(0)+' m²':'Not mapped'} · ${state.cableRunM?state.cableRunM.toFixed(0)+' m cable':'Cable not measured'}\n\n${tr('Client notes')}: ${$('clientNotes').value||$('voiceNotes').value||tr('None supplied')}\n\n${tr('Indicative pre-feasibility only. Please contact me to validate the assessment.')}`}
   function shareWhatsapp(){window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(summaryText())}`,'_blank','noopener')}
   function shareEmail(){location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Chariot Energy Snapshot — pre-feasibility review')}&body=${encodeURIComponent(summaryText())}`}
   function requestMeeting(){const name=$('meetingName').value.trim(),contact=$('meetingContact').value.trim();if(!name||!contact){alert(tr('Please add your name and phone or email.'));return}if(CONTACT.calendar){window.open(CONTACT.calendar,'_blank','noopener');return}const text=`${tr('Chariot Energy Review Request')}\n\n${tr('Name')}: ${name}\n${tr('Company/site')}: ${$('meetingCompany').value||tr('Not supplied')}\n${tr('Contact')}: ${contact}\n${tr('Preferred time')}: ${$('meetingWindow').value}\n\n${summaryText()}`;window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(text)}`,'_blank','noopener')}
