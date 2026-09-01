@@ -34,7 +34,8 @@
     <section class="intro" id="intro">
       <div class="eyebrow">COMMERCIAL · INDUSTRIAL · AGRICULTURAL</div>
       <h1>Your energy infrastructure should protect your business.</h1>
-      <p>Build a clear first view of your energy costs, funding options and next best step. No technical knowledge required.</p>
+      <p>Translate your energy profile into a decision-ready commercial view—covering indicative system strategy, capital requirements, funding routes, cash-flow impact and the priorities requiring validation.</p>
+      <div class="scope-notice"><strong>Indicative pre-feasibility assessment</strong><span>All outputs are preliminary and subject to Chariot Power’s full technical, financial, credit, structural, site and regulatory assessment.</span></div>
       <div class="trust-row" aria-label="Assessment benefits">
         <span>✓ About 3 minutes</span><span>✓ No obligation</span><span>✓ Assumptions shown</span><span>✓ Your data stays private</span>
       </div>
@@ -71,6 +72,7 @@
         <button type="button" data-step-nav="5"><span>5</span><b>Snapshot</b></button>
       </nav>
 
+      <div class="assessment-scope"><b>INDICATIVE · SUBJECT TO FULL ASSESSMENT</b><span>Figures update from the information supplied and modelled assumptions. They do not constitute a quotation, finance approval, engineering design or performance guarantee.</span></div>
       <div class="mode-bar">
         <div><strong id="modeTitle">Guided mode</strong><small id="modeCopy">We will keep this simple and make transparent assumptions.</small></div>
         <label class="switch"><input id="advancedToggle" type="checkbox"><span></span>Advanced</label>
@@ -233,17 +235,17 @@
                 <div class="field"><label for="taxRate">Indicative company tax rate</label><div class="input-suffix"><input id="taxRate" type="number" min="0" max="50" value="27"><i>%</i></div></div>
               </div>
             </div>
-            <div class="assumption-banner">ⓘ Finance figures are indicative pre-feasibility estimates. Rates, tax treatment, approvals and final terms require verification.</div>
+            <div class="assumption-banner">ⓘ All financial comparisons are indicative pre-feasibility scenarios and remain subject to full credit assessment, verified tariffs, approved funding terms, tax review and final commercial agreements.</div>
             <div class="step-actions"><button class="ghost-btn back" type="button" data-back="3">← Back</button><button class="primary-btn next" type="button" data-next="5">View my snapshot →</button></div>
           </section>
 
           <section class="step results-step" data-step="5">
             <div class="result-hero">
-              <div><div class="result-brand"><img src="chariot-logo.svg" alt="Chariot Power"><span>ENERGY SNAPSHOT</span></div><div class="eyebrow light">YOUR PRE-FEASIBILITY SNAPSHOT</div><h2 id="resultHeadline">A clearer energy path starts here.</h2><p id="resultSubhead"></p></div>
+              <div><div class="result-brand"><img src="chariot-logo.svg" alt="Chariot Power"><span>ENERGY SNAPSHOT</span></div><div class="eyebrow light">INDICATIVE PRE-FEASIBILITY SNAPSHOT · SUBJECT TO FULL ASSESSMENT</div><h2 id="resultHeadline">A clearer energy path starts here.</h2><p id="resultSubhead"></p></div>
               <div class="confidence-ring"><strong id="confidenceScore">—</strong><span>data confidence</span></div>
             </div>
             <div class="result-kpis" id="resultKpis"></div>
-            <div class="decision-card"><div><span>RECOMMENDED FIRST ROUTE</span><h3 id="recommendation"></h3><p id="recommendationWhy"></p></div><div class="decision-badge" id="fitBadge"></div></div>
+            <div class="decision-card"><div><span>INDICATIVE ROUTE FOR FURTHER ASSESSMENT</span><h3 id="recommendation"></h3><p id="recommendationWhy"></p></div><div class="decision-badge" id="fitBadge"></div></div>
             <div class="dashboard-grid">
               <article class="chart-card wide"><header><div><span>20-YEAR CAPITAL DECISION</span><h3>What each route could cost</h3></div><div class="scenario-switch"><button class="active" data-scenario="base">Base</button><button data-scenario="conservative">Conservative</button><button data-scenario="upside">Upside</button></div></header><div id="costChart" class="chart"></div></article>
               <article class="chart-card"><header><div><span>ENERGY MATCH</span><h3>Typical operating day</h3></div></header><div id="loadChart" class="chart"></div></article>
@@ -260,7 +262,7 @@
             <div class="notes-card"><label for="clientNotes">Anything Chariot should know?</label><textarea id="clientNotes" rows="4" placeholder="Add operating constraints, planned equipment, landlord considerations, preferred timing or questions..."></textarea></div>
 
             <div class="action-layer">
-              <div><span>NEXT STEP</span><h2>Turn this estimate into an investment-ready assessment.</h2><p>No obligation. Chariot will verify the data, site and funding structures with you.</p></div>
+              <div><span>NEXT STEP</span><h2>Progress from indicative opportunity to an investment-ready assessment.</h2><p>Chariot will validate the data, site, technical solution, regulatory requirements and funding structure with you before any commercial commitment.</p></div>
               <div class="action-buttons">
                 <button class="primary-btn" id="meetingBtn" type="button">Schedule an energy review →</button>
                 <button class="secondary-btn" id="whatsappBtn" type="button">Share with Chariot on WhatsApp</button>
@@ -268,13 +270,13 @@
                 <button class="secondary-btn" id="printBtn" type="button">Download / print report</button>
               </div>
             </div>
-            <p class="legal">This snapshot is an indicative pre-feasibility assessment, not a quotation, credit offer, tax opinion, engineering design or performance guarantee. Final results require bill verification, site assessment, technical design, grid review and approved funding terms.</p>
+            <p class="legal legal-strong"><strong>Important:</strong> Every output in this snapshot—including system sizing, generation, savings, costs, cash flow, NPV, IRR, payback, resilience and funding comparisons—is indicative only and subject to full assessment. This is not a quotation, credit offer, tax opinion, engineering design, regulatory approval or performance guarantee. Final outcomes require verified consumption data, site and structural assessment, detailed engineering, equipment selection, grid and regulatory review, credit approval, tax advice and signed commercial terms.</p>
             <div class="step-actions"><button class="ghost-btn back" type="button" data-back="4">← Review assumptions</button><button class="primary-btn" id="editBtn" type="button">Refine my assessment</button></div>
           </section>
         </div>
 
         <aside class="live-panel" id="livePanel">
-          <div class="live-head"><div><span>LIVE INDICATIVE VIEW</span><h2>Your energy opportunity</h2></div><b><i></i> LIVE</b></div>
+          <div class="live-head"><div><span>LIVE INDICATIVE VIEW · SUBJECT TO FULL ASSESSMENT</span><h2>Your energy opportunity</h2></div><b><i></i> LIVE</b></div>
           <div class="live-kpis">
             <div><span>System range</span><strong id="liveSystem">—</strong></div>
             <div><span>Year-one benefit</span><strong id="liveSaving">—</strong></div>
