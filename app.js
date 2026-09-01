@@ -12,6 +12,68 @@
   const pct=v=>Math.round(v)+'%';
   const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+  const PROV_CODE={WC:'Western Cape',EC:'Eastern Cape',NC:'Northern Cape',FS:'Free State',KZN:'KwaZulu-Natal',GP:'Gauteng',MP:'Mpumalanga',LP:'Limpopo',NW:'North West'};
+  const TOWNS=[
+    { name:"Cape Town", lat:-33.92, lon:18.42, p:"WC", sh:5.1 }, { name:"Stellenbosch", lat:-33.93, lon:18.86, p:"WC", sh:5.1 },
+    { name:"Paarl", lat:-33.73, lon:18.96, p:"WC", sh:5.2 }, { name:"Worcester", lat:-33.65, lon:19.45, p:"WC", sh:5.4 },
+    { name:"Malmesbury", lat:-33.46, lon:18.73, p:"WC", sh:5.3 }, { name:"Vredendal", lat:-31.67, lon:18.5, p:"WC", sh:5.8 },
+    { name:"Oudtshoorn", lat:-33.59, lon:22.2, p:"WC", sh:5.3 }, { name:"George", lat:-33.96, lon:22.46, p:"WC", sh:4.6 },
+    { name:"Beaufort West", lat:-32.36, lon:22.58, p:"WC", sh:5.7 }, { name:"Swellendam", lat:-34.02, lon:20.44, p:"WC", sh:4.9 },
+    { name:"Bloemfontein", lat:-29.09, lon:26.16, p:"FS", sh:5.7 }, { name:"Bethlehem", lat:-28.23, lon:28.31, p:"FS", sh:5.4 },
+    { name:"Welkom", lat:-27.98, lon:26.73, p:"FS", sh:5.6 }, { name:"Kroonstad", lat:-27.65, lon:27.23, p:"FS", sh:5.6 },
+    { name:"Harrismith", lat:-28.27, lon:29.13, p:"FS", sh:5.3 }, { name:"Parys", lat:-26.9, lon:27.46, p:"FS", sh:5.5 },
+    { name:"Sasolburg", lat:-26.81, lon:27.82, p:"FS", sh:5.4 }, { name:"Johannesburg", lat:-26.2, lon:28.05, p:"GP", sh:5.3 },
+    { name:"Pretoria", lat:-25.75, lon:28.23, p:"GP", sh:5.3 }, { name:"Vereeniging", lat:-26.67, lon:27.93, p:"GP", sh:5.4 },
+    { name:"Krugersdorp", lat:-26.09, lon:27.77, p:"GP", sh:5.3 }, { name:"Heidelberg", lat:-26.5, lon:28.36, p:"GP", sh:5.3 },
+    { name:"Durban", lat:-29.86, lon:31.02, p:"KZN", sh:4.5 }, { name:"Pietermaritzburg", lat:-29.6, lon:30.38, p:"KZN", sh:4.6 },
+    { name:"Vryheid", lat:-27.77, lon:30.79, p:"KZN", sh:4.9 }, { name:"Newcastle", lat:-27.76, lon:29.93, p:"KZN", sh:5.0 },
+    { name:"Ladysmith", lat:-28.55, lon:29.78, p:"KZN", sh:4.9 }, { name:"Richards Bay", lat:-28.78, lon:32.04, p:"KZN", sh:4.6 },
+    { name:"Port Shepstone", lat:-30.74, lon:30.45, p:"KZN", sh:4.5 }, { name:"Ulundi", lat:-28.34, lon:31.42, p:"KZN", sh:4.8 },
+    { name:"Polokwane", lat:-23.9, lon:29.47, p:"LP", sh:5.5 }, { name:"Tzaneen", lat:-23.83, lon:30.16, p:"LP", sh:5.0 },
+    { name:"Mokopane", lat:-24.19, lon:29.01, p:"LP", sh:5.4 }, { name:"Bela-Bela", lat:-24.89, lon:28.29, p:"LP", sh:5.4 },
+    { name:"Musina", lat:-22.34, lon:30.04, p:"LP", sh:5.6 }, { name:"Thohoyandou", lat:-22.95, lon:30.48, p:"LP", sh:5.0 },
+    { name:"Phalaborwa", lat:-23.94, lon:31.14, p:"LP", sh:5.3 }, { name:"Hoedspruit", lat:-24.35, lon:30.96, p:"LP", sh:5.2 },
+    { name:"Giyani", lat:-23.3, lon:30.72, p:"LP", sh:5.2 }, { name:"Nelspruit (Mbombela)", lat:-25.48, lon:30.97, p:"MP", sh:5.0 },
+    { name:"Ermelo", lat:-26.53, lon:29.98, p:"MP", sh:5.1 }, { name:"Standerton", lat:-26.95, lon:29.24, p:"MP", sh:5.3 },
+    { name:"eMalahleni (Witbank)", lat:-25.87, lon:29.23, p:"MP", sh:5.3 }, { name:"Middelburg", lat:-25.77, lon:29.46, p:"MP", sh:5.3 },
+    { name:"Secunda", lat:-26.55, lon:29.17, p:"MP", sh:5.3 }, { name:"Piet Retief", lat:-27.0, lon:30.8, p:"MP", sh:4.9 },
+    { name:"Kimberley", lat:-28.73, lon:24.75, p:"NC", sh:5.9 }, { name:"Upington", lat:-28.45, lon:21.26, p:"NC", sh:6.1 },
+    { name:"Springbok", lat:-29.66, lon:17.89, p:"NC", sh:6.0 }, { name:"De Aar", lat:-30.65, lon:24.01, p:"NC", sh:5.9 },
+    { name:"Kuruman", lat:-27.45, lon:23.43, p:"NC", sh:5.9 }, { name:"Kathu", lat:-27.7, lon:23.05, p:"NC", sh:6.0 },
+    { name:"Calvinia", lat:-31.47, lon:19.78, p:"NC", sh:5.8 }, { name:"Colesberg", lat:-30.72, lon:25.1, p:"NC", sh:5.8 },
+    { name:"Mahikeng", lat:-25.86, lon:25.64, p:"NW", sh:5.6 }, { name:"Rustenburg", lat:-25.67, lon:27.24, p:"NW", sh:5.5 },
+    { name:"Klerksdorp", lat:-26.85, lon:26.67, p:"NW", sh:5.6 }, { name:"Potchefstroom", lat:-26.71, lon:27.1, p:"NW", sh:5.5 },
+    { name:"Vryburg", lat:-26.96, lon:24.73, p:"NW", sh:5.8 }, { name:"Lichtenburg", lat:-26.15, lon:26.16, p:"NW", sh:5.6 },
+    { name:"Zeerust", lat:-25.54, lon:26.08, p:"NW", sh:5.6 }, { name:"Gqeberha (Port Elizabeth)", lat:-33.96, lon:25.6, p:"EC", sh:4.9 },
+    { name:"East London", lat:-32.98, lon:27.85, p:"EC", sh:4.7 }, { name:"Mthatha", lat:-31.59, lon:28.79, p:"EC", sh:4.7 },
+    { name:"Komani (Queenstown)", lat:-31.9, lon:26.88, p:"EC", sh:5.2 }, { name:"Graaff-Reinet", lat:-32.25, lon:24.54, p:"EC", sh:5.5 },
+    { name:"Cradock", lat:-32.16, lon:25.62, p:"EC", sh:5.4 }, { name:"Aliwal North", lat:-30.69, lon:26.71, p:"EC", sh:5.5 },
+    { name:"Kokstad", lat:-30.55, lon:29.42, p:"EC", sh:4.8 }
+  ];
+  function nearestTown(lat,lon){
+    var best=null,bd=Infinity;
+    for(var i=0;i<TOWNS.length;i++){
+      var t=TOWNS[i],dLat=(t.lat-lat)*110.57,dLon=(t.lon-lon)*96.5;
+      var d=Math.sqrt(dLat*dLat+dLon*dLon);
+      if(d<bd){bd=d;best=t;}
+    }
+    return best?{town:best,km:bd}:null;
+  }
+  async function satelliteSunHours(lat,lon){
+    try{
+      var url='https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude='+lon.toFixed(3)+'&latitude='+lat.toFixed(3)+'&format=JSON';
+      var ctl=new AbortController(),to=setTimeout(function(){ctl.abort();},8000);
+      var r=await fetch(url,{signal:ctl.signal});clearTimeout(to);
+      if(!r.ok)return null;
+      var j=await r.json();
+      var v=j&&j.properties&&j.properties.parameter&&j.properties.parameter.ALLSKY_SFC_SW_DWN;
+      if(!v)return null;
+      var ann=v.ANN!=null?v.ANN:null;
+      if(ann==null){var ks=Object.keys(v).filter(function(k){return k!=='ANN';}),sum=0,n=0;ks.forEach(function(k){if(typeof v[k]==='number'&&v[k]>0){sum+=v[k];n++;}});ann=n?sum/n:null;}
+      if(ann==null||ann<2.5||ann>9)return null;
+      return Math.round(ann*100)/100;
+    }catch(e){return null;}
+  }
   const PROVINCES={
     'KwaZulu-Natal':4.9,'Gauteng':5.3,'Western Cape':5.4,'Eastern Cape':5.0,
     'Free State':5.6,'Limpopo':5.6,'Mpumalanga':5.2,'North West':5.7,'Northern Cape':6.2
@@ -162,13 +224,49 @@
   }
   function provinceFromAddress(a={}){const s=(a.state||a.province||'').toLowerCase();return Object.keys(PROVINCES).find(p=>s.includes(p.toLowerCase())||(p==='KwaZulu-Natal'&&s.includes('kwazulu')))||''}
   function useLocation(){
-    const status=$('geoStatus');if(!navigator.geolocation){status.className='status-line bad';status.textContent='This browser cannot provide location. Search the address or choose a province.';return}
-    status.className='status-line';status.textContent='Requesting permission…';$('geoBtn').disabled=true;
-    navigator.geolocation.getCurrentPosition(async pos=>{
-      const {latitude:lat,longitude:lon}=pos.coords;let label=`${lat.toFixed(5)}, ${lon.toFixed(5)}`,province='';
-      try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=12&addressdetails=1`);if(r.ok){const d=await r.json();label=d.display_name||label;province=provinceFromAddress(d.address)}}catch(err){}
-      applyLocation(lat,lon,label,province,'device');$('geoBtn').disabled=false;
-    },err=>{status.className='status-line bad';status.textContent=err.code===1?'Location permission was not allowed. Search the address or choose a province instead.':'We could not confirm your location. Search the address or choose a province.';$('geoBtn').disabled=false;},{enableHighAccuracy:false,timeout:15000,maximumAge:300000});
+    var status=$('geoStatus'),btn=$('geoBtn');
+    if(!navigator.geolocation){status.className='status-line bad';status.textContent='This browser cannot provide location. Search the address or choose a province.';return;}
+    if(!window.isSecureContext&&location.protocol!=='http:'){status.className='status-line bad';status.textContent='Location needs a secure (https) connection. Choose your province instead.';return;}
+    status.className='status-line';status.textContent='Requesting permission… if your browser asks, choose Allow.';
+    if(btn)btn.disabled=true;
+    var settled=false;
+    var guard=setTimeout(function(){
+      if(settled)return;settled=true;if(btn)btn.disabled=false;
+      status.className='status-line bad';
+      status.textContent='Your device did not return a location in time. Choose your province below — the numbers work exactly the same.';
+    },20000);
+    navigator.geolocation.getCurrentPosition(async function(pos){
+      if(settled)return;settled=true;clearTimeout(guard);
+      var lat=pos.coords.latitude,lon=pos.coords.longitude;
+      var near=nearestTown(lat,lon);
+      var province='',label=lat.toFixed(4)+', '+lon.toFixed(4);
+      if(near&&near.km<180){
+        province=PROV_CODE[near.town.p]||'';
+        label=near.town.name+' area · '+province;
+        var shField=$('performanceRatio')?$('sunHours')||$('peakSunHours'):null;
+        var sh=$('sunHours')||$('peakSunHours');
+        if(sh){sh.value=near.town.sh;}
+        state.sunSource='town';
+      }
+      applyLocation(lat,lon,label,province,'device');
+      if(btn)btn.disabled=false;
+      status.className='status-line good';
+      status.textContent='✓ Location confirmed · '+label+(near&&near.km<180?' · using '+near.town.name+' solar resource ('+near.town.sh+' peak sun hours/day)':'');
+      var sat=await satelliteSunHours(lat,lon);
+      if(sat){
+        var shf=$('sunHours')||$('peakSunHours');
+        if(shf){shf.value=sat;state.sunSource='satellite';recompute();}
+        status.textContent='✓ Location confirmed · '+label+' · refined to '+sat+' peak sun hours/day from NASA satellite climatology';
+      }
+    },function(err){
+      if(settled)return;settled=true;clearTimeout(guard);
+      if(btn)btn.disabled=false;
+      status.className='status-line bad';
+      status.textContent=err&&err.code===1
+        ?'Location permission was blocked. Tap the padlock in your address bar → Location → Allow, or simply choose your province below.'
+        :(err&&err.code===2?'Your device could not get a fix (common indoors or on weak signal). Choose your province below instead.'
+        :'We could not confirm your location. Choose your province below — nothing else changes.');
+    },{enableHighAccuracy:false,timeout:15000,maximumAge:300000});
   }
   function applyLocation(lat,lon,label,province,source){state.location={lat,lon,label,province,source,confirmedAt:new Date().toISOString()};$('siteAddress').value=label;if(province)$('province').value=province;$('geoStatus').className='status-line good';$('geoStatus').textContent='✓ Location confirmed · '+label;showMap(lat,lon);recompute()}
   function showMap(lat,lon){
@@ -188,7 +286,7 @@
     const tariff=num('tariff')||2.65;let monthlyBill=num('monthlyBill'),monthlyKwh=num('monthlyKwh');
     if(!monthlyKwh&&monthlyBill)monthlyKwh=monthlyBill/tariff;if(!monthlyBill&&monthlyKwh)monthlyBill=monthlyKwh*tariff;
     const growth=num('growth')/100,annualKwh=monthlyKwh*12*(1+growth);const timing={day:.72,mixed:.48,night:.27}[state.timing]||.48;
-    const province=$('province').value||(state.location&&state.location.province)||'';const sun=PROVINCES[province]||5.2;const pr=(num('performanceRatio')||79)/100;const degradation=(num('degradation')||.5)/100;
+    const province=$('province').value||(state.location&&state.location.province)||'';const sunField=num('sunHours');const sun=(sunField>=2.5&&sunField<=9)?sunField:(PROVINCES[province]||5.2);const pr=(num('performanceRatio')||79)/100;const degradation=(num('degradation')||.5)/100;
     const selected=selectedLoadData();let connectedKw=0,selectedEnergy=0,criticalConnected=0;
     selected.forEach(l=>{const d=state.equipmentDetails[l[0]]||{qty:1,kw:l[3],hours:l[4],months:l[6],duty:70,pf:.9,critical:l[7]?'yes':'no'};const kw=d.qty*d.kw;connectedKw+=kw;selectedEnergy+=kw*d.hours*30*(d.months/12)*(d.duty/100);if(d.critical==='yes')criticalConnected+=kw});
     connectedKw+=state.customLoads.reduce((s,l)=>s+(+l.kw||0),0);selectedEnergy+=state.customLoads.reduce((s,l)=>s+(+l.kw||0)*(+l.hours||8)*30,0);
@@ -268,9 +366,34 @@
   function renderRisks(m){const risks=[];if(!state.files.length)risks.push(['Billing verification','Obtain 12 months of bills and interval data where available.']);if(!num('peakKva'))risks.push(['Demand profile','Confirm maximum demand, tariff structure and time-of-use charges.']);if(!num('roofArea')&&!num('groundArea'))risks.push(['Installation space','Confirm roof structure, shading, usable area or ground conditions.']);if(m.batteryKwh)risks.push(['Storage duty','Validate critical-load list, autonomy and battery cycling objective.']);risks.push(['Funding and approvals','Final rates, credit approval, grid permissions and tax treatment remain subject to review.']);$('riskPanel').innerHTML=`<div class="risk-list">${risks.slice(0,5).map(r=>`<div><b>${r[0]}</b><span>${r[1]}</span></div>`).join('')}</div>`}
 
   function summaryText(){const m=state.model;return`Chariot Energy Snapshot\n\n${tr('Site')}: ${state.sector||tr('Not specified')} · ${m.province||tr('Location to confirm')}\n${tr('Monthly bill')}: ${money(m.monthlyBill)}\n${tr('Indicative solar')}: ${Math.round(m.targetKwp)} kWp\n${tr('Battery allowance')}: ${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':tr('Not included')}\n${tr('Indicative capex')}: ${money(m.capex)}\n${tr('Year-one benefit')}: ${money(m.annualBenefit)}\n${tr('Recommended first route')}: ${tr(routeName(m.route))}\n${tr('Data confidence')}: ${m.confidence}%\n\n${tr('Client notes')}: ${$('clientNotes').value||$('voiceNotes').value||tr('None supplied')}\n\n${tr('Indicative pre-feasibility only. Please contact me to validate the assessment.')}`}
-  function shareWhatsapp(){window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(summaryText())}`,'_blank','noopener')}
-  function shareEmail(){location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Chariot Energy Snapshot — pre-feasibility review')}&body=${encodeURIComponent(summaryText())}`}
-  function requestMeeting(){const name=$('meetingName').value.trim(),contact=$('meetingContact').value.trim();if(!name||!contact){alert(tr('Please add your name and phone or email.'));return}if(CONTACT.calendar){window.open(CONTACT.calendar,'_blank','noopener');return}const text=`${tr('Chariot Energy Review Request')}\n\n${tr('Name')}: ${name}\n${tr('Company/site')}: ${$('meetingCompany').value||tr('Not supplied')}\n${tr('Contact')}: ${contact}\n${tr('Preferred time')}: ${$('meetingWindow').value}\n\n${summaryText()}`;window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(text)}`,'_blank','noopener')}
+
+  var SUPABASE={url:"https://ircfpoeifedbuhvygufo.supabase.co",key:"sb_publishable_E_kyBi-bJ2_rDj_LipCBzw_-oRK2J6K"};
+  async function sbInsert(table,row){
+    try{
+      await fetch(SUPABASE.url+"/rest/v1/"+table,{method:"POST",headers:{"apikey":SUPABASE.key,"Authorization":"Bearer "+SUPABASE.key,"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify(row)});
+    }catch(e){}
+  }
+  function submitLeadRecord(channel){
+    try{
+      var name=($('meetingName')&&$('meetingName').value)||'',
+          contact=($('meetingContact')&&$('meetingContact').value)||'';
+      sbInsert('leads',{
+        name:name||null,
+        contact:contact||null,
+        province:($('province')&&$('province').value)||null,
+        monthly_bill:num('monthlyBill')||null,
+        snapshot_json:{channel:channel,lang:(window.ChariotI18n&&window.ChariotI18n.current&&window.ChariotI18n.current())||'en',
+          sun_hours:num('sunHours')||null,sun_source:state.sunSource||'province',
+          location:state.location||null,site_area:state.siteArea||null,
+          equipment:(typeof selectedLoadData==='function'?selectedLoadData().map(function(l){return l[0];}):[]),
+          summary:(typeof summaryText==='function'?summaryText():null)}
+      });
+      sbInsert('events',{event:'share_'+channel,meta:{lang:(window.ChariotI18n&&window.ChariotI18n.current&&window.ChariotI18n.current())||'en'}});
+    }catch(e){}
+  }
+  function shareWhatsapp(){submitLeadRecord('whatsapp');window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(summaryText())}`,'_blank','noopener')}
+  function shareEmail(){submitLeadRecord('email');location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Chariot Energy Snapshot — pre-feasibility review')}&body=${encodeURIComponent(summaryText())}`}
+  function requestMeeting(){const name=$('meetingName').value.trim(),contact=$('meetingContact').value.trim();if(!name||!contact){alert(tr('Please add your name and phone or email.'));return}submitLeadRecord('meeting');if(CONTACT.calendar){window.open(CONTACT.calendar,'_blank','noopener');return}const text=`${tr('Chariot Energy Review Request')}\n\n${tr('Name')}: ${name}\n${tr('Company/site')}: ${$('meetingCompany').value||tr('Not supplied')}\n${tr('Contact')}: ${contact}\n${tr('Preferred time')}: ${$('meetingWindow').value}\n\n${summaryText()}`;window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(text)}`,'_blank','noopener')}
 
   function save(){try{localStorage.setItem('chariot_snapshot_v2',JSON.stringify(serialize()));$('saveBtn').textContent='Saved ✓';setTimeout(()=>$('saveBtn').textContent='Save progress',1800)}catch(err){}}
   function serialize(){const values={};$$('input,select,textarea').forEach(e=>{if(e.id&&e.type!=='file')values[e.id]=e.value});return{...state,loads:[...state.loads],upgrades:[...state.upgrades],values,model:null,files:[]}}

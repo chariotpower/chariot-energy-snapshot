@@ -37,7 +37,7 @@
       <p>Translate your energy profile into a decision-ready commercial view—covering indicative system strategy, capital requirements, funding routes, cash-flow impact and the priorities requiring validation.</p>
       <div class="scope-notice"><strong>Indicative pre-feasibility assessment</strong><span>All outputs are preliminary and subject to Chariot Power’s full technical, financial, credit, structural, site and regulatory assessment.</span></div>
       <div class="trust-row" aria-label="Assessment benefits">
-        <span>✓ About 3 minutes</span><span>✓ No obligation</span><span>✓ Assumptions shown</span><span>✓ Your data stays private</span>
+        <span>✓ About 3 minutes</span><span>✓ No obligation</span><span>✓ Assumptions shown</span><span>✓ You choose what you send</span>
       </div>
 
       <div class="start-grid">
@@ -139,6 +139,7 @@
               </div>
               <div class="field-grid two compact-top">
                 <div class="field"><label for="province">Province</label><select id="province"><option value="">Choose province</option><option>KwaZulu-Natal</option><option>Gauteng</option><option>Western Cape</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select></div>
+                <div class="field"><label for="sunHours">Peak sun hours / day</label><input id="sunHours" type="number" step="0.1" min="2.5" max="9" placeholder="auto"><small id="sunSource">Set from your province. Use my location refines it to your town, then to NASA satellite data.</small></div>
                 <div class="field"><label for="supply">Electricity supply</label><select id="supply"><option value="eskom">Eskom direct</option><option value="municipal">Municipality</option><option value="private">Private / landlord</option><option value="unknown">Not sure</option></select></div>
               </div>
             </fieldset>
@@ -241,7 +242,7 @@
 
           <section class="step results-step" data-step="5">
             <div class="result-hero">
-              <div><div class="result-brand result-brand-dark"><img src="chariot-logo-transparent.png" alt="Chariot Power"><span>ENERGY SNAPSHOT</span></div><div class="eyebrow light">INDICATIVE PRE-FEASIBILITY SNAPSHOT · SUBJECT TO FULL ASSESSMENT</div><h2 id="resultHeadline">A clearer energy path starts here.</h2><p id="resultSubhead"></p></div>
+              <div><div class="result-brand result-brand-dark"><img src="chariot-logo-transparent.png" onerror="this.onerror=null;this.src='chariot-logo.svg'" alt="Chariot Power"><span>ENERGY SNAPSHOT</span></div><div class="eyebrow light">INDICATIVE PRE-FEASIBILITY SNAPSHOT · SUBJECT TO FULL ASSESSMENT</div><h2 id="resultHeadline">A clearer energy path starts here.</h2><p id="resultSubhead"></p></div>
               <div class="confidence-ring"><strong id="confidenceScore">—</strong><span>data confidence</span></div>
             </div>
             <div class="result-kpis" id="resultKpis"></div>
@@ -276,7 +277,7 @@
         </div>
 
         <aside class="live-panel" id="livePanel">
-          <img class="live-logo" src="chariot-logo-transparent.png" alt="Chariot Power">
+          <img class="live-logo" src="chariot-logo-transparent.png" onerror="this.onerror=null;this.src='chariot-logo.svg'" alt="Chariot Power">
           <div class="live-head"><div><span>LIVE INDICATIVE VIEW · SUBJECT TO FULL ASSESSMENT</span><h2>Your energy opportunity</h2></div><b><i></i> LIVE</b></div>
           <div class="live-kpis">
             <div><span>System range</span><strong id="liveSystem">—</strong></div>
