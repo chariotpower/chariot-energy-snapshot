@@ -66,6 +66,12 @@
   Object.assign(af,{
     'Important:':'Belangrik:','Every output in this snapshot—including system sizing, generation, savings, costs, cash flow, NPV, IRR, payback, resilience and funding comparisons—is indicative only and subject to full assessment. This is not a quotation, credit offer, tax opinion, engineering design, regulatory approval or performance guarantee. Final outcomes require verified consumption data, site and structural assessment, detailed engineering, equipment selection, grid and regulatory review, credit approval, tax advice and signed commercial terms.':'Elke uitset in hierdie oorsig—insluitend stelselgrootte, opwekking, besparings, koste, kontantvloei, NHW, IRR, terugbetaling, veerkragtigheid en finansieringsvergelykings—is slegs aanduidend en onderhewig aan volledige assessering. Dit is nie ’n kwotasie, kredietaanbod, belastingmening, ingenieursontwerp, regulatoriese goedkeuring of prestasiewaarborg nie. Finale uitkomste vereis geverifieerde verbruiksdata, perseel- en strukturele assessering, gedetailleerde ingenieurswerk, toerustingkeuse, netwerk- en regulatoriese hersiening, kredietgoedkeuring, belastingadvies en ondertekende kommersiële voorwaardes.'
   });
+  Object.assign(zu,{
+    'Paste coordinates, e.g. -29.8587, 31.0218':'Namathisela izixhumanisi, isb. -29.8587, 31.0218','Use coordinates':'Sebenzisa izixhumanisi','Site mapping tools':'Amathuluzi emephu yesiza','✏️ Sketch area':'✏️ Dweba indawo','▭ Rectangle':'▭ Unxande','📍 Drop pin':'📍 Beka iphini','📏 Measure cable run':'📏 Kala indlela yekhebula','↺ Clear':'↺ Sula','Choose a tool, then draw directly on the map.':'Khetha ithuluzi, bese udweba ngqo ebalazweni.','Mapped area:':'Indawo edwetshiwe:','Cable run:':'Indlela yekhebula:','Coordinates:':'Izixhumanisi:'
+  });
+  Object.assign(af,{
+    'Paste coordinates, e.g. -29.8587, 31.0218':'Plak koördinate, bv. -29.8587, 31.0218','Use coordinates':'Gebruik koördinate','Site mapping tools':'Perseelkaartnutsgoed','✏️ Sketch area':'✏️ Skets area','▭ Rectangle':'▭ Reghoek','📍 Drop pin':'📍 Plaas pen','📏 Measure cable run':'📏 Meet kabelroete','↺ Clear':'↺ Maak skoon','Choose a tool, then draw directly on the map.':'Kies ’n nutsmiddel en teken dan direk op die kaart.','Mapped area:':'Gekarteerde area:','Cable run:':'Kabelroete:','Coordinates:':'Koördinate:'
+  });
   const dictionaries={zu,af};
   const originals=new WeakMap();
   let lang=localStorage.getItem('chariot_language')||'en';
