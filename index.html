@@ -13,7 +13,7 @@
   <link rel="icon" href="chariot-logo.svg">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynh6RlyHh6t4p2VRC1aQ9uJ0qQ+E=" crossorigin="">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
-  <link rel="stylesheet" href="styles.css?v=20260901f">
+  <link rel="stylesheet" href="styles.css?v=20260901g">
 </head>
 <body>
   <a class="skip-link" href="#workspace">Skip to assessment</a>
@@ -136,8 +136,14 @@
                 <button class="location-btn" id="geoBtn" type="button">◎ Use my current location</button>
                 <p id="geoStatus" class="status-line">You can also choose a province below.</p>
                 <div id="siteMap" class="site-map" hidden aria-label="Satellite site map"></div>
-                <div id="mapTools" class="map-tools" hidden aria-label="Site mapping tools"><button type="button" data-map-tool="polygon">✏️ Sketch area</button><button type="button" data-map-tool="rectangle">▭ Rectangle</button><button type="button" data-map-tool="marker">📍 Drop pin</button><button type="button" data-map-tool="polyline">📏 Measure cable run</button><button type="button" data-map-tool="clear">↺ Clear</button></div>
+                <div id="mapTools" class="map-tools" hidden aria-label="Site mapping tools"><button type="button" data-map-tool="freehand">✏️ Freehand area</button><button type="button" data-map-tool="rectangle">▭ Rectangle</button><label class="map-pin-type"><span>Pin type</span><select id="pinType"><option value="inverter">Inverter</option><option value="battery">Battery</option><option value="grid">Grid point</option><option value="critical">Critical load</option></select></label><button type="button" data-map-tool="marker">📍 Drop pin</button><button type="button" data-map-tool="polyline">📏 Measure cable run</button><button type="button" data-map-tool="clear">↺ Clear</button></div>
                 <div id="mapReadout" class="map-readout" hidden></div>
+                <div id="solarResourceCard" class="solar-resource-card" hidden>
+                  <div><strong>Free solar-resource check</strong><p>With your permission, retrieve long-term solar climatology for this coordinate from NASA POWER. Your coordinates leave this browser only when you press the button.</p></div>
+                  <button type="button" id="solarDataBtn">Retrieve free solar data</button>
+                  <div id="solarDataStatus" class="solar-data-status">Provincial climatology fallback is currently active.</div>
+                  <div class="source-links"><a href="https://power.larc.nasa.gov/docs/services/api/" target="_blank" rel="noopener">NASA POWER API documentation</a><a href="https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en" target="_blank" rel="noopener">PVGIS API documentation</a><a id="pvgisLink" href="https://re.jrc.ec.europa.eu/pvg_tools/en/" target="_blank" rel="noopener">Validate in PVGIS</a></div>
+                </div>
               </div>
               <div class="field-grid two compact-top">
                 <div class="field"><label for="province">Province</label><select id="province"><option value="">Choose province</option><option>KwaZulu-Natal</option><option>Gauteng</option><option>Western Cape</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select></div>
@@ -251,7 +257,7 @@
             <div class="dashboard-grid">
               <article class="chart-card wide"><header><div><span>20-YEAR CAPITAL DECISION</span><h3>What each route could cost</h3></div><div class="scenario-switch"><button class="active" data-scenario="base">Base</button><button data-scenario="conservative">Conservative</button><button data-scenario="upside">Upside</button></div></header><div id="costChart" class="chart"></div></article>
               <article class="chart-card"><header><div><span>ENERGY MATCH</span><h3>Typical operating day</h3></div></header><div id="loadChart" class="chart"></div></article>
-              <article class="chart-card"><header><div><span>SOLUTION</span><h3>Proposed first configuration</h3></div></header><div id="systemSnapshot"></div></article>
+              <article class="chart-card"><header><div><span>SOLUTION</span><h3>Proposed first configuration</h3></div></header><div id="systemSnapshot"></div></article><article class="chart-card"><header><div><span>STAGED ROADMAP</span><h3>Build now, remain ready for later</h3></div></header><div id="stagedPlan"></div></article>
               <article class="chart-card wide"><header><div><span>MONTHLY ENERGY</span><h3>Consumption and solar generation through the year</h3></div></header><div id="monthlyChart" class="chart"></div></article>
               <article class="chart-card"><header><div><span>YEAR-ONE CASH FLOW</span><h3>Where the value comes from</h3></div></header><div id="waterfallChart" class="chart"></div></article>
               <article class="chart-card"><header><div><span>ENERGY FLOW</span><h3>How energy moves through the site</h3></div></header><div id="energyFlow"></div></article>
@@ -269,7 +275,7 @@
                 <button class="primary-btn" id="meetingBtn" type="button">Schedule an energy review →</button>
                 <button class="secondary-btn" id="whatsappBtn" type="button">Share with Chariot on WhatsApp</button>
                 <button class="secondary-btn" id="emailBtn" type="button">Send by email</button>
-                <button class="secondary-btn" id="printBtn" type="button">Download / print report</button>
+                <button class="secondary-btn" id="printBtn" type="button">Print one-page board summary</button>
               </div>
             </div>
             <p class="legal legal-strong"><strong>Important:</strong> Every output in this snapshot—including system sizing, generation, savings, costs, cash flow, NPV, IRR, payback, resilience and funding comparisons—is indicative only and subject to full assessment. This is not a quotation, credit offer, tax opinion, engineering design, regulatory approval or performance guarantee. Final outcomes require verified consumption data, site and structural assessment, detailed engineering, equipment selection, grid and regulatory review, credit approval, tax advice and signed commercial terms.</p>
@@ -308,7 +314,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="i18n.js?v=20260901f" defer></script>
-  <script src="app.js?v=20260901f" defer></script>
+  <script src="i18n.js?v=20260901g" defer></script>
+  <script src="app.js?v=20260901g" defer></script>
 </body>
 </html>
