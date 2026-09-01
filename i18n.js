@@ -72,6 +72,39 @@
   Object.assign(af,{
     'Paste coordinates, e.g. -29.8587, 31.0218':'Plak koördinate, bv. -29.8587, 31.0218','Use coordinates':'Gebruik koördinate','Site mapping tools':'Perseelkaartnutsgoed','✏️ Sketch area':'✏️ Skets area','▭ Rectangle':'▭ Reghoek','📍 Drop pin':'📍 Plaas pen','📏 Measure cable run':'📏 Meet kabelroete','↺ Clear':'↺ Maak skoon','Choose a tool, then draw directly on the map.':'Kies ’n nutsmiddel en teken dan direk op die kaart.','Mapped area:':'Gekarteerde area:','Cable run:':'Kabelroete:','Coordinates:':'Koördinate:'
   });
+  Object.assign(zu,{
+    '✏️ Freehand area':'✏️ Dweba indawo ngesandla',
+    'Pin type':'Uhlobo lwephini','Inverter':'I-inverter','Battery':'Ibhethri','Grid point':'Indawo yegridi','Critical load':'Umthwalo obalulekile',
+    'Free solar-resource check':'Ukuhlolwa kwamahhala kwelanga','Retrieve free solar data':'Landa idatha yamahhala yelanga',
+    'Nothing is sent until you choose this check. NASA POWER requires no key; provincial climatology remains available if the service is unavailable.':'Akukho okuthunyelwayo uze ukhethe lokhu kuhlola. I-NASA POWER ayidingi ukhiye; idatha yesifundazwe iyasetshenziswa uma isevisi ingatholakali.',
+    'NASA POWER documentation':'Imibhalo ye-NASA POWER','PVGIS validation documentation':'Imibhalo yokuqinisekisa ye-PVGIS','Open PVGIS validation tool':'Vula ithuluzi lokuqinisekisa le-PVGIS',
+    'STAGED ROADMAP':'UHLELO LWEZIGABA','Build now, remain ready for later':'Yakha manje, uhlale ulungele okulandelayo',
+    'Print one-page board summary':'Phrinta isifinyezo sekhasi elilodwa sebhodi',
+    'PV capacity':'Umthamo we-PV','Annual generation':'Ukukhiqizwa konyaka','Solar used on site':'Ilanga elisetshenziswa esizeni','Site energy covered':'Amandla esiza ahlinzekiwe',
+    'Peak-shaving proxy':'Isilinganiso sokunciphisa isiqongo','Solar-resource source':'Umthombo wedatha yelanga','Mapped site intelligence':'Imininingwane yesiza emephini',
+    'Solar-first core':'Isisekelo selanga kuqala','Storage-ready':'Silungele isitoreji','Optimise and expand':'Lungisa futhi wandise',
+    'Solar resource':'Umthombo welanga','Self-consumption':'Ukusetshenziswa kwelanga esizeni','Solar coverage':'Ukuhlinzekwa yilanga','Mapped site':'Isiza esimephini',
+    'Coordinates confirmed by client':'Izixhumanisi ziqinisekiswe iklayenti','NASA POWER climatology retrieved':'Idatha ye-NASA POWER ilandiwe','Provincial fallback assumption':'Isilinganiso sesifundazwe',
+    'Client mapped on site plan':'Iklayenti lidwebe esizeni','Strengthen billing evidence':'Qinisa ubufakazi bezikweletu','Strengthen demand modelling':'Qinisa ukumodela kwesidingo',
+    'Strengthen solar evidence':'Qinisa ubufakazi belanga','Strengthen site feasibility':'Qinisa ukuhlolwa kwesiza','Validate storage duty':'Qinisekisa umsebenzi wesitoreji',
+    'Validate funding and approvals':'Qinisekisa uxhaso nezimvume','Indicative pre-feasibility only — subject to full assessment.':'Isilinganiso sokuqala kuphela — kuncike ekuhlolweni okuphelele.'
+  });
+  Object.assign(af,{
+    '✏️ Freehand area':'✏️ Vryhand-area','Pin type':'Penspeldtipe','Inverter':'Omsetter','Battery':'Battery','Grid point':'Netwerkpunt','Critical load':'Kritieke las',
+    'Free solar-resource check':'Gratis sonhulpbron-kontrole','Retrieve free solar data':'Haal gratis sondata op',
+    'Nothing is sent until you choose this check. NASA POWER requires no key; provincial climatology remains available if the service is unavailable.':'Niks word gestuur totdat u hierdie kontrole kies nie. NASA POWER benodig geen sleutel nie; provinsiale klimatologie bly beskikbaar indien die diens nie beskikbaar is nie.',
+    'NASA POWER documentation':'NASA POWER-dokumentasie','PVGIS validation documentation':'PVGIS-valideringsdokumentasie','Open PVGIS validation tool':'Open PVGIS-valideringshulpmiddel',
+    'STAGED ROADMAP':'GEFASEERDE PADKAART','Build now, remain ready for later':'Bou nou en bly gereed vir later',
+    'Print one-page board summary':'Druk eenbladsy-raadopsomming',
+    'PV capacity':'PV-kapasiteit','Annual generation':'Jaarlikse opwekking','Solar used on site':'Sonkrag op perseel gebruik','Site energy covered':'Perseelenergie gedek',
+    'Peak-shaving proxy':'Piekvermindering-aanwyser','Solar-resource source':'Sonhulpbronbron','Mapped site intelligence':'Gekarteerde perseelintelligensie',
+    'Solar-first core':'Sonkrag-eerste kern','Storage-ready':'Berginggereed','Optimise and expand':'Optimaliseer en brei uit',
+    'Solar resource':'Sonhulpbron','Self-consumption':'Selfverbruik','Solar coverage':'Sonkragdekking','Mapped site':'Gekarteerde perseel',
+    'Coordinates confirmed by client':'Koördinate deur kliënt bevestig','NASA POWER climatology retrieved':'NASA POWER-klimatologie verkry','Provincial fallback assumption':'Provinsiale terugvalaanname',
+    'Client mapped on site plan':'Kliënt het dit op die terreinplan gekarteer','Strengthen billing evidence':'Versterk faktuurbewyse','Strengthen demand modelling':'Versterk vraagmodellering',
+    'Strengthen solar evidence':'Versterk sonkragbewyse','Strengthen site feasibility':'Versterk perseelhaalbaarheid','Validate storage duty':'Bevestig bergingsplig',
+    'Validate funding and approvals':'Bevestig finansiering en goedkeurings','Indicative pre-feasibility only — subject to full assessment.':'Slegs aanduidende voorhaalbaarheid — onderhewig aan volledige assessering.'
+  });
   const dictionaries={zu,af};
   const originals=new WeakMap();
   let lang=localStorage.getItem('chariot_language')||'en';
