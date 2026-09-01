@@ -12,94 +12,6 @@
   const pct=v=>Math.round(v)+'%';
   const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-
-  var _libs={};
-  function loadLib(url){
-    if(_libs[url])return _libs[url];
-    _libs[url]=new Promise(function(res,rej){
-      var s=document.createElement('script');s.src=url;s.async=true;
-      s.onload=function(){res(true);};s.onerror=function(){rej(new Error('lib'));};
-      document.head.appendChild(s);
-    }).catch(function(){return false;});
-    return _libs[url];
-  }
-  function loadCss(url){
-    if(_libs['css:'+url])return;_libs['css:'+url]=1;
-    var l=document.createElement('link');l.rel='stylesheet';l.href=url;document.head.appendChild(l);
-  }
-  async function ensureMap(){
-    if(window.L)return true;
-    loadCss('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
-    loadCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css');
-    await loadLib('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
-    await loadLib('https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js');
-    return !!window.L;
-  }
-  async function ensurePdf(){ if(window.pdfjsLib)return true; await loadLib('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'); return !!window.pdfjsLib; }
-  async function ensureXlsx(){ if(window.XLSX)return true; await loadLib('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'); return !!window.XLSX; }
-  async function ensureOcr(){ if(window.Tesseract)return true; await loadLib('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'); return !!window.Tesseract; }
-  const PROV_CODE={WC:'Western Cape',EC:'Eastern Cape',NC:'Northern Cape',FS:'Free State',KZN:'KwaZulu-Natal',GP:'Gauteng',MP:'Mpumalanga',LP:'Limpopo',NW:'North West'};
-  const TOWNS=[
-    { name:"Cape Town", lat:-33.92, lon:18.42, p:"WC", sh:5.1 }, { name:"Stellenbosch", lat:-33.93, lon:18.86, p:"WC", sh:5.1 },
-    { name:"Paarl", lat:-33.73, lon:18.96, p:"WC", sh:5.2 }, { name:"Worcester", lat:-33.65, lon:19.45, p:"WC", sh:5.4 },
-    { name:"Malmesbury", lat:-33.46, lon:18.73, p:"WC", sh:5.3 }, { name:"Vredendal", lat:-31.67, lon:18.5, p:"WC", sh:5.8 },
-    { name:"Oudtshoorn", lat:-33.59, lon:22.2, p:"WC", sh:5.3 }, { name:"George", lat:-33.96, lon:22.46, p:"WC", sh:4.6 },
-    { name:"Beaufort West", lat:-32.36, lon:22.58, p:"WC", sh:5.7 }, { name:"Swellendam", lat:-34.02, lon:20.44, p:"WC", sh:4.9 },
-    { name:"Bloemfontein", lat:-29.09, lon:26.16, p:"FS", sh:5.7 }, { name:"Bethlehem", lat:-28.23, lon:28.31, p:"FS", sh:5.4 },
-    { name:"Welkom", lat:-27.98, lon:26.73, p:"FS", sh:5.6 }, { name:"Kroonstad", lat:-27.65, lon:27.23, p:"FS", sh:5.6 },
-    { name:"Harrismith", lat:-28.27, lon:29.13, p:"FS", sh:5.3 }, { name:"Parys", lat:-26.9, lon:27.46, p:"FS", sh:5.5 },
-    { name:"Sasolburg", lat:-26.81, lon:27.82, p:"FS", sh:5.4 }, { name:"Johannesburg", lat:-26.2, lon:28.05, p:"GP", sh:5.3 },
-    { name:"Pretoria", lat:-25.75, lon:28.23, p:"GP", sh:5.3 }, { name:"Vereeniging", lat:-26.67, lon:27.93, p:"GP", sh:5.4 },
-    { name:"Krugersdorp", lat:-26.09, lon:27.77, p:"GP", sh:5.3 }, { name:"Heidelberg", lat:-26.5, lon:28.36, p:"GP", sh:5.3 },
-    { name:"Durban", lat:-29.86, lon:31.02, p:"KZN", sh:4.5 }, { name:"Pietermaritzburg", lat:-29.6, lon:30.38, p:"KZN", sh:4.6 },
-    { name:"Vryheid", lat:-27.77, lon:30.79, p:"KZN", sh:4.9 }, { name:"Newcastle", lat:-27.76, lon:29.93, p:"KZN", sh:5.0 },
-    { name:"Ladysmith", lat:-28.55, lon:29.78, p:"KZN", sh:4.9 }, { name:"Richards Bay", lat:-28.78, lon:32.04, p:"KZN", sh:4.6 },
-    { name:"Port Shepstone", lat:-30.74, lon:30.45, p:"KZN", sh:4.5 }, { name:"Ulundi", lat:-28.34, lon:31.42, p:"KZN", sh:4.8 },
-    { name:"Polokwane", lat:-23.9, lon:29.47, p:"LP", sh:5.5 }, { name:"Tzaneen", lat:-23.83, lon:30.16, p:"LP", sh:5.0 },
-    { name:"Mokopane", lat:-24.19, lon:29.01, p:"LP", sh:5.4 }, { name:"Bela-Bela", lat:-24.89, lon:28.29, p:"LP", sh:5.4 },
-    { name:"Musina", lat:-22.34, lon:30.04, p:"LP", sh:5.6 }, { name:"Thohoyandou", lat:-22.95, lon:30.48, p:"LP", sh:5.0 },
-    { name:"Phalaborwa", lat:-23.94, lon:31.14, p:"LP", sh:5.3 }, { name:"Hoedspruit", lat:-24.35, lon:30.96, p:"LP", sh:5.2 },
-    { name:"Giyani", lat:-23.3, lon:30.72, p:"LP", sh:5.2 }, { name:"Nelspruit (Mbombela)", lat:-25.48, lon:30.97, p:"MP", sh:5.0 },
-    { name:"Ermelo", lat:-26.53, lon:29.98, p:"MP", sh:5.1 }, { name:"Standerton", lat:-26.95, lon:29.24, p:"MP", sh:5.3 },
-    { name:"eMalahleni (Witbank)", lat:-25.87, lon:29.23, p:"MP", sh:5.3 }, { name:"Middelburg", lat:-25.77, lon:29.46, p:"MP", sh:5.3 },
-    { name:"Secunda", lat:-26.55, lon:29.17, p:"MP", sh:5.3 }, { name:"Piet Retief", lat:-27.0, lon:30.8, p:"MP", sh:4.9 },
-    { name:"Kimberley", lat:-28.73, lon:24.75, p:"NC", sh:5.9 }, { name:"Upington", lat:-28.45, lon:21.26, p:"NC", sh:6.1 },
-    { name:"Springbok", lat:-29.66, lon:17.89, p:"NC", sh:6.0 }, { name:"De Aar", lat:-30.65, lon:24.01, p:"NC", sh:5.9 },
-    { name:"Kuruman", lat:-27.45, lon:23.43, p:"NC", sh:5.9 }, { name:"Kathu", lat:-27.7, lon:23.05, p:"NC", sh:6.0 },
-    { name:"Calvinia", lat:-31.47, lon:19.78, p:"NC", sh:5.8 }, { name:"Colesberg", lat:-30.72, lon:25.1, p:"NC", sh:5.8 },
-    { name:"Mahikeng", lat:-25.86, lon:25.64, p:"NW", sh:5.6 }, { name:"Rustenburg", lat:-25.67, lon:27.24, p:"NW", sh:5.5 },
-    { name:"Klerksdorp", lat:-26.85, lon:26.67, p:"NW", sh:5.6 }, { name:"Potchefstroom", lat:-26.71, lon:27.1, p:"NW", sh:5.5 },
-    { name:"Vryburg", lat:-26.96, lon:24.73, p:"NW", sh:5.8 }, { name:"Lichtenburg", lat:-26.15, lon:26.16, p:"NW", sh:5.6 },
-    { name:"Zeerust", lat:-25.54, lon:26.08, p:"NW", sh:5.6 }, { name:"Gqeberha (Port Elizabeth)", lat:-33.96, lon:25.6, p:"EC", sh:4.9 },
-    { name:"East London", lat:-32.98, lon:27.85, p:"EC", sh:4.7 }, { name:"Mthatha", lat:-31.59, lon:28.79, p:"EC", sh:4.7 },
-    { name:"Komani (Queenstown)", lat:-31.9, lon:26.88, p:"EC", sh:5.2 }, { name:"Graaff-Reinet", lat:-32.25, lon:24.54, p:"EC", sh:5.5 },
-    { name:"Cradock", lat:-32.16, lon:25.62, p:"EC", sh:5.4 }, { name:"Aliwal North", lat:-30.69, lon:26.71, p:"EC", sh:5.5 },
-    { name:"Kokstad", lat:-30.55, lon:29.42, p:"EC", sh:4.8 }
-  ];
-  function nearestTown(lat,lon){
-    var best=null,bd=Infinity;
-    for(var i=0;i<TOWNS.length;i++){
-      var t=TOWNS[i],dLat=(t.lat-lat)*110.57,dLon=(t.lon-lon)*96.5;
-      var d=Math.sqrt(dLat*dLat+dLon*dLon);
-      if(d<bd){bd=d;best=t;}
-    }
-    return best?{town:best,km:bd}:null;
-  }
-  async function satelliteSunHours(lat,lon){
-    try{
-      var url='https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude='+lon.toFixed(3)+'&latitude='+lat.toFixed(3)+'&format=JSON';
-      var ctl=new AbortController(),to=setTimeout(function(){ctl.abort();},8000);
-      var r=await fetch(url,{signal:ctl.signal});clearTimeout(to);
-      if(!r.ok)return null;
-      var j=await r.json();
-      var v=j&&j.properties&&j.properties.parameter&&j.properties.parameter.ALLSKY_SFC_SW_DWN;
-      if(!v)return null;
-      var ann=v.ANN!=null?v.ANN:null;
-      if(ann==null){var ks=Object.keys(v).filter(function(k){return k!=='ANN';}),sum=0,n=0;ks.forEach(function(k){if(typeof v[k]==='number'&&v[k]>0){sum+=v[k];n++;}});ann=n?sum/n:null;}
-      if(ann==null||ann<2.5||ann>9)return null;
-      return Math.round(ann*100)/100;
-    }catch(e){return null;}
-  }
   const PROVINCES={
     'KwaZulu-Natal':4.9,'Gauteng':5.3,'Western Cape':5.4,'Eastern Cape':5.0,
     'Free State':5.6,'Limpopo':5.6,'Mpumalanga':5.2,'North West':5.7,'Northern Cape':6.2
@@ -139,8 +51,8 @@
     {id:'om',name:'Performance & O&M plan',copy:'Monitoring, preventative maintenance and reporting allowance.',impact:'Protects long-term performance'}
   ];
 
-  const state={mode:'guided',step:1,energyMode:'bill',sector:'',timing:'mixed',priority:'cashflow',resilience:'saving',loads:new Set(),upgrades:new Set(),customLoads:[],equipmentDetails:{},location:null,siteArea:0,files:[],extracted:[],scenario:'base',model:null};
-  let map=null,drawnItems=null;
+  const state={mode:'guided',step:1,energyMode:'bill',sector:'',timing:'mixed',priority:'cashflow',resilience:'saving',loads:new Set(),upgrades:new Set(),customLoads:[],equipmentDetails:{},location:null,siteArea:0,cableRunM:0,files:[],extracted:[],scenario:'base',model:null};
+  let map=null,drawnItems=null,siteMarker=null,activeDraw=null,mapToolsBound=false;
 
   function init(){
     renderLoads('farm'); renderUpgrades(); bind(); restore(); recompute();
@@ -162,6 +74,8 @@
     $('geoBtn').addEventListener('click',useLocation);
     $('addressSearchBtn').addEventListener('click',searchAddress);
     $('siteAddress').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchAddress()}});
+    $('coordinateBtn').addEventListener('click',useManualCoordinates);
+    $('manualCoordinates').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();useManualCoordinates()}});
     $('addCustomLoad').addEventListener('click',addCustomLoad);
     $('saveBtn').addEventListener('click',save);
     $('restartBtn').addEventListener('click',restart);
@@ -232,11 +146,11 @@
 
   async function handleFiles(e){
     state.files=Array.from(e.target.files||[]);state.extracted=[];$('fileList').innerHTML=state.files.map(f=>`<div>⏳ Analysing ${esc(f.name)}…</div>`).join('');
-    for(const f of state.files){let text='',status='Attached for review';try{if(/\.(xlsx|xls)$/i.test(f.name)&&await ensureXlsx()){text=await extractWorkbook(f);status=text?'Spreadsheet data extracted':'Spreadsheet attached; manual review needed'}else if(/csv|text/.test(f.type)||/\.(csv|txt)$/i.test(f.name)){text=await f.text();status='Meter or schedule data extracted'}else if(/pdf/.test(f.type)||/\.pdf$/i.test(f.name)){text=await extractPdf(f);status=text?'PDF text extracted':'PDF attached; manual review needed'}else if(/image/.test(f.type)&&window.Tesseract){const out=await Tesseract.recognize(f,'eng',{logger:()=>{}});text=out.data.text||'';status=text?'Image text extracted':'Image attached; manual review needed'}if(text)applyExtractedText(text,f.name);state.extracted.push({name:f.name,status,text:text.slice(0,1500)});}catch(err){state.extracted.push({name:f.name,status:'Attached; automatic extraction unavailable',text:''})}}
+    for(const f of state.files){let text='',status='Attached for review';try{if(/\.(xlsx|xls)$/i.test(f.name)&&window.XLSX){text=await extractWorkbook(f);status=text?'Spreadsheet data extracted':'Spreadsheet attached; manual review needed'}else if(/csv|text/.test(f.type)||/\.(csv|txt)$/i.test(f.name)){text=await f.text();status='Meter or schedule data extracted'}else if(/pdf/.test(f.type)||/\.pdf$/i.test(f.name)){text=await extractPdf(f);status=text?'PDF text extracted':'PDF attached; manual review needed'}else if(/image/.test(f.type)&&window.Tesseract){const out=await Tesseract.recognize(f,'eng',{logger:()=>{}});text=out.data.text||'';status=text?'Image text extracted':'Image attached; manual review needed'}if(text)applyExtractedText(text,f.name);state.extracted.push({name:f.name,status,text:text.slice(0,1500)});}catch(err){state.extracted.push({name:f.name,status:'Attached; automatic extraction unavailable',text:''})}}
     $('fileList').innerHTML=state.extracted.map(x=>`<div>✓ ${esc(x.name)} · ${esc(x.status)}</div>`).join('');recompute();
   }
-  async function extractPdf(file){await ensurePdf();if(!window.pdfjsLib)return'';pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;let text='';for(let i=1;i<=Math.min(pdf.numPages,20);i++){const page=await pdf.getPage(i),content=await page.getTextContent();text+=' '+content.items.map(x=>x.str).join(' ')}return text}
-  async function extractWorkbook(file){await ensureXlsx();if(!window.XLSX)return'';const workbook=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});return workbook.SheetNames.slice(0,12).map(name=>`Sheet: ${name}\n${XLSX.utils.sheet_to_csv(workbook.Sheets[name])}`).join('\n')}
+  async function extractPdf(file){if(!window.pdfjsLib)return'';pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;let text='';for(let i=1;i<=Math.min(pdf.numPages,20);i++){const page=await pdf.getPage(i),content=await page.getTextContent();text+=' '+content.items.map(x=>x.str).join(' ')}return text}
+  async function extractWorkbook(file){if(!window.XLSX)return'';const workbook=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});return workbook.SheetNames.slice(0,12).map(name=>`Sheet: ${name}\n${XLSX.utils.sheet_to_csv(workbook.Sheets[name])}`).join('\n')}
   function applyExtractedText(text,name){const clean=text.replace(/,/g,' ');const rand=[...clean.matchAll(/(?:total|amount due|current charges|invoice total|r)\s*[:r]?\s*(\d[\d ]+(?:\.\d{1,2})?)/ig)].map(m=>+m[1].replace(/ /g,'')).filter(v=>v>500&&v<5e7);const kwh=[...clean.matchAll(/(\d[\d ]+(?:\.\d+)?)\s*kwh/ig)].map(m=>+m[1].replace(/ /g,'')).filter(v=>v>100&&v<1e8);if(rand.length&&!num('monthlyBill'))$('monthlyBill').value=Math.round(rand[rand.length-1]);if(kwh.length&&!num('monthlyKwh'))$('monthlyKwh').value=Math.round(kwh.reduce((a,b)=>a+b,0)/kwh.length);if(/generator|diesel/i.test(text)){const diesel=[...clean.matchAll(/(?:diesel|fuel)\D{0,20}(\d[\d ]+)/ig)].map(m=>+m[1].replace(/ /g,'')).filter(v=>v>100);if(diesel.length&&!num('dieselSpend'))$('dieselSpend').value=diesel[0]} }
 
   async function searchAddress(){
@@ -250,137 +164,28 @@
   }
   function provinceFromAddress(a={}){const s=(a.state||a.province||'').toLowerCase();return Object.keys(PROVINCES).find(p=>s.includes(p.toLowerCase())||(p==='KwaZulu-Natal'&&s.includes('kwazulu')))||''}
   function useLocation(){
-    var status=$('geoStatus'),btn=$('geoBtn');
-    if(!navigator.geolocation){status.className='status-line bad';status.textContent='This browser cannot provide location. Search the address or choose a province.';return;}
-    if(!window.isSecureContext&&location.protocol!=='http:'){status.className='status-line bad';status.textContent='Location needs a secure (https) connection. Choose your province instead.';return;}
-    status.className='status-line';status.textContent='Requesting permission… if your browser asks, choose Allow.';
-    if(btn)btn.disabled=true;
-    var settled=false;
-    var guard=setTimeout(function(){
-      if(settled)return;settled=true;if(btn)btn.disabled=false;
-      status.className='status-line bad';
-      status.textContent='Your device did not return a location in time. Choose your province below — the numbers work exactly the same.';
-    },20000);
-    navigator.geolocation.getCurrentPosition(async function(pos){
-      if(settled)return;settled=true;clearTimeout(guard);
-      var lat=pos.coords.latitude,lon=pos.coords.longitude;
-      var near=nearestTown(lat,lon);
-      var province='',label=lat.toFixed(4)+', '+lon.toFixed(4);
-      if(near&&near.km<180){
-        province=PROV_CODE[near.town.p]||'';
-        label=(near.km<=35? near.town.name+' area · '+province
-                          : province+' · '+lat.toFixed(4)+', '+lon.toFixed(4));
-        var shField=$('performanceRatio')?$('sunHours')||$('peakSunHours'):null;
-        var sh=$('sunHours')||$('peakSunHours');
-        if(sh&&near.km<=35){sh.value=near.town.sh;state.sunSource='town';}
-      }
-      applyLocation(lat,lon,label,province,'device');
-      if(btn)btn.disabled=false;
-      status.className='status-line good';
-      status.textContent='✓ Location confirmed · '+label+(near&&near.km<180?(near.km<=35?' · using '+near.town.name+' solar resource ('+near.town.sh+' peak sun hours/day)':' · nearest reference town '+near.town.name+' is '+Math.round(near.km)+'km away, so we are using the provincial figure until satellite data confirms it'):'');
-      var sat=await satelliteSunHours(lat,lon);
-      if(sat){
-        var shf=$('sunHours')||$('peakSunHours');
-        if(shf){shf.value=sat;state.sunSource='satellite';recompute();}
-        status.textContent='✓ Location confirmed · '+label+' · refined to '+sat+' peak sun hours/day from NASA satellite climatology';
-      }
-    },function(err){
-      if(settled)return;settled=true;clearTimeout(guard);
-      if(btn)btn.disabled=false;
-      status.className='status-line bad';
-      status.textContent=err&&err.code===1
-        ?'Location permission was blocked. Tap the padlock in your address bar → Location → Allow, or simply choose your province below.'
-        :(err&&err.code===2?'Your device could not get a fix (common indoors or on weak signal). Choose your province below instead.'
-        :'We could not confirm your location. Choose your province below — nothing else changes.');
-    },{enableHighAccuracy:false,timeout:15000,maximumAge:300000});
+    const status=$('geoStatus');if(!navigator.geolocation){status.className='status-line bad';status.textContent='This browser cannot provide location. Search the address or choose a province.';return}
+    status.className='status-line';status.textContent='Requesting permission…';$('geoBtn').disabled=true;
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      const {latitude:lat,longitude:lon}=pos.coords;let label=`${lat.toFixed(5)}, ${lon.toFixed(5)}`,province='';
+      try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=12&addressdetails=1`);if(r.ok){const d=await r.json();label=d.display_name||label;province=provinceFromAddress(d.address)}}catch(err){}
+      applyLocation(lat,lon,label,province,'device',pos.coords.accuracy);$('geoBtn').disabled=false;
+    },err=>{status.className='status-line bad';status.textContent=err.code===1?'Location permission was not allowed. Search the address or paste coordinates instead.':'We could not confirm your location. Search the address or paste coordinates instead.';$('geoBtn').disabled=false;},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
   }
-  function applyLocation(lat,lon,label,province,source){state.location={lat,lon,label,province,source,confirmedAt:new Date().toISOString()};$('siteAddress').value=label;if(province)$('province').value=province;$('geoStatus').className='status-line good';$('geoStatus').textContent='✓ Location confirmed · '+label;showMap(lat,lon);recompute()}
-  var drawHandler=null;
-  function mapAreaUpdate(){
-    var area=0;
-    if(drawnItems)drawnItems.eachLayer(function(l){ if(l.getLatLngs)area+=polygonArea(l.getLatLngs()[0]); });
-    area=Math.round(area);
-    state.siteArea=area;
-    var ra=$('roofArea'); if(ra&&area)ra.value=area;
-    var kwp=Math.round(area/5.2);
-    var out=$('mapReadout');
-    if(out){
-      out.hidden=false;
-      out.innerHTML=area
-        ? '<strong>Sketched usable area:</strong> '+area.toLocaleString('en-ZA')+' m² · roughly <strong>'+kwp.toLocaleString('en-ZA')+' kWp</strong> of panels before setbacks, shading and engineering. Draw more shapes to add areas together.'
-        : '<strong>Tip:</strong> tap <em>Sketch area</em> and trace your roof or the ground space you could use. We convert it to a realistic system size.';
-    }
-    if(area)recompute();
+  function useManualCoordinates(){
+    const raw=$('manualCoordinates').value.trim(),match=raw.match(/(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)/);
+    if(!match){$('geoStatus').className='status-line bad';$('geoStatus').textContent='Enter latitude and longitude, for example -29.8587, 31.0218.';return}
+    const lat=+match[1],lon=+match[2];if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){$('geoStatus').className='status-line bad';$('geoStatus').textContent='Those coordinates are outside the valid latitude and longitude range.';return}
+    applyLocation(lat,lon,`${lat.toFixed(6)}, ${lon.toFixed(6)}`,'','manual-coordinates');
   }
-  function measureLine(layer){
-    var pts=layer.getLatLngs(),d=0;
-    for(var i=1;i<pts.length;i++)d+=pts[i-1].distanceTo(pts[i]);
-    d=Math.round(d);
-    var f=$('cableDistance'); if(f)f.value=d;
-    var out=$('mapReadout');
-    if(out){out.hidden=false;out.innerHTML='<strong>Cable run measured:</strong> approximately '+d.toLocaleString('en-ZA')+' m from your array to the Eskom connection or main DB. Long runs add cable, protection and voltage-drop cost — our team confirms this on site.';}
-    if(typeof recompute==='function')recompute();
+  function applyLocation(lat,lon,label,province,source,accuracy){state.location={lat,lon,label,province,source,accuracy:accuracy||null,confirmedAt:new Date().toISOString()};$('siteAddress').value=label;$('manualCoordinates').value=`${lat.toFixed(6)}, ${lon.toFixed(6)}`;if(province)$('province').value=province;$('geoStatus').className='status-line good';$('geoStatus').textContent='✓ Location confirmed · '+label+(accuracy?` · accuracy ±${Math.round(accuracy)} m`:'');showMap(lat,lon);recompute()}
+  function showMap(lat,lon){
+    const el=$('siteMap');el.hidden=false;$('mapReadout').hidden=false;if(!window.L){$('mapReadout').textContent=`Coordinates ${lat.toFixed(6)}, ${lon.toFixed(6)} confirmed. Satellite drawing is unavailable in this browser.`;return}
+    if(!map){map=L.map(el,{zoomControl:true}).setView([lat,lon],18);L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,attribution:'Imagery © Esri'}).addTo(map);drawnItems=new L.FeatureGroup().addTo(map);if(L.Draw){map.on(L.Draw.Event.CREATED,e=>{if(e.layerType==='marker'){const p=e.layer.getLatLng();applyLocation(p.lat,p.lng,`${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,'','map-pin');return}drawnItems.addLayer(e.layer);updateMappedMeasurements()});map.on(L.Draw.Event.EDITED,updateMappedMeasurements);map.on(L.Draw.Event.DELETED,updateMappedMeasurements)}}
+    bindMapTools();$('mapTools').hidden=false;map.setView([lat,lon],18);if(siteMarker)map.removeLayer(siteMarker);siteMarker=L.marker([lat,lon]).addTo(map).bindPopup('Confirmed site').openPopup();setTimeout(()=>map.invalidateSize(),100);updateMappedMeasurements();
   }
-  function startDraw(kind){
-    if(!window.L||!map||!L.Draw)return;
-    try{ if(drawHandler&&drawHandler.disable)drawHandler.disable(); }catch(e){}
-    var opts={shapeOptions:{color:'#00a8c8',weight:3,fillOpacity:.22}};
-    drawHandler = kind==='line' ? new L.Draw.Polyline(map,{shapeOptions:{color:'#f5a623',weight:4}})
-                : kind==='rect' ? new L.Draw.Rectangle(map,opts)
-                : kind==='pin'  ? new L.Draw.Marker(map)
-                :                 new L.Draw.Polygon(map,{allowIntersection:false,shapeOptions:opts.shapeOptions});
-    drawHandler.enable();
-    var st=$('mapReadout');
-    if(st){st.hidden=false;st.innerHTML= kind==='pin'
-      ? '<strong>Drop a pin:</strong> tap the exact spot on the map.'
-      : (kind==='line'
-        ? '<strong>Measuring:</strong> tap at your inverter room, then at the Eskom connection point or main DB. Double-tap to finish.'
-        : '<strong>Sketching:</strong> tap each corner of the area, then tap the first point again to close the shape.');}
-  }
-  function clearDraw(){
-    if(drawnItems)drawnItems.clearLayers();
-    state.siteArea=0;
-    var ra=$('roofArea'); if(ra)ra.value='';
-    mapAreaUpdate();
-  }
-  async function showMap(lat,lon){
-    var el=$('siteMap'),tools=$('mapTools');
-    el.hidden=false; if(tools)tools.hidden=false;
-    $('mapReadout').hidden=false;
-    var ok=await ensureMap();
-    if(!ok||!window.L){
-      if(tools)tools.hidden=true;
-      $('mapReadout').textContent='Coordinates '+lat.toFixed(6)+', '+lon.toFixed(6)+' confirmed. The satellite view needs an internet connection — everything else still works, and you can type your roof area below.';
-      return;
-    }
-    if(!map){
-      map=L.map(el,{zoomControl:true,scrollWheelZoom:true}).setView([lat,lon],17);
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        {maxZoom:20,maxNativeZoom:19,attribution:'Imagery © Esri'}).addTo(map);
-      if(L.control&&L.control.scale)L.control.scale({imperial:false}).addTo(map);
-      drawnItems=new L.FeatureGroup().addTo(map);
-      map.on('draw:created',function(ev){
-        drawnItems.addLayer(ev.layer); drawHandler=null;
-        if(ev.layerType==='polyline'){ measureLine(ev.layer); } else { mapAreaUpdate(); }
-      });
-      map.on('draw:edited',mapAreaUpdate);
-      map.on('draw:deleted',mapAreaUpdate);
-      if(window.ResizeObserver){ new ResizeObserver(function(){ if(map)map.invalidateSize(); }).observe(el); }
-    }
-    map.setView([lat,lon],17);
-    if(!showMap._marker){ showMap._marker=L.marker([lat,lon]).addTo(map); }
-    else { showMap._marker.setLatLng([lat,lon]); }
-    showMap._marker.bindPopup('Confirmed site').openPopup();
-    // Leaflet must re-measure after the container becomes visible, or tiles render in fragments
-    requestAnimationFrame(function(){ map.invalidateSize(); });
-    [120,350,700,1200].forEach(function(ms){ setTimeout(function(){ if(map)map.invalidateSize(); },ms); });
-    mapAreaUpdate();
-  }
-  function bindMapTools(){
-    var m={mapDrawArea:'poly',mapDrawRect:'rect',mapDropPin:'pin',mapMeasure:'line'};
-    Object.keys(m).forEach(function(id){ var b=$(id); if(b)b.addEventListener('click',function(){ startDraw(m[id]); }); });
-    var c=$('mapClear'); if(c)c.addEventListener('click',clearDraw);
-  }
+  function bindMapTools(){if(mapToolsBound)return;mapToolsBound=true;$('mapTools').addEventListener('click',e=>{const b=e.target.closest('[data-map-tool]');if(!b)return;const type=b.dataset.mapTool;if(type==='clear'){if(activeDraw)activeDraw.disable();drawnItems.clearLayers();state.siteArea=0;state.cableRunM=0;$('roofArea').value='';updateMappedMeasurements();return}if(!window.L?.Draw){$('mapReadout').textContent='Mapping tools could not load. Your confirmed coordinates have still been saved.';return}if(activeDraw)activeDraw.disable();const constructors={polygon:L.Draw.Polygon,rectangle:L.Draw.Rectangle,marker:L.Draw.Marker,polyline:L.Draw.Polyline};activeDraw=new constructors[type](map,{shapeOptions:{color:'#00a8d2',weight:3}});activeDraw.enable();$('mapTools').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b))})}
+  function updateMappedMeasurements(){let area=0,length=0;if(drawnItems)drawnItems.eachLayer(layer=>{const points=layer.getLatLngs?.();if(!points)return;if(layer instanceof L.Polygon){const ring=Array.isArray(points[0])?points[0]:points;area+=polygonArea(ring)}else{const line=Array.isArray(points[0])?points[0]:points;for(let i=1;i<line.length;i++)length+=line[i-1].distanceTo(line[i])}});state.siteArea=Math.round(area);state.cableRunM=Math.round(length);if(state.siteArea)$('roofArea').value=state.siteArea;const loc=state.location;let text=loc?`<strong>Coordinates:</strong> ${loc.lat.toFixed(6)}, ${loc.lon.toFixed(6)}`:'';if(state.siteArea)text+=` · <strong>Mapped area:</strong> ${state.siteArea.toLocaleString('en-ZA')} m² (approximately ${Math.round(state.siteArea/5.2)} kWp before setbacks)`;if(state.cableRunM)text+=` · <strong>Cable run:</strong> ${state.cableRunM.toLocaleString('en-ZA')} m`;if(!state.siteArea&&!state.cableRunM)text+=' · Choose a tool, then draw directly on the map.';$('mapReadout').innerHTML=text;$('mapTools')?.querySelectorAll('button').forEach(x=>x.classList.remove('active'));recompute()}
   function polygonArea(points){if(points.length<3)return 0;const lat0=points.reduce((s,p)=>s+p.lat,0)/points.length*Math.PI/180;const xy=points.map(p=>({x:p.lng*111320*Math.cos(lat0),y:p.lat*110540}));let a=0;for(let i=0,j=xy.length-1;i<xy.length;j=i++)a+=(xy[j].x+xy[i].x)*(xy[j].y-xy[i].y);return Math.abs(a/2)}
 
   function voiceCapture(){
@@ -393,7 +198,7 @@
     const tariff=num('tariff')||2.65;let monthlyBill=num('monthlyBill'),monthlyKwh=num('monthlyKwh');
     if(!monthlyKwh&&monthlyBill)monthlyKwh=monthlyBill/tariff;if(!monthlyBill&&monthlyKwh)monthlyBill=monthlyKwh*tariff;
     const growth=num('growth')/100,annualKwh=monthlyKwh*12*(1+growth);const timing={day:.72,mixed:.48,night:.27}[state.timing]||.48;
-    const province=$('province').value||(state.location&&state.location.province)||'';const sunField=num('sunHours');const sun=(sunField>=2.5&&sunField<=9)?sunField:(PROVINCES[province]||5.2);const pr=(num('performanceRatio')||79)/100;const degradation=(num('degradation')||.5)/100;
+    const province=$('province').value||(state.location&&state.location.province)||'';const sun=PROVINCES[province]||5.2;const pr=(num('performanceRatio')||79)/100;const degradation=(num('degradation')||.5)/100;
     const selected=selectedLoadData();let connectedKw=0,selectedEnergy=0,criticalConnected=0;
     selected.forEach(l=>{const d=state.equipmentDetails[l[0]]||{qty:1,kw:l[3],hours:l[4],months:l[6],duty:70,pf:.9,critical:l[7]?'yes':'no'};const kw=d.qty*d.kw;connectedKw+=kw;selectedEnergy+=kw*d.hours*30*(d.months/12)*(d.duty/100);if(d.critical==='yes')criticalConnected+=kw});
     connectedKw+=state.customLoads.reduce((s,l)=>s+(+l.kw||0),0);selectedEnergy+=state.customLoads.reduce((s,l)=>s+(+l.kw||0)*(+l.hours||8)*30,0);
@@ -467,136 +272,15 @@
   function renderWaterfall(m){const vals=[m.energySaving,m.demandSaving,m.dieselSaving,-m.om],labels=['Energy','Demand','Diesel','O&M'],w=390,h=230,p=30,max=Math.max(...vals.map(Math.abs),1),bw=55;$('waterfallChart').innerHTML=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Year-one value waterfall">${vals.map((v,i)=>{const bh=Math.abs(v)/max*(h-2*p-25),x=45+i*80,y=v>=0?h-p-bh:h-p;return`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="5" fill="${v>=0?'#1c775e':'#b74b4b'}"/><text x="${x+bw/2}" y="${v>=0?y-6:y+bh+12}" text-anchor="middle" font-size="8">${compactMoney(Math.abs(v))}</text><text x="${x+bw/2}" y="${h-8}" text-anchor="middle" font-size="8" fill="#788589">${labels[i]}</text>`}).join('')}</svg>`}
   function renderEnergyFlow(m){const grid=Math.max(0,m.annualKwh-m.usableSolar);$('energyFlow').innerHTML=`<div class="energy-flow"><div class="flow-source"><div class="flow-box">Solar generation<b>${Math.round(m.solarGen/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Grid retained<b>${Math.round(grid/1000).toLocaleString('en-ZA')} MWh</b></div>${m.dieselSaving?`<div class="flow-box">Diesel avoided<b>${compactMoney(m.dieselSaving)}</b></div>`:''}</div><div class="flow-arrow">→</div><div class="flow-use"><div class="flow-box">Site consumption<b>${Math.round(m.annualKwh/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Solar used on site<b>${Math.round(m.usableSolar/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Battery allowance<b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'None'}</b></div></div></div>`}
   function renderSensitivity(m){const tariffs=[-.15,0,.15],production=[-.1,0,.1];let html='<div class="sensitivity"><div class="head">Production ↓ / Tariff →</div>'+tariffs.map(t=>`<div class="head">${t<0?'−15%':t>0?'+15%':'Base'}</div>`).join('');production.forEach(p=>{html+=`<div class="head">${p<0?'−10%':p>0?'+10%':'Base'}</div>`;tariffs.forEach(t=>{const benefit=m.annualBenefit*(1+p)*(1+t),npv=benefit*7.9-m.capex,cls=npv>m.capex*.5?'cell':npv>0?'cell medium':'cell low';html+=`<div class="${cls}">${compactMoney(npv)} NPV</div>`})});$('sensitivityMatrix').innerHTML=html+'</div>'}
-  function yieldBand(y){return y>=1750?'strong for South Africa':(y>=1500?'typical for a well-sited South African installation':(y>=1250?'moderate — shading, orientation or timing may be limiting':'low — worth a site review before committing'));}
-  function renderOutstanding(){
-    var host=$('outstandingList'); if(!host)return;
-    var gaps=outstandingItems();
-    if(!gaps.length){ host.innerHTML='<div class="outstanding-done">✓ You have given us everything this screen can use. Our team confirms the rest on site.</div>'; return; }
-    host.innerHTML='<div class="outstanding-head">Want a sharper number?</div><ul class="outstanding-ul">'+
-      gaps.slice(0,4).map(function(g){return '<li>'+g+'</li>';}).join('')+'</ul>'+
-      (gaps.length>4?'<div class="outstanding-more">Our team will confirm the remaining detail with you directly.</div>':'');
-  }
-  function renderSystem(m){renderOutstanding();const upgrades=UPGRADES.filter(u=>state.upgrades.has(u.id)).map(u=>u.name).join(', ')||'Solar-only starting case';$('systemSnapshot').innerHTML=`<div class="system-list"><div><span>PV capacity</span><b>${Math.round(m.targetKwp)} kWp</b></div><div><span>Annual generation</span><b>${Math.round(m.solarGen).toLocaleString('en-ZA')} kWh</b></div><div><span>Battery allowance</span><b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'Not included'}</b></div><div><span>Indicative capex</span><b>${money(m.capex)}</b></div><div><span>Specific yield</span><b>${m.targetKwp?Math.round(m.solarGen/m.targetKwp).toLocaleString('en-ZA')+' kWh/kWp/yr':'—'}</b></div><div><span>Solar-resource source</span><b>${state.sunSource==='satellite'?'NASA satellite climatology at your coordinates':(state.sunSource==='town'?'Nearest-town solar resource':'Provincial climatology assumption')}</b></div><div><span>Performance ratio / degradation</span><b>${Math.round(m.pr*100)}% / ${(m.degradation*100).toFixed(1)}% p.a.</b></div><div><span>Mapped usable area</span><b>${state.siteArea?state.siteArea.toLocaleString('en-ZA')+' m²':'Requires site confirmation'}</b></div><div><span>Options</span><b>${esc(upgrades)}</b></div><div><span>Model version / date</span><b>Snapshot 2.0 · ${new Date().toLocaleDateString('en-ZA')}</b></div></div>`}
+  function renderSystem(m){const upgrades=UPGRADES.filter(u=>state.upgrades.has(u.id)).map(u=>u.name).join(', ')||'Solar-only starting case';$('systemSnapshot').innerHTML=`<div class="system-list"><div><span>PV capacity</span><b>${Math.round(m.targetKwp)} kWp</b></div><div><span>Annual generation</span><b>${Math.round(m.solarGen).toLocaleString('en-ZA')} kWh</b></div><div><span>Battery allowance</span><b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'Not included'}</b></div><div><span>Indicative capex</span><b>${money(m.capex)}</b></div><div><span>Solar-resource source</span><b>${state.location?'Confirmed coordinates + provincial climatology':'Provincial climatology assumption'}</b></div><div><span>Performance ratio / degradation</span><b>${Math.round(m.pr*100)}% / ${(m.degradation*100).toFixed(1)}% p.a.</b></div><div><span>Mapped usable area</span><b>${state.siteArea?state.siteArea.toLocaleString('en-ZA')+' m²':'Requires site confirmation'}</b></div><div><span>Options</span><b>${esc(upgrades)}</b></div><div><span>Model version / date</span><b>Snapshot 2.0 · ${new Date().toLocaleDateString('en-ZA')}</b></div></div>`}
   function renderTable(m){const ks=['grid','cash','bank','rent','ppa'],term=num('loanTerm')||10;$('comparisonTable').innerHTML=`<thead><tr><th>Route</th><th>Upfront</th><th>Monthly</th><th>Escalation / term</th><th>20-year nominal</th><th>20-year NPV</th><th>Year-one cash benefit</th><th>Break-even</th><th>Ownership / condition</th></tr></thead><tbody>${ks.map(k=>{const monthly=k==='grid'?m.monthlyBill:k==='cash'?m.residualGrid/12:k==='bank'?m.residualGrid/12+m.loanMonthly:k==='rent'?m.residualGrid/12+m.rentMonthly:m.ppaAnnual/12;const benefit=(m.monthlyBill+num('dieselSpend')-monthly)*12;return`<tr class="${k===m.route?'recommended-row':''}"><td>${routeName(k)}${k===m.route?' · Recommended':''}</td><td>${k==='cash'?compactMoney(m.capex):k==='bank'?compactMoney(m.capex*num('deposit')/100):k==='grid'?'R0':'Indicative R0'}</td><td>${money(monthly)}</td><td>${k==='grid'?num('gridEscalation')+'% assumed':k==='ppa'?num('ppaEscalation')+'% PPA':k==='bank'?term+' years':'Modelled term'}</td><td>${compactMoney(m.totals[k].nominal)}</td><td>${compactMoney(m.totals[k].npv)}</td><td>${compactMoney(benefit)}</td><td>${k==='cash'&&m.payback?m.payback.toFixed(1)+' yrs':k==='grid'?'Never':'Terms dependent'}</td><td>${k==='grid'?'None':k==='ppa'?'Credit + service agreement':k==='rent'?'Ownership at term end':'Client asset'}</td></tr>`}).join('')}</tbody>`}
   function renderConfidence(m){const extracted=state.extracted.length?`${state.extracted.length} document${state.extracted.length>1?'s':''} extracted`:'No document extracted';const rows=[['Electricity spend',m.monthlyBill?'Client supplied':'System assumed'],['Uploaded evidence',extracted],['Energy usage',num('monthlyKwh')?'Client supplied or extracted':'Derived from bill'],['Site location',state.location?'Externally verified map location':m.province?'Province supplied':'National assumption'],['Load profile',state.loads.size?'Client guided + editable':'Sector profile assumed'],['Peak demand',num('peakKva')?'Client supplied':'Requires technical validation'],['Solar space',num('roofArea')||num('groundArea')?'Client supplied / mapped':'Requires technical validation'],['Finance inputs',state.mode==='advanced'?'Client adjustable':'Standard assumptions']];$('confidencePanel').innerHTML=`<div class="confidence-list">${rows.map(r=>`<div><span>${r[0]}</span><i class="${/supplied|verified|extracted|editable/i.test(r[1])?'known':'assumed'}">${r[1]}</i></div>`).join('')}</div>`}
   function renderRisks(m){const risks=[];if(!state.files.length)risks.push(['Billing verification','Obtain 12 months of bills and interval data where available.']);if(!num('peakKva'))risks.push(['Demand profile','Confirm maximum demand, tariff structure and time-of-use charges.']);if(!num('roofArea')&&!num('groundArea'))risks.push(['Installation space','Confirm roof structure, shading, usable area or ground conditions.']);if(m.batteryKwh)risks.push(['Storage duty','Validate critical-load list, autonomy and battery cycling objective.']);risks.push(['Funding and approvals','Final rates, credit approval, grid permissions and tax treatment remain subject to review.']);$('riskPanel').innerHTML=`<div class="risk-list">${risks.slice(0,5).map(r=>`<div><b>${r[0]}</b><span>${r[1]}</span></div>`).join('')}</div>`}
 
-
-  function fv(id){var e=$(id);return e&&e.value?String(e.value).trim():'';}
-
-  function outstandingItems(){
-    var m=state.model||{},out=[];
-    var hist=num('billHistory')||0;
-    if(!(state.files&&state.files.length)) out.push('A recent electricity bill — the single biggest improvement to accuracy');
-    if(hist<6) out.push('Six to twelve months of billing history, so seasonal swings are visible');
-    if(!fv('peakKva')) out.push('Recorded maximum demand in kVA, shown on your Eskom bill');
-    if(!fv('baseLoad')) out.push('Your overnight standing load, which sizes any battery correctly');
-    if(!state.location) out.push('A confirmed site location for accurate solar resource');
-    if(!state.siteArea&&!fv('roofArea')&&!fv('groundArea')) out.push('Usable roof or ground area — you can sketch this on the map');
-    if(!fv('roofType')) out.push('Roof construction and age, to confirm mounting approach');
-    if(!fv('cableDistance')) out.push('Distance to your main DB or Eskom point, which affects cabling cost');
-    var own=fv('propertyOwnership');
-    if(own.indexOf('Leased')===0) out.push('Lease term and landlord consent, required for zero-upfront funding');
-    return out;
-  }
-  function repBrief(){
-    var m=state.model||{},L=[];
-    function line(k,v){ if(v)L.push(k+': '+v); }
-    L.push('CHARIOT POWER — SNAPSHOT LEAD');
-    L.push('Generated '+new Date().toLocaleString('en-ZA'));
-    L.push('');
-    L.push('1. CUSTOMER & CONTACT');
-    line('Name',fv('meetingName'));
-    line('Company',fv('meetingCompany'));
-    line('Contact',fv('meetingContact'));
-    line('Preferred contact',fv('preferredContact'));
-    line('Website',fv('companyWebsite'));
-    L.push('');
-    L.push('2. SITE & LOCATION');
-    line('Address / area',fv('siteAddress'));
-    line('Province',fv('province'));
-    if(state.location)line('Coordinates',state.location.lat.toFixed(6)+', '+state.location.lon.toFixed(6));
-    line('Roof construction',fv('roofType'));
-    line('Roof age / condition',fv('roofCondition'));
-    line('Property ownership',fv('propertyOwnership'));
-    line('Sketched usable area',state.siteArea?state.siteArea.toLocaleString('en-ZA')+' m² (~'+Math.round(state.siteArea/5.2)+' kWp before setbacks)':'');
-    line('Distance to Eskom / main DB',fv('cableDistance')?fv('cableDistance')+' m':'');
-    line('Solar resource',(fv('sunHours')||'—')+' peak sun hours/day ('+(state.sunSource==='satellite'?'NASA satellite':(state.sunSource==='town'?'nearest town':'provincial average'))+')');
-    L.push('');
-    L.push('3. BUSINESS BACKGROUND');
-    line('Sector',state.sector||'');
-    line('Operating pattern',fv('businessHours'));
-    L.push('');
-    L.push('4. ENERGY USAGE PROFILE');
-    line('Average monthly spend',fv('monthlyBill')?'R'+Number(fv('monthlyBill')).toLocaleString('en-ZA'):'');
-    line('Average monthly consumption',fv('monthlyKwh')?fv('monthlyKwh')+' kWh':'');
-    line('Peak demand',fv('peakKva')?fv('peakKva')+' kVA':'');
-    line('Night / base load',fv('baseLoad')?fv('baseLoad')+' kVA':'');
-    line('Usage pattern',state.timing||'');
-    line('Billing history held',fv('billHistory'));
-    line('Generator / diesel spend',fv('dieselSpend')?'R'+Number(fv('dieselSpend')).toLocaleString('en-ZA')+'/month':'');
-    line('Existing backup',fv('existingGenerator'));
-    L.push('');
-    L.push('5. INDICATIVE SYSTEM (modelled, not a quote)');
-    line('PV capacity',m.targetKwp?Math.round(m.targetKwp)+' kWp':'');
-    line('Specific yield',(m.targetKwp&&m.solarGen)?Math.round(m.solarGen/m.targetKwp)+' kWh/kWp/yr':'');
-    line('Battery allowance',m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'None modelled');
-    line('Indicative capex',m.capex?money(m.capex):'');
-    L.push('');
-    L.push('6. FINANCING & TIMELINE');
-    line('Priority',state.priority||'');
-    line('Buying trigger',fv('mainDriver'));
-    line('Decision process',fv('decisionProcess'));
-    line('Install timeline',fv('installTimeline'));
-    line('Other quotes',fv('otherQuotes'));
-    var gaps=outstandingItems();
-    if(gaps.length){
-      L.push('');
-      L.push('7. STILL TO CONFIRM (raises confidence from '+(m.confidence||0)+'%)');
-      gaps.forEach(function(g){ L.push('- '+g); });
-    }
-    var notes=fv('clientNotes')||fv('voiceNotes');
-    if(notes){L.push('');L.push('8. CLIENT NOTES');L.push(notes);}
-    return L.join('\n');
-  }
   function summaryText(){const m=state.model;return`Chariot Energy Snapshot\n\n${tr('Site')}: ${state.sector||tr('Not specified')} · ${m.province||tr('Location to confirm')}\n${tr('Monthly bill')}: ${money(m.monthlyBill)}\n${tr('Indicative solar')}: ${Math.round(m.targetKwp)} kWp\n${tr('Battery allowance')}: ${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':tr('Not included')}\n${tr('Indicative capex')}: ${money(m.capex)}\n${tr('Year-one benefit')}: ${money(m.annualBenefit)}\n${tr('Recommended first route')}: ${tr(routeName(m.route))}\n${tr('Data confidence')}: ${m.confidence}%\n\n${tr('Client notes')}: ${$('clientNotes').value||$('voiceNotes').value||tr('None supplied')}\n\n${tr('Indicative pre-feasibility only. Please contact me to validate the assessment.')}`}
-
-  var SUPABASE={url:"https://ircfpoeifedbuhvygufo.supabase.co",key:"sb_publishable_E_kyBi-bJ2_rDj_LipCBzw_-oRK2J6K"};
-  async function sbInsert(table,row){
-    try{
-      await fetch(SUPABASE.url+"/rest/v1/"+table,{method:"POST",headers:{"apikey":SUPABASE.key,"Authorization":"Bearer "+SUPABASE.key,"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify(row)});
-    }catch(e){}
-  }
-  function submitLeadRecord(channel){
-    try{
-      var name=($('meetingName')&&$('meetingName').value)||'',
-          contact=($('meetingContact')&&$('meetingContact').value)||'';
-      sbInsert('leads',{
-        name:name||null,
-        contact:contact||null,
-        province:($('province')&&$('province').value)||null,
-        monthly_bill:num('monthlyBill')||null,
-        snapshot_json:{channel:channel,lang:(window.ChariotI18n&&window.ChariotI18n.current&&window.ChariotI18n.current())||'en',
-          sun_hours:num('sunHours')||null,sun_source:state.sunSource||'province',
-          location:state.location||null,site_area:state.siteArea||null,
-          equipment:(typeof selectedLoadData==='function'?selectedLoadData().map(function(l){return l[0];}):[]),
-          company:fv('meetingCompany')||null,website:fv('companyWebsite')||null,
-          preferred_contact:fv('preferredContact')||null,roof_type:fv('roofType')||null,
-          cable_distance_m:fv('cableDistance')||null,business_hours:fv('businessHours')||null,
-          base_load_kva:fv('baseLoad')||null,install_timeline:fv('installTimeline')||null,
-          other_quotes:fv('otherQuotes')||null,roof_condition:fv('roofCondition')||null,
-          property_ownership:fv('propertyOwnership')||null,main_driver:fv('mainDriver')||null,
-          decision_process:fv('decisionProcess')||null,peak_kva:fv('peakKva')||null,
-          diesel_spend:fv('dieselSpend')||null,bill_history:fv('billHistory')||null,
-          rep_brief:(typeof repBrief==='function'?repBrief():null),
-          summary:(typeof summaryText==='function'?summaryText():null)}
-      });
-      sbInsert('events',{event:'share_'+channel,meta:{lang:(window.ChariotI18n&&window.ChariotI18n.current&&window.ChariotI18n.current())||'en'}});
-    }catch(e){}
-  }
-  function shareWhatsapp(){submitLeadRecord('whatsapp');window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(repBrief())}`,'_blank','noopener')}
-  function shareEmail(){submitLeadRecord('email');location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Chariot Energy Snapshot — pre-feasibility review')}&body=${encodeURIComponent(repBrief())}`}
-  function requestMeeting(){const name=$('meetingName').value.trim(),contact=$('meetingContact').value.trim();if(!name||!contact){alert(tr('Please add your name and phone or email.'));return}submitLeadRecord('meeting');if(CONTACT.calendar){window.open(CONTACT.calendar,'_blank','noopener');return}const text=`${tr('Chariot Energy Review Request')}\n\n${tr('Name')}: ${name}\n${tr('Company/site')}: ${$('meetingCompany').value||tr('Not supplied')}\n${tr('Contact')}: ${contact}\n${tr('Preferred time')}: ${$('meetingWindow').value}\n\n${summaryText()}`;window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(text)}`,'_blank','noopener')}
+  function shareWhatsapp(){window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(summaryText())}`,'_blank','noopener')}
+  function shareEmail(){location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Chariot Energy Snapshot — pre-feasibility review')}&body=${encodeURIComponent(summaryText())}`}
+  function requestMeeting(){const name=$('meetingName').value.trim(),contact=$('meetingContact').value.trim();if(!name||!contact){alert(tr('Please add your name and phone or email.'));return}if(CONTACT.calendar){window.open(CONTACT.calendar,'_blank','noopener');return}const text=`${tr('Chariot Energy Review Request')}\n\n${tr('Name')}: ${name}\n${tr('Company/site')}: ${$('meetingCompany').value||tr('Not supplied')}\n${tr('Contact')}: ${contact}\n${tr('Preferred time')}: ${$('meetingWindow').value}\n\n${summaryText()}`;window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(text)}`,'_blank','noopener')}
 
   function save(){try{localStorage.setItem('chariot_snapshot_v2',JSON.stringify(serialize()));$('saveBtn').textContent='Saved ✓';setTimeout(()=>$('saveBtn').textContent='Save progress',1800)}catch(err){}}
   function serialize(){const values={};$$('input,select,textarea').forEach(e=>{if(e.id&&e.type!=='file')values[e.id]=e.value});return{...state,loads:[...state.loads],upgrades:[...state.upgrades],values,model:null,files:[]}}
