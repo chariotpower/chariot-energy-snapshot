@@ -15,3 +15,19 @@
 @media(max-width:760px){.result-brand-dark img{width:138px;height:66px}.result-brand-dark span{font-size:7px}.live-logo{width:108px;height:50px}}
 @media print{.result-brand-dark{border:0}.result-brand-dark span{color:#fff}.live-logo{display:block}}
 .coordinate-search{margin-top:8px}.map-tools{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}.map-tools[hidden]{display:none}.map-tools button{border:1px solid var(--line);background:#fff;color:var(--deep);border-radius:8px;padding:9px 11px;font-size:10px;font-weight:800}.map-tools button:hover,.map-tools button.active{border-color:var(--cyan);background:var(--cyan2)}
+
+/* Snapshot 3.0 — site intelligence, staged design and mobile polish */
+.map-pin-type{border:1px solid var(--line);background:#fff;color:var(--deep);border-radius:8px;padding:9px 30px 9px 10px;font-size:10px;font-weight:800;min-height:38px}
+.map-tools button{min-height:40px;touch-action:manipulation}.map-tools button:focus-visible,.map-pin-type:focus-visible{outline:3px solid rgba(0,169,214,.28);outline-offset:2px}
+.solar-resource-card{margin-top:12px;padding:16px;border:1px solid #b8dfe7;border-radius:12px;background:linear-gradient(135deg,#f2fbfd,#fff);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 18px;align-items:center}
+.solar-resource-card[hidden]{display:none}.solar-resource-card h3{margin:0 0 5px;font-size:13px;color:var(--deep)}.solar-resource-card p{margin:0;color:var(--muted);font-size:10px;line-height:1.55}
+.solar-resource-card .resource-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.solar-resource-card button{border:0;border-radius:9px;background:var(--deep);color:#fff;font-size:10px;font-weight:800;padding:11px 14px;min-height:42px}.solar-resource-card button:disabled{opacity:.55}
+.solar-resource-card .resource-status{grid-column:1/-1;padding-top:9px;border-top:1px solid var(--line);font-size:10px;color:var(--deep)}.solar-resource-card .resource-links{grid-column:1/-1;display:flex;gap:14px;flex-wrap:wrap;font-size:9px}.solar-resource-card a{color:#007fa8;font-weight:700}
+.stage-plan{display:grid;gap:9px}.stage-row{display:grid;grid-template-columns:38px 1fr;gap:11px;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff}.stage-row>span{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--cyan2);color:#007fa8;font-size:10px;font-weight:900}.stage-row b{font-size:12px;color:var(--deep)}.stage-row p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.5}.stage-plan>small,.confidence-foot{display:block;margin:8px 0 0;padding:10px 12px;border-radius:9px;background:#fff8e8;color:#66552d;font-size:9px;line-height:1.5}.confidence-foot b{color:#4d421f}
+.leaflet-container{font-family:inherit}.leaflet-popup-content{font-size:11px}.site-marker{filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+@media(max-width:760px){
+  .map-tools{display:grid;grid-template-columns:1fr 1fr;position:relative}.map-tools>*{width:100%;min-height:48px}.map-pin-type{grid-column:1/-1;font-size:11px}.map-tools button{font-size:10px;padding:10px 7px}
+  #siteMap{height:360px!important;border-radius:10px}.solar-resource-card{grid-template-columns:1fr;padding:13px}.solar-resource-card .resource-actions,.solar-resource-card .resource-status,.solar-resource-card .resource-links{grid-column:1}.solar-resource-card button{width:100%}
+  .stage-row{grid-template-columns:34px 1fr;padding:10px}.stage-row p{font-size:10px}.system-list>div{align-items:flex-start;gap:12px}.system-list b{text-align:right;max-width:62%}
+}
+@media print{.solar-resource-card,.map-tools{display:none!important}.stage-row{break-inside:avoid}}
