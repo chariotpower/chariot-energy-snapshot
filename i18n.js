@@ -62,11 +62,15 @@
     });
   }
 
-  function scan(root=document.body){
-    if(observer)observer.disconnect();
+  function scanSubtree(root){
     translateNode(root);
     root.querySelectorAll&&root.querySelectorAll('*').forEach(translateNode);
     const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while((n=walker.nextNode()))translateNode(n);
+  }
+
+  function scan(root=document.body){
+    if(observer)observer.disconnect();
+    scanSubtree(root);
     if(observer)observer.observe(document.body,{childList:true,subtree:true,characterData:true});
   }
 
@@ -80,7 +84,14 @@
   }
 
   function init(){
-    observer=new MutationObserver(mutations=>{if(mutations.some(m=>m.type==='childList'||m.type==='characterData'))scan()});
+    observer=new MutationObserver(mutations=>{
+      observer.disconnect();
+      mutations.forEach(m=>{
+        if(m.type==='characterData')translateNode(m.target);
+        m.addedNodes&&m.addedNodes.forEach(node=>scanSubtree(node));
+      });
+      observer.observe(document.body,{childList:true,subtree:true,characterData:true});
+    });
     const select=document.getElementById('languageSelect');if(select)select.addEventListener('change',e=>setLanguage(e.target.value));
     setLanguage(lang);
   }
