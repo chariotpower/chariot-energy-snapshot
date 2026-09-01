@@ -182,10 +182,14 @@
   function applyLocation(lat,lon,label,province,source,accuracy){const changed=!state.location||Math.abs(state.location.lat-lat)>.00001||Math.abs(state.location.lon-lon)>.00001;state.location={lat,lon,label,province,source,accuracy:accuracy||null,confirmedAt:new Date().toISOString()};if(changed)state.solarResource=null;$('siteAddress').value=label;$('manualCoordinates').value=`${lat.toFixed(6)}, ${lon.toFixed(6)}`;if(province)$('province').value=province;$('geoStatus').className='status-line good';$('geoStatus').textContent='✓ Location confirmed · '+label+(accuracy?` · accuracy ±${Math.round(accuracy)} m`:'');$('solarResourceCard').hidden=false;$('pvgisLink').href=`https://re.jrc.ec.europa.eu/pvg_tools/en/#PVP?lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}`;$('solarDataStatus').textContent=state.solarResource?'NASA POWER climatology loaded.':'Provincial climatology fallback is active until you choose to retrieve free solar data.';showMap(lat,lon);recompute()}
   async function showMap(lat,lon){
     const el=$('siteMap');el.hidden=false;$('mapReadout').hidden=false;
+    const _fix=()=>{if(map){map.invalidateSize({animate:false})}};
+    requestAnimationFrame(_fix);[80,260,600,1200].forEach(ms=>setTimeout(_fix,ms));
     if(!(await ensureMap())){$('mapReadout').innerHTML='<strong>Coordinates confirmed.</strong> The satellite view needs a connection — everything else still works, and you can enter your area below.';return}
     if(!window.L){$('mapReadout').textContent=`Coordinates ${lat.toFixed(6)}, ${lon.toFixed(6)} confirmed. Interactive mapping is unavailable, but your location is saved.`;return}
     if(!map){
-      map=L.map(el,{zoomControl:true}).setView([lat,lon],18);
+      map=L.map(el,{zoomControl:true}).setView([lat,lon],17);
+      if(window.ResizeObserver){new ResizeObserver(()=>{if(map)map.invalidateSize()}).observe(el)}
+      window.addEventListener('resize',()=>{if(map)map.invalidateSize()});
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
       drawnItems=new L.FeatureGroup().addTo(map);
       if(L.Draw){
@@ -200,7 +204,7 @@
         map.on(L.Draw.Event.EDITED,updateMappedMeasurements);map.on(L.Draw.Event.DELETED,updateMappedMeasurements)
       }
     }
-    bindMapTools();$('mapTools').hidden=false;map.setView([lat,lon],18);
+    bindMapTools();$('mapTools').hidden=false;map.setView([lat,lon],17);
     if(siteMarker)map.removeLayer(siteMarker);siteMarker=L.circleMarker([lat,lon],{radius:7,color:'#073d49',weight:3,fillColor:'#00a9d6',fillOpacity:1}).addTo(map).bindPopup('Confirmed site coordinate').openPopup();
     setTimeout(()=>map.invalidateSize(),100);updateMappedMeasurements();
   }
