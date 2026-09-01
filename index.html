@@ -72,6 +72,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chariot Energy Snapshot</title>
+<meta name="theme-color" content="#0F3B3A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Chariot Power — Energy Snapshot">
+<meta property="og:description" content="Free 3-minute solar pre-feasibility for South African farms & businesses. Costs, savings and financing routes — in your language, on your numbers.">
+<meta property="og:url" content="https://chariotpower.github.io/chariot-energy-snapshot/">
+<meta property="og:image" content="https://chariotpower.github.io/chariot-energy-snapshot/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Chariot Power — Energy Snapshot">
+<meta name="twitter:description" content="Free 3-minute solar pre-feasibility for South African farms & businesses.">
+<meta name="twitter:image" content="https://chariotpower.github.io/chariot-energy-snapshot/og-image.png">
 <meta name="description" content="Chariot Power's live, interactive pre-feasibility energy snapshot tool for South African commercial, industrial and agricultural sites.">
 <style>
   :root{
@@ -88,6 +102,9 @@
   }
   *{box-sizing:border-box;}
   body{background:var(--mineral);}
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible{
+    outline:2.5px solid var(--forest); outline-offset:2px; border-radius:4px;
+  }
   .wrap{max-width:1320px;margin:0 auto;padding:28px 20px 80px;font-family:Calibri,"Segoe UI",Arial,sans-serif;color:var(--charcoal);}
   h1,h2,h3{font-family:Cambria,Georgia,"Times New Roman",serif;font-weight:700;margin:0;color:var(--charcoal);}
   .topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:6px;flex-wrap:wrap;gap:10px;}
@@ -317,10 +334,28 @@
   .footer-brand{font-size:11px;letter-spacing:1.5px;color:var(--gray);font-weight:700;margin-top:26px;text-align:center;}
 
   #printArea{display:none;}
+  .bp-page{font-family:Calibri,Arial,sans-serif;color:#111111;max-width:760px;}
+  .bp-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #00A9D6;padding-bottom:10px;margin-bottom:16px;}
+  .bp-word{font-family:Cambria,Georgia,serif;font-weight:700;font-size:13px;letter-spacing:2px;color:#00A9D6;text-transform:uppercase;}
+  .bp-title{font-family:Cambria,Georgia,serif;font-size:19px;font-weight:700;margin:4px 0 0;}
+  .bp-meta{font-size:10.5px;color:#62676B;text-align:right;}
+  .bp-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+  .bp-kpi{border:1px solid #D8DDE0;border-radius:8px;padding:9px 10px;}
+  .bp-kpi .kk{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:#62676B;font-weight:700;}
+  .bp-kpi .vv{font-size:15px;font-weight:700;margin-top:3px;}
+  .bp-rec{background:#E6F5F8;border:1px solid #00A9D6;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;}
+  .bp-rec b{color:#00495A;}
+  .bp-chart-wrap{margin-bottom:14px;}
+  .bp-chart-wrap svg{width:100%;height:auto;max-height:190px;}
+  .bp-section-h{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#62676B;margin:0 0 8px;}
+  .bp-assump{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 14px;font-size:11px;margin-bottom:16px;}
+  .bp-assump div{display:flex;justify-content:space-between;border-bottom:1px solid #EDEFF0;padding-bottom:3px;}
+  .bp-foot{font-size:9px;color:#62676B;line-height:1.5;border-top:1px solid #D8DDE0;padding-top:8px;margin-top:6px;}
   @media print{
+    @page{ size:A4; margin:14mm; }
     body *{visibility:hidden;}
     #printArea, #printArea *{visibility:visible;}
-    #printArea{display:block !important;position:absolute;top:0;left:0;width:100%;padding:20px;}
+    #printArea{display:block !important;position:absolute;top:0;left:0;width:100%;padding:0;}
   }
 
   /* ===================== DECISION COCKPIT (Step 4) ===================== */
@@ -474,6 +509,11 @@
   .ck-action-bar label{color:#fff;}
   .ck-action-bar input[type=text], .ck-action-bar textarea{background:rgba(255,255,255,.95);}
 
+
+  .eq-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+  .eq-chip{border:1px solid #C9D4D3;background:#fff;border-radius:999px;padding:7px 13px;font-size:12.5px;cursor:pointer;transition:all .15s ease;color:var(--ink,#1B1F22);}
+  .eq-chip:hover{border-color:var(--forest,#0F3B3A);}
+  .eq-chip.on{background:var(--forest,#0F3B3A);color:#fff;border-color:var(--forest,#0F3B3A);}
 </style>
 </head>
 <body>
@@ -644,6 +684,11 @@
           <div>
             <label for="subsector">Specific operation</label>
             <select id="subsector"></select>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label>What do you want to power? · optional</label>
+            <div class="eq-row" id="equipChips"></div>
+            <div class="hint" id="equipHint" style="display:none;margin-top:6px;"></div>
           </div>
           <div>
             <label for="loadTiming">When does most of your load happen?</label>
@@ -955,8 +1000,15 @@
             </div>
             <div class="ck-assump-bar">
               <label class="ck-achip">Tariff escalation <input type="number" id="ckAssumpEsc" step="0.5" min="0"><span class="u">%/yr</span></label>
-              <label class="ck-achip">Specific yield <input type="number" id="ckAssumpYield" step="0.1" min="3"><span class="u">sun-hrs/day</span></label>
+              <label class="ck-achip">Sun hours <input type="number" id="ckAssumpYield" step="0.1" min="3"><span class="u">hrs/day</span></label>
               <label class="ck-achip">Cost per kWp <input type="number" id="ckAssumpCost" step="500" min="0"><span class="u">R</span></label>
+            </div>
+            <div class="ck-sub" style="margin:12px 0 6px;">System losses — typical for South Africa, edit to match your site. Together with sun hours above, these drive the specific yield (kWh/kWp/yr) shown in Site &amp; system snapshot below.</div>
+            <div class="ck-assump-bar">
+              <label class="ck-achip">Soiling <input type="number" id="lossSoiling" step="0.5" min="0" max="20" value="3"><span class="u">%</span></label>
+              <label class="ck-achip">Temperature derate <input type="number" id="lossTemp" step="0.5" min="0" max="20" value="7"><span class="u">%</span></label>
+              <label class="ck-achip">Inverter loss <input type="number" id="lossInverter" step="0.5" min="0" max="15" value="3"><span class="u">%</span></label>
+              <label class="ck-achip">Wiring &amp; other <input type="number" id="lossWiring" step="0.5" min="0" max="20" value="8"><span class="u">%</span></label>
             </div>
             <div class="ck-conf-grid">
               <div class="ring-wrap" id="ckConfRing"></div>
@@ -984,7 +1036,7 @@
               <button type="button" class="ck-deeper" data-k="payback"><h5>Payback &amp; IRR</h5><p>Simple payback and modelled internal rate of return.</p></button>
               <button type="button" class="ck-deeper" data-k="waterfall"><h5>Year-1 cash flow</h5><p>Bill → savings → payment → net monthly position.</p></button>
               <button type="button" class="ck-deeper" data-k="stage"><h5>Stage the system</h5><p>Split the build into solar-first, storage-second.</p></button>
-              <button type="button" class="ck-deeper" data-k="docs"><h5>Document checklist</h5><p>What's received, what's still needed.</p></button>
+              <button type="button" class="ck-deeper" data-k="docs"><h5>Snapshot inputs</h5><p>What you've given this calculator — not the paperwork needed to close.</p></button>
             </div>
             <div class="ck-deep-detail" id="ckDeepDetail"></div>
           </div>
@@ -1022,12 +1074,13 @@
           <textarea id="clientNotes" rows="3" placeholder="e.g. Two pivots on separate meters, keen to move fast before the next tariff increase." style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:7px;font-size:14px;color:var(--charcoal);resize:vertical;font-family:Calibri,Arial,sans-serif;"></textarea>
 
           <div class="err" id="sendWarnMsg" style="display:none;">Add your name and phone or email above so our team can follow up — or click again to continue without them.</div>
+          <div class="hint" style="margin-top:6px;">When you share, your snapshot and contact details are stored securely by Chariot Power and used only to respond to your enquiry, in line with POPIA. Nothing is stored before you share.</div>
 
           <div class="send-grid">
             <button class="btn-primary" id="waBtn" type="button" style="background:#2E8B57;"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 21l2.05-5.4A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8.5 10.5c.4 2.4 2.6 4.6 5 5"/></svg>WhatsApp Chariot</button>
             <a class="btn-ghost" id="emailBtn" href="#"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>Email full snapshot</a>
             <a class="btn-ghost" id="meetingBtn" href="#" target="_blank" rel="noopener"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 14v2.2l1.6 1"/><path d="M16 2v4"/><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M3 10h5"/><path d="M8 2v4"/><circle cx="16" cy="16" r="6"/></svg>Book / request review</a>
-            <button class="btn-ghost" id="pdfBtn" type="button"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h9l5 5v15H6v-4"/><path d="M14 2v6h6"/><rect x="1" y="13" width="12" height="8" rx="1"/></svg>Save as PDF</button>
+            <button class="btn-ghost" id="pdfBtn" type="button"><svg class="icn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h9l5 5v15H6v-4"/><path d="M14 2v6h6"/><rect x="1" y="13" width="12" height="8" rx="1"/></svg>Download summary (PDF)</button>
           </div>
           <div class="hint" id="meetingFallbackMsg" style="display:none;text-align:center;margin-top:10px;">Our team confirms exact times by WhatsApp or email — send your snapshot above and we'll get a review booked in.</div>
           <button class="copy-link" id="copyBtn" type="button"><svg class="icn icn-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy full handover</button>
@@ -1143,7 +1196,7 @@
   </div>
 
   <div class="disclaimer">
-    Chariot Energy Snapshot is an indicative pre-feasibility screen built from what you tell us plus general South African market assumptions (all editable above). It is not a guaranteed-savings calculator and not a final quotation. The 20-year route comparison includes modelled capex and illustrative financing terms for Bank/Asset Finance, Rent-to-Own and PPA — actual rates, terms and eligibility are confirmed by our team and are subject to credit approval. Figures exclude routine maintenance and equipment replacement unless stated. Data-confidence and opportunity-fit scores reflect how much information was provided, not a certainty guarantee. No savings, PPA payment or instalment figure shown here is guaranteed.
+    Chariot Energy Snapshot is an indicative pre-feasibility screen built from what you tell us plus general South African market assumptions (all editable above). It is not a guaranteed-savings calculator and not a final quotation. The 20-year route comparison includes modelled capex and illustrative financing terms for Bank/Asset Finance, Rent-to-Own and PPA — actual rates, terms and eligibility are confirmed by our team and are subject to credit approval. Figures exclude routine maintenance and equipment replacement unless stated. Data-confidence and opportunity-fit scores reflect how much information was provided, not a certainty guarantee. No savings, PPA payment or instalment figure shown here is guaranteed. Voice input, where used, is processed by your browser's built-in speech service. Interface translations are machine-assisted; the English wording is authoritative.
   </div>
   <div class="footer-brand">CHARIOT POWER · RELIABLE SOLAR FOR SOUTH AFRICAN BUSINESS</div>
 
@@ -1358,17 +1411,43 @@
   var PROVINCE_SUN_HOURS = { EC:4.7, FS:5.6, GP:5.2, KZN:4.6, LP:5.4, MP:5.1, NC:6.0, NW:5.5, WC:5.0 };
   var PROVINCE_LABEL = { EC:"Eastern Cape", FS:"Free State", GP:"Gauteng", KZN:"KwaZulu-Natal", LP:"Limpopo", MP:"Mpumalanga", NC:"Northern Cape", NW:"North West", WC:"Western Cape" };
   var SA_CITIES = [
-    { name:"Cape Town", lat:-33.9249, lon:18.4241, p:"WC" }, { name:"Stellenbosch", lat:-33.9321, lon:18.8602, p:"WC" },
-    { name:"George", lat:-33.9628, lon:22.4619, p:"WC" }, { name:"Bloemfontein", lat:-29.0852, lon:26.1596, p:"FS" },
-    { name:"Bethlehem", lat:-28.2308, lon:28.3123, p:"FS" }, { name:"Johannesburg", lat:-26.2041, lon:28.0473, p:"GP" },
-    { name:"Pretoria", lat:-25.7479, lon:28.2293, p:"GP" }, { name:"Durban", lat:-29.8587, lon:31.0218, p:"KZN" },
-    { name:"Pietermaritzburg", lat:-29.6006, lon:30.3794, p:"KZN" }, { name:"Vryheid", lat:-27.7686, lon:30.7913, p:"KZN" },
-    { name:"Polokwane", lat:-23.9045, lon:29.4689, p:"LP" }, { name:"Tzaneen", lat:-23.8330, lon:30.1633, p:"LP" },
-    { name:"Nelspruit (Mbombela)", lat:-25.4753, lon:30.9694, p:"MP" }, { name:"Kimberley", lat:-28.7282, lon:24.7499, p:"NC" },
-    { name:"Upington", lat:-28.4478, lon:21.2561, p:"NC" }, { name:"Mahikeng", lat:-25.8560, lon:25.6403, p:"NW" },
-    { name:"Rustenburg", lat:-25.6672, lon:27.2424, p:"NW" }, { name:"Klerksdorp", lat:-26.8523, lon:26.6668, p:"NW" },
-    { name:"Gqeberha (Port Elizabeth)", lat:-33.9608, lon:25.6022, p:"EC" }, { name:"East London", lat:-32.9836, lon:27.8541, p:"EC" }
+    { name:"Cape Town", lat:-33.92, lon:18.42, p:"WC", sh:5.1 }, { name:"Stellenbosch", lat:-33.93, lon:18.86, p:"WC", sh:5.1 },
+    { name:"Paarl", lat:-33.73, lon:18.96, p:"WC", sh:5.2 }, { name:"Worcester", lat:-33.65, lon:19.45, p:"WC", sh:5.4 },
+    { name:"Malmesbury", lat:-33.46, lon:18.73, p:"WC", sh:5.3 }, { name:"Vredendal", lat:-31.67, lon:18.5, p:"WC", sh:5.8 },
+    { name:"Oudtshoorn", lat:-33.59, lon:22.2, p:"WC", sh:5.3 }, { name:"George", lat:-33.96, lon:22.46, p:"WC", sh:4.6 },
+    { name:"Beaufort West", lat:-32.36, lon:22.58, p:"WC", sh:5.7 }, { name:"Swellendam", lat:-34.02, lon:20.44, p:"WC", sh:4.9 },
+    { name:"Bloemfontein", lat:-29.09, lon:26.16, p:"FS", sh:5.7 }, { name:"Bethlehem", lat:-28.23, lon:28.31, p:"FS", sh:5.4 },
+    { name:"Welkom", lat:-27.98, lon:26.73, p:"FS", sh:5.6 }, { name:"Kroonstad", lat:-27.65, lon:27.23, p:"FS", sh:5.6 },
+    { name:"Harrismith", lat:-28.27, lon:29.13, p:"FS", sh:5.3 }, { name:"Parys", lat:-26.9, lon:27.46, p:"FS", sh:5.5 },
+    { name:"Sasolburg", lat:-26.81, lon:27.82, p:"FS", sh:5.4 }, { name:"Johannesburg", lat:-26.2, lon:28.05, p:"GP", sh:5.3 },
+    { name:"Pretoria", lat:-25.75, lon:28.23, p:"GP", sh:5.3 }, { name:"Vereeniging", lat:-26.67, lon:27.93, p:"GP", sh:5.4 },
+    { name:"Krugersdorp", lat:-26.09, lon:27.77, p:"GP", sh:5.3 }, { name:"Heidelberg", lat:-26.5, lon:28.36, p:"GP", sh:5.3 },
+    { name:"Durban", lat:-29.86, lon:31.02, p:"KZN", sh:4.5 }, { name:"Pietermaritzburg", lat:-29.6, lon:30.38, p:"KZN", sh:4.6 },
+    { name:"Vryheid", lat:-27.77, lon:30.79, p:"KZN", sh:4.9 }, { name:"Newcastle", lat:-27.76, lon:29.93, p:"KZN", sh:5.0 },
+    { name:"Ladysmith", lat:-28.55, lon:29.78, p:"KZN", sh:4.9 }, { name:"Richards Bay", lat:-28.78, lon:32.04, p:"KZN", sh:4.6 },
+    { name:"Port Shepstone", lat:-30.74, lon:30.45, p:"KZN", sh:4.5 }, { name:"Ulundi", lat:-28.34, lon:31.42, p:"KZN", sh:4.8 },
+    { name:"Polokwane", lat:-23.9, lon:29.47, p:"LP", sh:5.5 }, { name:"Tzaneen", lat:-23.83, lon:30.16, p:"LP", sh:5.0 },
+    { name:"Mokopane", lat:-24.19, lon:29.01, p:"LP", sh:5.4 }, { name:"Bela-Bela", lat:-24.89, lon:28.29, p:"LP", sh:5.4 },
+    { name:"Musina", lat:-22.34, lon:30.04, p:"LP", sh:5.6 }, { name:"Thohoyandou", lat:-22.95, lon:30.48, p:"LP", sh:5.0 },
+    { name:"Phalaborwa", lat:-23.94, lon:31.14, p:"LP", sh:5.3 }, { name:"Hoedspruit", lat:-24.35, lon:30.96, p:"LP", sh:5.2 },
+    { name:"Giyani", lat:-23.3, lon:30.72, p:"LP", sh:5.2 }, { name:"Nelspruit (Mbombela)", lat:-25.48, lon:30.97, p:"MP", sh:5.0 },
+    { name:"Ermelo", lat:-26.53, lon:29.98, p:"MP", sh:5.1 }, { name:"Standerton", lat:-26.95, lon:29.24, p:"MP", sh:5.3 },
+    { name:"eMalahleni (Witbank)", lat:-25.87, lon:29.23, p:"MP", sh:5.3 }, { name:"Middelburg", lat:-25.77, lon:29.46, p:"MP", sh:5.3 },
+    { name:"Secunda", lat:-26.55, lon:29.17, p:"MP", sh:5.3 }, { name:"Piet Retief", lat:-27.0, lon:30.8, p:"MP", sh:4.9 },
+    { name:"Kimberley", lat:-28.73, lon:24.75, p:"NC", sh:5.9 }, { name:"Upington", lat:-28.45, lon:21.26, p:"NC", sh:6.1 },
+    { name:"Springbok", lat:-29.66, lon:17.89, p:"NC", sh:6.0 }, { name:"De Aar", lat:-30.65, lon:24.01, p:"NC", sh:5.9 },
+    { name:"Kuruman", lat:-27.45, lon:23.43, p:"NC", sh:5.9 }, { name:"Kathu", lat:-27.7, lon:23.05, p:"NC", sh:6.0 },
+    { name:"Calvinia", lat:-31.47, lon:19.78, p:"NC", sh:5.8 }, { name:"Colesberg", lat:-30.72, lon:25.1, p:"NC", sh:5.8 },
+    { name:"Mahikeng", lat:-25.86, lon:25.64, p:"NW", sh:5.6 }, { name:"Rustenburg", lat:-25.67, lon:27.24, p:"NW", sh:5.5 },
+    { name:"Klerksdorp", lat:-26.85, lon:26.67, p:"NW", sh:5.6 }, { name:"Potchefstroom", lat:-26.71, lon:27.1, p:"NW", sh:5.5 },
+    { name:"Vryburg", lat:-26.96, lon:24.73, p:"NW", sh:5.8 }, { name:"Lichtenburg", lat:-26.15, lon:26.16, p:"NW", sh:5.6 },
+    { name:"Zeerust", lat:-25.54, lon:26.08, p:"NW", sh:5.6 }, { name:"Gqeberha (Port Elizabeth)", lat:-33.96, lon:25.6, p:"EC", sh:4.9 },
+    { name:"East London", lat:-32.98, lon:27.85, p:"EC", sh:4.7 }, { name:"Mthatha", lat:-31.59, lon:28.79, p:"EC", sh:4.7 },
+    { name:"Komani (Queenstown)", lat:-31.9, lon:26.88, p:"EC", sh:5.2 }, { name:"Graaff-Reinet", lat:-32.25, lon:24.54, p:"EC", sh:5.5 },
+    { name:"Cradock", lat:-32.16, lon:25.62, p:"EC", sh:5.4 }, { name:"Aliwal North", lat:-30.69, lon:26.71, p:"EC", sh:5.5 },
+    { name:"Kokstad", lat:-30.55, lon:29.42, p:"EC", sh:4.8 }
   ];
+  // Town-level typical daily sun-hours (sh) derived offline from open solar-resource datasets; province defaults remain the fallback.
   var sunHoursTouched = false;
   $("sunhours").addEventListener("input", function(){ sunHoursTouched = true; recompute(); });
   function applyProvince(code){
@@ -1398,7 +1477,23 @@
       SA_CITIES.forEach(function(c){ var d = haversine(lat, lon, c.lat, c.lon); if (d < bestDist){ bestDist = d; best = c; } });
       if (best){
         applyProvince(best.p);
-        statusEl.textContent = "Nearest to " + best.name + " (" + PROVINCE_LABEL[best.p] + ") — sun hours set to " + PROVINCE_SUN_HOURS[best.p] + "/day, a typical regional estimate. Edit anytime below.";
+        var townSh = best.sh || PROVINCE_SUN_HOURS[best.p];
+        if (!sunHoursTouched){ $("sunhours").value = townSh; recompute(); }
+        statusEl.textContent = "Nearest to " + best.name + " (" + PROVINCE_LABEL[best.p] + ") — sun hours set to " + townSh + "/day, a town-level estimate from open solar-resource data. Edit anytime below.";
+        /* Optional live refinement: NASA POWER climatology (free, no key, CORS-open). Fail-silent — town figure already applied above. */
+        try {
+          fetch("https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude=" + lon + "&latitude=" + lat + "&format=JSON")
+            .then(function(r){ return r.json(); })
+            .then(function(j){
+              var p = j && j.properties && j.properties.parameter && j.properties.parameter.ALLSKY_SFC_SW_DWN;
+              var ann = p && p.ANN;
+              if (ann && ann > 2.5 && ann < 9 && !sunHoursTouched){
+                var sat = Math.round(ann * 10) / 10;
+                $("sunhours").value = sat; recompute();
+                statusEl.textContent = "Satellite-refined for your exact location: " + sat + " kWh/m²/day annual average (NASA POWER climatology, near " + best.name + "). Edit anytime below.";
+              }
+            }).catch(function(){});
+        } catch(e){}
       } else {
         statusEl.textContent = "Couldn't match that to a South African province — no problem, just pick it above.";
       }
@@ -1641,7 +1736,8 @@
 
   // ================= REAL-TIME RECOMPUTE ON ANY INPUT =================
   var LIVE_IDS = ["bill","kwh","history","rate","supply","solarSpace","peakDemand","loadGrowth","dieselSpend","existingBackup",
-    "loadTiming","sunhours","escalation","costPerKwp","bankRate","bankTerm","bankDeposit","rtoTerm","rtoMarkup","ppaDiscount","ppaEscalation"];
+    "loadTiming","sunhours","escalation","costPerKwp","bankRate","bankTerm","bankDeposit","rtoTerm","rtoMarkup","ppaDiscount","ppaEscalation",
+    "lossSoiling","lossTemp","lossInverter","lossWiring"];
   LIVE_IDS.forEach(function(id){
     var el = $(id);
     if (!el) return;
@@ -1696,7 +1792,14 @@
     var growthMultiplier = 1 + Math.min(loadGrowth,50)/100*0.5;
 
     var offsettableDailyKwh = dailyKwh*offsetCeiling;
-    var performanceRatio = 0.8;
+    // Loss waterfall: irradiance -> soiling -> temperature derate -> inverter efficiency -> wiring/other -> usable yield.
+    // Typical South African defaults, each editable in Assumptions & data confidence — product replaces the old flat 0.8 PR.
+    var lossSoiling = (parseFloat($("lossSoiling").value) || 3)/100;
+    var lossTemp = (parseFloat($("lossTemp").value) || 7)/100;
+    var lossInverter = (parseFloat($("lossInverter").value) || 3)/100;
+    var lossWiring = (parseFloat($("lossWiring").value) || 8)/100;
+    var performanceRatio = (1-lossSoiling)*(1-lossTemp)*(1-lossInverter)*(1-lossWiring);
+    var specificYield = sunHours*365*performanceRatio; // kWh/kWp/yr — derived, not a separate input
     var kwpMid = (offsettableDailyKwh/sunHours/performanceRatio) * growthMultiplier;
     var kwpLow = kwpMid*(1-bandWidth), kwpHigh = kwpMid*(1+bandWidth);
 
@@ -1781,6 +1884,8 @@
       dieselAnnual: dieselAnnual, dieselOffsetFrac: dieselOffsetFrac, dieselAnnualSaving: dieselAnnualSaving,
       // ---- extra fields for the Decision Cockpit (Step 4) — same engine, just exposed ----
       esc: esc, sunHours: sunHours, costPerKwp: costPerKwp, province: $("province").value,
+      performanceRatio: performanceRatio, specificYield: specificYield,
+      lossSoiling: lossSoiling, lossTemp: lossTemp, lossInverter: lossInverter, lossWiring: lossWiring,
       sector: state.sector, subsector: $("subsector").value, loadTiming: loadTiming, priority: state.priority,
       __bankAnnual: bankAnnual, __bankTerm: bankTerm, __rtoAnnual: rtoAnnual, __rtoTerm: rtoTerm,
       __ppaOffsetAnnual0: ppaOffsetAnnual0, __ppaDiscount: ppaDiscount, __ppaEsc: ppaEsc
@@ -1989,6 +2094,7 @@
   var PERSIST_FIELD_IDS = ["bill","kwh","history","rate","supply","solarSpace","peakDemand","province",
     "loadGrowth","dieselSpend","existingBackup","loadTiming","subsector","sunhours","escalation","costPerKwp",
     "bankRate","bankTerm","bankDeposit","rtoTerm","rtoMarkup","ppaDiscount","ppaEscalation",
+    "lossSoiling","lossTemp","lossInverter","lossWiring",
     "clientName","clientContact","clientNotes"];
   function collectPersistState(){
     var fields = {};
@@ -2115,6 +2221,10 @@
     if (notes) { lines.push(""); lines.push("Notes from client: " + notes); }
     lines.push("");
     lines.push("This is an indicative pre-feasibility snapshot only, not a quotation. Includes modelled capex and illustrative financing terms — confirmed by our team, subject to credit approval where financing is involved.");
+    if (typeof equipSel !== "undefined" && equipSel.length){
+      var eqLabels = EQUIP.filter(function(e){ return equipSel.indexOf(e.id) >= 0; }).map(function(e){ return e.label; });
+      lines.push("Equipment to power: " + eqLabels.join(", ") + " (typical ratings assumed)");
+    }
     return lines.join("\n");
   }
 
@@ -2134,8 +2244,38 @@
     $(id).addEventListener("input", function(){ contactWarnShown = false; $("sendWarnMsg").style.display = "none"; persistState(); });
   });
 
+  /* ---- Supabase lead capture (fires ONLY on user-initiated share; fail-silent) ---- */
+  var SUPABASE = { url: "https://ircfpoeifedbuhvygufo.supabase.co", key: "sb_publishable_E_kyBi-bJ2_rDj_LipCBzw_-oRK2J6K" };
+  function supabaseInsert(table, row){
+    try {
+      fetch(SUPABASE.url + "/rest/v1/" + table, {
+        method: "POST",
+        headers: { "apikey": SUPABASE.key, "Authorization": "Bearer " + SUPABASE.key, "Content-Type": "application/json", "Prefer": "return=minimal" },
+        body: JSON.stringify(row)
+      }).catch(function(err){ console.warn("Lead backup not stored (share links unaffected):", err); });
+    } catch(e){ console.warn("Lead backup not stored (share links unaffected):", e); }
+  }
+  function submitLeadRecord(channel){
+    var r = (typeof lastResult !== "undefined" && lastResult) ? lastResult : null;
+    supabaseInsert("leads", {
+      name: ($("clientName") && $("clientName").value) || null,
+      contact: ($("clientContact") && $("clientContact").value) || null,
+      province: (typeof state !== "undefined" && state && state.province) || null,
+      monthly_bill: (r && r.monthlyBill) || null,
+      snapshot_json: {
+        channel: channel,
+        lang: (typeof currentLang !== "undefined" ? currentLang : "en"),
+        state: (typeof state !== "undefined" ? state : null),
+        equipment: (typeof equipSel !== "undefined" ? equipSel : []),
+        summary: (typeof buildHandoverText === "function" ? buildHandoverText() : null)
+      }
+    });
+    supabaseInsert("events", { event: "lead_submitted", meta: { channel: channel } });
+  }
+
   $("waBtn").addEventListener("click", function(){
     if (!checkContactBeforeSend()) return;
+    submitLeadRecord("whatsapp");
     var text = encodeURIComponent(buildHandoverText());
     var url = CONTACT.whatsapp ? ("https://wa.me/" + CONTACT.whatsapp + "?text=" + text) : ("https://wa.me/?text=" + text);
     window.open(url, "_blank", "noopener");
@@ -2144,6 +2284,7 @@
   $("emailBtn").addEventListener("click", function(e){
     e.preventDefault();
     if (!checkContactBeforeSend()) return;
+    submitLeadRecord("email");
     var subject = encodeURIComponent("Energy Snapshot — " + SECTOR_LABEL[state.sector] + " — " + refCode());
     var body = encodeURIComponent(buildHandoverText());
     var mailto = "mailto:" + (CONTACT.email || "") + "?subject=" + subject + "&body=" + body;
@@ -2175,11 +2316,44 @@
     } catch(e){ /* clipboard denied — fail quietly */ }
   });
 
+  // Client-side, one-page A4 "board pack" — KPIs, the real 20-year chart, recommendation and
+  // assumptions used, built from the same compute() result as everything else on screen (no
+  // separate data path, nothing that can drift from what the client actually sees).
+  function buildBoardPackHTML(){
+    var r = lastResult || compute();
+    var dateStr = new Date().toLocaleDateString("en-ZA", {year:"numeric",month:"long",day:"numeric"});
+    if (!r.hasInput){
+      return '<div class="bp-page"><div class="bp-head"><div><div class="bp-word">Chariot Power</div><div class="bp-title">Energy Snapshot</div></div><div class="bp-meta">'+dateStr+'</div></div><p>Add your bill and usage in Step 1 to generate a summary.</p></div>';
+    }
+    var sectorTxt = SECTOR_LABEL[state.sector] + ($("subsector").value && SUBSECTOR_LABEL[$("subsector").value] ? " — " + SUBSECTOR_LABEL[$("subsector").value] : "");
+    var name = $("clientName").value.trim();
+    var chartSvg = $("ckChart") && $("ckChart").childNodes.length ? $("ckChart").outerHTML : ($("routeChart") ? $("routeChart").outerHTML : "");
+    var kpis = [
+      ["Solar range", r.kwpLow.toFixed(0)+"–"+r.kwpHigh.toFixed(0)+" kWp"],
+      ["Year-one value", fmtR(r.yearOneValue)],
+      ["Modelled capex", fmtR(r.capex)],
+      ["Recommended route", r.routes[r.recommendedKey].label]
+    ];
+    var assump = [
+      ["Monthly bill", fmtR(r.monthlyBill)], ["Tariff", (r.tariffProvided?$("rate").value:"assumed")+"/kWh"],
+      ["Sun hours", r.sunHours+" hrs/day"], ["Specific yield", Math.round(r.specificYield)+" kWh/kWp/yr"],
+      ["Cost per kWp", fmtR(r.costPerKwp)], ["Tariff escalation", (r.esc*100).toFixed(1)+"%/yr"],
+      ["Data confidence", r.confLabel+" ("+r.confidence+"/100)"], ["Opportunity fit", r.fitLabel+" ("+r.fit+"/100)"],
+      ["Reference", refCode()]
+    ];
+    return '<div class="bp-page">' +
+      '<div class="bp-head"><div><div class="bp-word">Chariot Power</div><div class="bp-title">Energy Snapshot'+(name?" — "+name.replace(/</g,"&lt;"):"")+'</div></div><div class="bp-meta">'+dateStr+'<br>'+sectorTxt+'</div></div>' +
+      '<div class="bp-kpis">'+kpis.map(function(k){ return '<div class="bp-kpi"><div class="kk">'+k[0]+'</div><div class="vv">'+k[1]+'</div></div>'; }).join("")+'</div>' +
+      '<div class="bp-rec"><b>Recommended: '+r.routes[r.recommendedKey].label+'.</b> Chosen because it best fits the priority selected in Step 3 ('+({cashflow:"preserving cash flow",ownership:"eventual ownership",roi:"the fastest ROI"}[r.priority]||"your stated priority")+'), at today\'s assumptions below.</div>' +
+      '<div class="bp-section-h">20-year cumulative cost, every route, same assumptions</div>' +
+      '<div class="bp-chart-wrap">'+chartSvg+'</div>' +
+      '<div class="bp-section-h">Assumptions used</div>' +
+      '<div class="bp-assump">'+assump.map(function(a){ return '<div><span>'+a[0]+'</span><b>'+a[1]+'</b></div>'; }).join("")+'</div>' +
+      '<div class="bp-foot">Indicative pre-feasibility only, not a quotation. Modelled capex and illustrative financing terms — confirmed by our team, subject to site assessment, credit approval and final commercial terms. Every figure above comes from what was entered in this tool; nothing here is measured or guaranteed.</div>' +
+    '</div>';
+  }
   $("pdfBtn").addEventListener("click", function(){
-    var text = buildHandoverText();
-    $("printArea").innerHTML = "<div style=\"font-family:Calibri,Arial,sans-serif;color:#111111;white-space:pre-wrap;font-size:13px;line-height:1.6;max-width:680px;\">" +
-      "<h1 style=\"font-family:Cambria,Georgia,serif;color:#00A9D6;font-size:20px;margin-bottom:14px;\">Chariot Energy Snapshot</h1>" +
-      text.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</div>";
+    $("printArea").innerHTML = buildBoardPackHTML();
     window.print();
   });
 
@@ -2577,7 +2751,12 @@
 
     var dieselBlock = $("ckDieselBlock");
     if (r.dieselSpend>0){
-      dieselBlock.innerHTML = '<div class="kv">'+fmtR(r.dieselAnnualSaving/12)+'/mo</div><div class="ck-sub" style="margin:2px 0 0;">avoided diesel, modelled on your R'+Math.round(r.dieselSpend).toLocaleString()+'/mo generator spend</div>';
+      var dEsc = (typeof r.esc === "number" ? r.esc : 8) / 100;
+      var dStay = 0, dYr = r.dieselAnnual;
+      for (var dI = 0; dI < 10; dI++){ dStay += dYr; dYr *= (1 + dEsc); }
+      var dAvoided = dStay * r.dieselOffsetFrac;
+      dieselBlock.innerHTML = '<div class="kv">'+fmtR(r.dieselAnnualSaving/12)+'/mo</div><div class="ck-sub" style="margin:2px 0 0;">avoided diesel, modelled on your R'+Math.round(r.dieselSpend).toLocaleString()+'/mo generator spend</div>' +
+        '<div class="ck-sub" style="margin:6px 0 0;">Staying on generator support: ~'+fmtR(dStay)+' over 10 years if fuel costs rise with your escalation assumption ('+(dEsc*100).toFixed(1)+'%/yr). This route displaces ~'+fmtR(dAvoided)+' of that.</div>';
     } else {
       dieselBlock.innerHTML = '<div class="kv" style="font-size:13px;color:var(--gray);">Not modelled</div><div class="ck-sub" style="margin:2px 0 0;">No generator/diesel spend entered in Step 2</div>';
     }
@@ -2635,7 +2814,9 @@
     if (!r.hasInput){ $("ckSiteFacts").innerHTML=""; return; }
     var facts = [
       ["Sun hours", (r.sunHours||4.8)+" hrs/day assumed"],
-      ["Configuration", (r.solarSpace ? ({roof:"Roof-mount",ground:"Ground-mount",both:"Roof + ground"}[r.solarSpace]||r.solarSpace) : "Not yet specified") + ", " + Math.round(r.kwpMid||((r.kwpLow+r.kwpHigh)/2)) + " kWp modules"],
+      ["System size", Math.round(r.kwpMid||((r.kwpLow+r.kwpHigh)/2)) + " kWp (Expected · " + Math.round(r.kwpLow) + "–" + Math.round(r.kwpHigh) + " kWp Conservative–Optimistic)"],
+      ["Configuration", (r.solarSpace ? ({roof:"Roof-mount",ground:"Ground-mount",both:"Roof + ground"}[r.solarSpace]||r.solarSpace) : "Not yet specified")],
+      ["Specific yield", Math.round(r.specificYield||0).toLocaleString() + " kWh/kWp/yr (modelled)"],
       ["Storage", r.isHybrid ? (Math.round((r.batteryLow+r.batteryHigh)/2)+" kWh, modular") : "None in this design"],
       ["System route", r.systemRoute],
       ["Design note", "Modular — the system can be staged or expanded as load grows"]
@@ -2694,7 +2875,7 @@
         { label:"Roof or ground-space confirmation", on: !!r.solarSpace }
       ];
       var received = docs.filter(function(d){ return d.on; }).length;
-      container.innerHTML = '<h5>Document checklist — '+received+' of '+docs.length+' received</h5><div class="ck-doclist">'+docs.map(function(d){ return '<div class="ck-row"><span>'+d.label+'</span><b class="'+(d.on?"ok":"missing")+'">'+(d.on?"✓":"—")+'</b></div>'; }).join("")+'</div>';
+      container.innerHTML = '<h5>Snapshot inputs — '+received+' of '+docs.length+' given</h5><p class="ck-sub" style="margin:4px 0 10px;">These are inputs to this calculator, not the documents needed to close financing — your Chariot contact will walk you through that separately.</p><div class="ck-doclist">'+docs.map(function(d){ return '<div class="ck-row"><span>'+d.label+'</span><b class="'+(d.on?"ok":"missing")+'">'+(d.on?"✓":"—")+'</b></div>'; }).join("")+'</div>';
     }
   }
 
@@ -2718,8 +2899,172 @@
   ckWireAssumptionMirror("ckAssumpCost","costPerKwp");
   $("ckAssumpReset").addEventListener("click", ckDefaultAssumptions);
 
+  /* ============================================================
+     ENHANCEMENT MODULE — multilingual UI (11 SA official languages),
+     and voice-language sync. (Chart hover ships separately in this build.)
+     All client-side, zero network calls, privacy model unchanged.
+     Translations are machine-assisted; English is authoritative.
+     ============================================================ */
+  var I18N_KEYS = [
+    "Start with what you pay and use.","Show us how the operation uses power.","What matters most, and what we're assuming.",
+    "Everything you need to decide, in one view.","Continue \u2192","20-year cost comparison","Load & generation match",
+    "Compare funding options","Risk & resilience","Assumptions & data confidence","Site & system snapshot","One click deeper",
+    "What happens after you submit","Start speaking","Use my location","Your Energy Snapshot is ready","Data confidence",
+    "Indicative pre-feasibility","Snapshot inputs","Payback & IRR","Year-1 cash flow","Stage the system",
+    "Add your bill to see live numbers","Every route on the same assumptions","Updates as assumptions change"
+  ];
+  var I18N = {
+    af:["Begin met wat jy betaal en gebruik.","Wys ons hoe die bedryf krag gebruik.","Wat die belangrikste is, en wat ons aanneem.","Alles wat jy nodig het om te besluit, in een oorsig.","Gaan voort \u2192","20-jaar kostevergelyking","Las- en opwekkingspassing","Vergelyk befondsingsopsies","Risiko & veerkragtigheid","Aannames & datavertroue","Terrein- & stelseloorsig","Een klik dieper","Wat gebeur nadat jy indien","Begin praat","Gebruik my ligging","Jou Energie-oorsig is gereed","Datavertroue","Indikatiewe voorstudie","Oorsig-insette","Terugbetaaltyd & IRR","Jaar-1 kontantvloei","Faseer die stelsel","Laai jou rekening om lewende syfers te sien","Elke roete op dieselfde aannames","Werk by soos aannames verander"],
+    zu:["Qala ngalokho okukhokhayo nokusebenzisayo.","Sitshengise ukuthi ibhizinisi lisebenzisa kanjani ugesi.","Okubaluleke kakhulu, nesikucabangayo.","Konke okudingayo ukuze unqume, endaweni eyodwa.","Qhubeka \u2192","Ukuqhathanisa izindleko zeminyaka engu-20","Ukuhambisana komthwalo nokukhiqizwa kukagesi","Qhathanisa izindlela zezimali","Ubungozi nokuqina","Izilinganiso nokwethenjwa kwedatha","Isifinyezo sendawo nohlelo","Chofoza kanye ujule","Kwenzekani ngemva kokuthumela","Qala ukukhuluma","Sebenzisa indawo yami","Isifinyezo sakho samandla sesilungile","Ukwethenjwa kwedatha","Isilinganiso sangaphambili","Okufakiwe kwesifinyezo","Isikhathi sokubuyisa & IRR","Ukuhamba kwemali konyaka-1","Yakha uhlelo ngezigaba","Faka i-akhawunti yakho ukuze ubone izibalo","Zonke izindlela ngezilinganiso ezifanayo","Iyavuseleleka uma izilinganiso zishintsha"],
+    xh:["Qala ngoko ukuhlawulayo nokusebenzisayo.","Sibonise indlela ishishini elisebenzisa ngayo umbane.","Eyona nto ibalulekileyo, nesikucingelayo.","Yonke into oyifunayo ukuze ugqibe, kwindawo enye.","Qhubeka \u2192","Uthelekiso lweendleko zeminyaka engama-20","Ukungqinelana komthwalo nemveliso yombane","Thelekisa iindlela zenkxaso-mali","Umngcipheko nokomelela","Iingqikelelo nokuthenjwa kwedatha","Isishwankathelo sendawo nenkqubo","Cofa kanye unzulu","Kwenzeka ntoni emva kokungenisa","Qala ukuthetha","Sebenzisa indawo yam","Isishwankathelo sakho samandla silungile","Ukuthenjwa kwedatha","Uqikelelo lwangaphambili","Iimpendulo zesishwankathelo","Ixesha lokubuyisa & IRR","Ukuhamba kwemali konyaka woku-1","Yakha inkqubo ngamanqanaba","Faka ityala lakho lombane ubone amanani","Zonke iindlela kwiingqikelelo ezifanayo","Ihlaziyeka xa iingqikelelo zitshintsha"],
+    nso:["Thoma ka seo o se lefago le seo o se \u0161omi\u0161ago.","Re bont\u0161he ka fao kgwebo e \u0161omi\u0161ago mohlagase.","Seo se lego bohlokwa kudu, le seo re se akanyago.","T\u0161ohle t\u0161eo o di hlokago go t\u0161ea sephetho, lefelong le tee.","T\u0161wela pele \u2192","Papet\u0161o ya ditshenyagalelo t\u0161a mengwaga ye 20","Go sepelelana ga tiri\u0161o le t\u0161welet\u0161o ya mohlagase","Bapet\u0161a ditsela t\u0161a thu\u0161o ya dit\u0161helete","Kotsi le maatla a go tsoga","Dikakanyo le tshepo ya datha","Kakaret\u0161o ya lefelo le sistimi","Kgotla gatee o tsene ka botebo","Go direga eng ka morago ga go romela","Thoma go bolela","\u0160omi\u0161a lefelo la ka","Kakaret\u0161o ya gago ya enet\u0161i e loket\u0161e","Tshepo ya datha","Kakanyo ya pele","Tsenyo ya kakaret\u0161o","Nako ya poelo & IRR","Phallo ya t\u0161helete ya ngwaga wa 1","Aga sistimi ka dikgato","Tsenya akhaonto ya gago go bona dipalo","Ditsela ka moka ka dikakanyo t\u0161e swanago","E mpshafala ge dikakanyo di fetoga"],
+    st:["Qala ka seo o se lefang le seo o se sebedisang.","Re bontshe kamoo khwebo e sebedisang motlakase kateng.","Se bohlokwa ka ho fetisisa, le seo re se nkang.","Tsohle tseo o di hlokang ho etsa qeto, sebakeng se le seng.","Tswela pele \u2192","Papiso ya ditjeo tsa dilemo tse 20","Ho tsamaellana ha tshebediso le tlhahiso ya motlakase","Bapisa mekgwa ya ditjhelete","Kotsi le matla a ho ema","Dikgopolo le tshepo ya datha","Kakaretso ya sebaka le sistimi","Tobetsa hang o kene botebong","Ho etsahala eng ka mora ho romela","Qala ho bua","Sebedisa sebaka sa ka","Kakaretso ya hao ya enetji e lokile","Tshepo ya datha","Kgopolo ya pele","Dikenyo tsa kakaretso","Nako ya poello & IRR","Phallo ya tjhelete ya selemo sa 1","Haha sistimi ka mekgahlelo","Kenya akhaonto ya hao ho bona dipalo","Ditsela tsohle ka dikgopolo tse tshwanang","E ntjhafala ha dikgopolo di fetoha"],
+    tn:["Simolola ka se o se duelang le se o se dirisang.","Re bontshe ka fa kgwebo e dirisang motlakase ka teng.","Se se botlhokwa thata, le se re se akanyang.","Tsotlhe tse o di tlhokang go tsaya tshwetso, mo lefelong le le lengwe.","Tswelela \u2192","Papiso ya ditshenyegelo tsa dingwaga di le 20","Go tsamaelana ga tiriso le tlhagiso ya motlakase","Bapisa ditsela tsa madi","Kotsi le nonofo","Dikakanyo le tshepo ya data","Tshobokanyo ya lefelo le thulaganyo","Tobetsa gangwe o tsene ka boteng","Go diragala eng morago ga go romela","Simolola go bua","Dirisa lefelo la me","Tshobokanyo ya gago ya maatla e siame","Tshepo ya data","Kakanyo ya pele","Ditsenyo tsa tshobokanyo","Nako ya pusetso & IRR","Elelo ya madi ya ngwaga wa 1","Aga thulaganyo ka dikgato","Tsenya akhaonto ya gago go bona dipalo","Ditsela tsotlhe ka dikakanyo tse di tshwanang","E nt\u0161hafadiwa fa dikakanyo di fetoga"],
+    ss:["Cala ngaloko lokukhokhako naloko lokusebentisako.","Sikhombise kutsi libhizinisi lisebentisa njani gesi.","Lokubaluleke kakhulu, naloko lesikucabangako.","Konkhe lokudzingako kute wente sincumo, endzaweni yinye.","Chubeka \u2192","Kucatsanisa tindleko teminyaka lengu-20","Kuvumelana kwemtfwalo nekukhicitwa kwagesi","Catsanisa tindlela tetimali","Ingoti nekucina","Imibono nekwetsenjwa kwedatha","Sifinyeto sendzawo neluhlelo","Cindzetela kanye ujule","Kwentekani ngemuva kwekutfumela","Cala kukhuluma","Sebentisa indzawo yami","Sifinyeto sakho semandla silungile","Kwetsenjwa kwedatha","Silinganiso sekucala","Lokufakiwe kwesifinyeto","Sikhatsi sekubuyisa & IRR","Kuhamba kwemali kwemnyaka we-1","Yakha luhlelo ngetigaba","Faka i-akhawunti yakho kute ubone tibalo","Tonkhe tindlela ngemibono lefanako","Iyavuselelwa nangabe imibono ishintja"],
+    ve:["Thomani nga zwine na badela na zwine na shumisa.","Ri sumbedzeni n\u1e13ila ine bindu \u1e3ba shumisa mu\u1e13agasi ngayo.","Zwa ndeme vhukuma, na zwine ra humbulela.","Zwo\u1e71he zwine na \u1e71o\u1e13a u dzhia tsheo, fhethu huthihi.","Bvelani phan\u1e13a \u2192","U vhambedza mitengo ya mi\u1e45waha ya 20","U tendelana ha mushumo na u bveledzwa ha mu\u1e13agasi","Vhambedzani n\u1e13ila dza masheleni","Khombo na maan\u1e13a","Mihumbulo na fulufhelo \u1e3ba data","Manweledzo a fhethu na sisi\u1e71eme","Pu\u1e71edzani luthihi ni dzhene ngomu","Hu itea mini nga murahu ha u rumela","Thomani u amba","Shumisani fhethu hanga","Manweledzo a\u1e4bu a fulufulu o luga","Fulufhelo \u1e3ba data","Mulingo wa u thoma","Zwo dzheniswaho kha manweledzo","Tshifhinga tsha u vhuyedzedza & IRR","Kuyele kwa tshelede ya \u1e45waha wa 1","Fha\u1e71ani sisi\u1e71eme nga zwiga","Dzhenisani akhaunthu ya\u1e4bu u vhona mbalo","N\u1e13ila dzo\u1e71he nga mihumbulo i fanaho","I khwiniswa musi mihumbulo i tshi shanduka"],
+    ts:["Sungula hi leswi u swi hakelaka ni leswi u swi tirhisaka.","Hi kombise ndlela leyi bindzu ri tirhisaka gezi ha yona.","Leswi nga swa nkoka swinene, ni leswi hi swi ehleketaka.","Hinkwaswo leswi u swi lavaka ku endla xiboho, endhawini yin'we.","Yana emahlweni \u2192","Ku pimanisa tihakelo ta malembe ya 20","Ku fambelana ka ntirho ni vuhumelerisi bya gezi","Pimanisa tindlela ta timali","Khombo ni matimba","Mianakanyo ni ku tshembeka ka data","Nkatsakanyo wa ndhawu ni sisiteme","Kandziyisa kan'we u nghena eka vuenti","Ku humelela yini endzhaku ka ku rhumela","Sungula ku vulavula","Tirhisa ndhawu ya mina","Nkatsakanyo wa wena wa eneji wu lunghekile","Ku tshembeka ka data","Mpimo wo rhanga","Leswi nghenisiweke eka nkatsakanyo","Nkarhi wo vuyisa & IRR","Ku famba ka mali ka lembe ra 1","Aka sisiteme hi swiyimo","Nghenisa akhawunti ya wena u vona tinhlayo","Tindlela hinkwato hi mianakanyo leyi fanaka","Ya pfuxetiwa loko mianakanyo yi cinca"],
+    nr:["Thoma ngalokho okukhokhako nokusebenzisako.","Sitjengise bona ibhizinisi lisebenzisa njani igezi.","Okuqakatheke khulu, nalokho esikucabangako.","Koke okutlhogako bona wenze isiqunto, endaweni yinye.","Ragela phambili \u2192","Ukumadanisa iindleko zeminyaka ema-20","Ukukhambisana komthwalo nokukhiqizwa kwegezi","Madanisa iindlela zeemali","Ingozi nokuqina","Imibono nokuthenjwa kwedatha","Irhunyezo lendawo nehlelo","Gandelela kanye ungene ngokudephileko","Kwenzekani ngemva kokuthumela","Thoma ukukhuluma","Sebenzisa indawo yami","Irhunyezo lakho lamandla selilungile","Ukuthenjwa kwedatha","Isilinganiso sokuthoma","Okufakiweko kwerhunyezo","Isikhathi sokubuyisa & IRR","Ukukhamba kwemali komnyaka woku-1","Yakha ihlelo ngeengaba","Faka i-akhawunti yakho bona ubone iimbalo","Zoke iindlela ngemibono efanako","Livuselelwa nange imibono itjhuguluka"]
+  };
+  var I18N_NAMES = { en:"English", af:"Afrikaans", zu:"isiZulu", xh:"isiXhosa", nso:"Sepedi", st:"Sesotho", tn:"Setswana", ss:"siSwati", ve:"Tshiven\u1e13a", ts:"Xitsonga", nr:"isiNdebele" };
+  var I18N_KEYS2 = ["I have a copy of my bill", "Upload it — we'll try to read the figures", "I'd rather just describe it", "Talk it through in your own words", "I'll answer the questions", "The guided steps below", "Just have someone call me", "Your name", "Phone or email", "Resume snapshot", "Start fresh", "Start over", "Average monthly bill · incl. VAT (R)", "Average monthly consumption", "Billing history", "Upload an electricity bill · PDF or photo", "Analyze what I said", "Sector", "Electricity supply", "Municipality", "Solar space", "Roof", "Ground", "Roof and ground", "Not sure yet", "Province", "When does most of your load happen?", "Mostly daytime", "Mixed day & night", "Mostly evenings / night", "How much resilience does the site need?", "Cost first", "Critical loads", "Continuity first", "Existing backup on site today", "None yet", "Diesel generator", "← Back", "What matters most to you right now?", "Preserve cash flow", "Eventual ownership", "Fastest ROI", "Peak sun hours / day", "Assumed annual tariff increase (%)", "Interest rate (%)", "Term (years)", "Deposit (%)", "System size", "Recommended route", "Scenario", "Base Case", "High Escalation", "Conservative", "Estimated saving", "Sun hours", "Reset to defaults"];
+  var I18N2 = {
+    af: ["Ek het 'n afskrif van my rekening", "Laai dit op — ons sal probeer om die syfers te lees", "Ek wil dit eerder net beskryf", "Praat dit deur in jou eie woorde", "Ek sal die vrae beantwoord", "Die stap-vir-stap gids hieronder", "Laat iemand my net bel", "Jou naam", "Telefoon of e-pos", "Hervat oorsig", "Begin vars", "Begin oor", "Gemiddelde maandelikse rekening · BTW ingesluit (R)", "Gemiddelde maandelikse verbruik", "Rekeninggeskiedenis", "Laai 'n elektrisiteitsrekening op · PDF of foto", "Ontleed wat ek gesê het", "Sektor", "Elektrisiteitsvoorsiening", "Munisipaliteit", "Sonkrag-ruimte", "Dak", "Grond", "Dak en grond", "Nog nie seker nie", "Provinsie", "Wanneer gebeur die meeste van jou verbruik?", "Meestal bedags", "Gemeng dag & nag", "Meestal aande / nagte", "Hoeveel veerkragtigheid het die terrein nodig?", "Koste eerste", "Kritieke laste", "Kontinuïteit eerste", "Bestaande rugsteun op die terrein vandag", "Nog niks", "Dieselkragopwekker", "← Terug", "Wat is nou vir jou die belangrikste?", "Bewaar kontantvloei", "Uiteindelike eienaarskap", "Vinnigste opbrengs", "Piek sonure / dag", "Aangenome jaarlikse tariefstyging (%)", "Rentekoers (%)", "Termyn (jare)", "Deposito (%)", "Stelselgrootte", "Aanbevole roete", "Scenario", "Basisgeval", "Hoë styging", "Konserwatief", "Geskatte besparing", "Sonure", "Herstel na verstek"],
+    zu: ["Nginekhophi yebhili yami", "Yilayishe — sizozama ukufunda izibalo", "Ngincamela ukuyichaza nje", "Yichaze ngamazwi akho", "Ngizophendula imibuzo", "Izinyathelo eziqondisayo ngezansi", "Vele kube nomuntu ongishayelayo", "Igama lakho", "Ucingo noma i-imeyili", "Qhubeka nesifinyezo", "Qala kabusha", "Qala phansi", "Ibhili yenyanga ngokwesilinganiso · kubalwa i-VAT (R)", "Ukusetshenziswa kwenyanga ngokwesilinganiso", "Umlando wamabhili", "Layisha ibhili kagesi · i-PDF noma isithombe", "Hlaziya engikushilo", "Umkhakha", "Ukuhlinzekwa kukagesi", "Umasipala", "Indawo yelanga", "Uphahla", "Phansi", "Uphahla naphansi", "Angikaqiniseki", "Isifundazwe", "Ugesi usetshenziswa kakhulu nini?", "Ikakhulu emini", "Kuxutshiwe imini nobusuku", "Ikakhulu kusihlwa / ebusuku", "Indawo idinga ukuqina okungakanani?", "Izindleko kuqala", "Imithwalo ebalulekile", "Ukuqhubeka kuqala", "Isipele esikhona endaweni namuhla", "Akukho okwamanje", "Ijeneretha kadizili", "← Emuva", "Yini ebaluleke kakhulu kuwe manje?", "Londoloza ukuhamba kwemali", "Ubunikazi ekugcineni", "Imbuyiselo esheshayo", "Amahora elanga aphezulu / usuku", "Ukwenyuka kwentengo yonyaka okucatshangwayo (%)", "Izinga lenzalo (%)", "Isikhathi (iminyaka)", "Idiphozithi (%)", "Usayizi wohlelo", "Indlela enconyiwe", "Isimo", "Isisekelo", "Ukwenyuka okuphezulu", "Okuqaphile", "Ukonga okulinganiselwe", "Amahora elanga", "Buyisela okumisiwe"],
+    xh: ["Ndinekopi yetyala lam", "Yilayishe — siza kuzama ukufunda amanani", "Ndikhetha ukuyichaza nje", "Yichaze ngamazwi akho", "Ndiza kuphendula imibuzo", "Amanyathelo akhokelayo angezantsi", "Makubekho umntu onditsalela umnxeba", "Igama lakho", "Ifowuni okanye i-imeyile", "Qhubeka nesishwankathelo", "Qala ngokutsha", "Qala kwakhona", "Ityala lenyanga ngokomndilili · kuquka i-VAT (R)", "Ukusetyenziswa kwenyanga ngokomndilili", "Imbali yamatyala", "Layisha ityala lombane · i-PDF okanye ifoto", "Hlalutya endikuthethileyo", "Icandelo", "Unikezelo lombane", "Umasipala", "Indawo yelanga", "Uphahla", "Umhlaba", "Uphahla nomhlaba", "Andikaqiniseki", "Iphondo", "Umbane usetyenziswa kakhulu nini?", "Ikakhulu emini", "Kuxutyiwe imini nobusuku", "Ikakhulu ngokuhlwa / ebusuku", "Indawo ifuna ukomelela okungakanani?", "Iindleko kuqala", "Imithwalo ebalulekileyo", "Ukuqhubeka kuqala", "Inkxaso ekhoyo kwindawo namhlanje", "Akukho nto okwangoku", "Ijenereyitha yedizili", "← Emva", "Yintoni ebaluleke kakhulu kuwe ngoku?", "Gcina ukuhamba kwemali", "Ubunini ekugqibeleni", "Imbuyekezo ekhawulezayo", "Iiyure zelanga eziphezulu / usuku", "Unyuko lwexabiso lonyaka oluqikelelwayo (%)", "Izinga lenzala (%)", "Ixesha (iminyaka)", "Idipozithi (%)", "Ubungakanani benkqubo", "Indlela ecetyiswayo", "Imeko", "Isiseko", "Unyuko oluphezulu", "Elumkileyo", "Ulongo oluqikelelweyo", "Iiyure zelanga", "Buyisela kokumiselweyo"],
+    nso: ["Ke na le khopi ya akhaonto ya ka", "E laiše — re tla leka go bala dipalo", "Ke rata go e hlalosa fela", "E hlalose ka mantšu a gago", "Ke tla araba dipotšišo", "Dikgato tša tlhahlo ka mo tlase", "A go be le motho yo a ntetšetšago", "Leina la gago", "Mogala goba imeile", "Tšwela pele ka kakaretšo", "Thoma lefsa", "Thoma gape", "Akhaonto ya kgwedi ka palogare · go akaretšwa VAT (R)", "Tirišo ya kgwedi ka palogare", "Histori ya diakhaonto", "Laiša akhaonto ya mohlagase · PDF goba senepe", "Sekaseka seo ke se boletšego", "Lekala", "Kabo ya mohlagase", "Mmasepala", "Sebaka sa letšatši", "Marulelo", "Fase", "Marulelo le fase", "Ga ke kgonthiše go fihla ga bjale", "Profense", "Mohlagase o šomišwa kudu neng?", "Kudu mosegare", "Go hlakantšwe mosegare le bošego", "Kudu mantšiboa / bošego", "Lefelo le nyaka maatla a go tsoga a makae?", "Ditshenyagalelo pele", "Merwalo ye bohlokwa", "Go tšwela pele pele", "Thekgo yeo e lego gona lefelong lehono", "Ga go selo go fihla ga bjale", "Jenereitara ya tesele", "← Morago", "Ke eng seo se lego bohlokwa kudu go wena bjale?", "Boloka phallo ya tšhelete", "Bong bja mafelelo", "Poelo ya ka pela", "Diiri tša letšatši tša godimo / letšatši", "Koketšo ya theko ya ngwaga yeo e akanywago (%)", "Sekgahla sa tswala (%)", "Paka (mengwaga)", "Tefelopele (%)", "Bogolo bja sistimi", "Tsela ye e šišinywago", "Seemo", "Motheo", "Koketšo ya godimo", "Ka šedi", "Poloko ye e akanyetšwago", "Diiri tša letšatši", "Bušetša go tša tlwaelo"],
+    st: ["Ke na le kopi ya akhaonto ya ka", "E kenye — re tla leka ho bala dipalo", "Ke mpa ke rata ho e hlalosa", "E hlalose ka mantswe a hao", "Ke tla araba dipotso", "Mehato e tataisang ka tlase", "Ha ho be le motho ya ntetsetsang", "Lebitso la hao", "Mohala kapa imeile", "Tswela pele ka kakaretso", "Qala botjha", "Qala hape", "Akhaonto ya kgwedi ka karolelano · ho kenyeleditswe VAT (R)", "Tshebediso ya kgwedi ka karolelano", "Histori ya diakhaonto", "Kenya akhaonto ya motlakase · PDF kapa setshwantsho", "Sekaseka seo ke se buileng", "Lekala", "Phano ya motlakase", "Masepala", "Sebaka sa letsatsi", "Marulelo", "Fatshe", "Marulelo le fatshe", "Ha ke so tsebe", "Provense", "Motlakase o sebediswa haholo neng?", "Haholo motsheare", "Ho kopantswe motsheare le bosiu", "Haholo mantsiboya / bosiu", "Sebaka se hloka matla a ho ema a makae?", "Ditjeo pele", "Meroalo ya bohlokwa", "Tswelopele pele", "Tshehetso e teng sebakeng kajeno", "Ha ho letho ho fihlela jwale", "Jenereitara ya disele", "← Morao", "Ke eng se bohlokwa ka ho fetisisa ho wena jwale?", "Boloka phallo ya tjhelete", "Bonngwe ba qetello", "Poello e potlakileng", "Dihora tsa letsatsi tse phahameng / letsatsi", "Keketseho ya theko ya selemo e nahanwang (%)", "Sekgahla sa tswala (%)", "Nako (dilemo)", "Depositi (%)", "Boholo ba sistimi", "Tsela e kgothaletswang", "Boemo", "Motheo", "Keketseho e phahameng", "Ka hloko", "Poloko e hakanyetswang", "Dihora tsa letsatsi", "Kgutlisetsa ho tsa setso"],
+    tn: ["Ke na le khopi ya akhaonto ya me", "E tsenye — re tla leka go bala dipalo", "Ke rata go e tlhalosa fela", "E tlhalose ka mafoko a gago", "Ke tla araba dipotso", "Dikgato tse di kaelang fa tlase", "A go nne le motho yo o nteletsang", "Leina la gago", "Mogala kgotsa imeile", "Tswelela ka tshobokanyo", "Simolola sesha", "Simolola gape", "Akhaonto ya kgwedi ka palogare · go akaretsa VAT (R)", "Tiriso ya kgwedi ka palogare", "Histori ya diakhaonto", "Tsenya akhaonto ya motlakase · PDF kgotsa setshwantsho", "Sekaseka se ke se buileng", "Lephata", "Kabo ya motlakase", "Mmasepala", "Sebaka sa letsatsi", "Marulelo", "Fa fatshe", "Marulelo le fa fatshe", "Ga ke ise ke tlhomamise", "Porofense", "Motlakase o dirisiwa thata leng?", "Bogolo motshegare", "Go tlhakantswe motshegare le bosigo", "Bogolo maitseboa / bosigo", "Lefelo le tlhoka nonofo e kae?", "Ditshenyegelo pele", "Merwalo ya botlhokwa", "Tswelelopele pele", "Tshegetso e e leng teng mo lefelong gompieno", "Ga go sepe go fitlha jaanong", "Jenereitara ya tesele", "← Morago", "Ke eng se se botlhokwa thata mo go wena jaanong?", "Boloka elelo ya madi", "Bong jwa bofelo", "Poelo e e bonako", "Diura tsa letsatsi tse dikgolo / letsatsi", "Koketso ya tlhwatlhwa ya ngwaga e e akanngwang (%)", "Seelo sa morokotso (%)", "Paka (dingwaga)", "Peeletso (%)", "Bogolo jwa thulaganyo", "Tsela e e atlenegisiwang", "Seemo", "Motheo", "Koketso e kgolo", "Ka kelotlhoko", "Poloko e e fopholediwang", "Diura tsa letsatsi", "Busetsa kwa tse di tlwaelegileng"],
+    ss: ["Nginekhophi yebhili yami", "Yilayishe — sitawuzama kufundza tibalo", "Ngincamela kuyichaza nje", "Yichaze ngemavi akho", "Ngitawuphendvula imibuto", "Tinyatselo leticondzisako ngentasi", "Akube nemuntfu longishayelako", "Ligama lakho", "Lucingo nome i-imeyili", "Chubeka nesifinyeto", "Cala kabusha", "Cala phansi", "Ibhili yenyanga ngekwesilinganiso · kufaka i-VAT (R)", "Kusetjentiswa kwenyanga ngekwesilinganiso", "Umlandvo wemabhili", "Layisha ibhili yagesi · i-PDF nome sitfombe", "Hlatiya lengikushito", "Umkhakha", "Kuniketwa kwagesi", "Masipala", "Indzawo yelilanga", "Luphahla", "Phansi", "Luphahla naphansi", "Angikacinisekisi", "Sifundza", "Gesi usetjentiswa kakhulu nini?", "Kakhulu emini", "Kuhlanganisiwe imini nebusuku", "Kakhulu kusihlwa / ebusuku", "Indzawo idzinga kucina lokungakanani?", "Tindleko kucala", "Imitfwalo lebalulekile", "Kuchubeka kucala", "Lusito lolukhona endzaweni lamuhla", "Kute kwanyalo", "Ijeneretha yadizili", "← Emuva", "Yini lebaluleke kakhulu kuwe nyalo?", "Gcina kuhamba kwemali", "Bunikati ekugcineni", "Imbuyiselo lesheshako", "Ema-awa elilanga laphetulu / lilanga", "Kwenyuka kwentsengo yemnyaka lokucatjangwako (%)", "Lizinga lenzalo (%)", "Sikhatsi (iminyaka)", "Idiphozithi (%)", "Bukhulu beluhlelo", "Indlela lenconywako", "Simo", "Sisekelo", "Kwenyuka lokuphakeme", "Lokucaphele", "Konga lokulinganiselwe", "Ema-awa elilanga", "Buyisela kulokumisiwe"],
+    ve: ["Ndi na khophi ya akhaunthu yanga", "I dzheniseni — ri ḓo lingedza u vhala mbalo", "Ndi funa u i ṱalusa fhedzi", "I ṱaluseni nga maipfi aṋu", "Ndi ḓo fhindula mbudziso", "Zwiga zwi livhisaho afho fhasi", "Hu vhe na muthu ane a mfonela", "Dzina ḽaṋu", "Luṱingo kana imeiḽi", "Bvelani phanḓa nga manweledzo", "Thomani nga huswa", "Thomani hafhu", "Akhaunthu ya ṅwedzi nga vhukati · hu katelwa VAT (R)", "Mushumo wa ṅwedzi nga vhukati", "Ḓivhazwakale ya dziakhaunthu", "Dzhenisani akhaunthu ya muḓagasi · PDF kana tshifanyiso", "Sengulusani zwe nda amba", "Sia", "Ndisedzo ya muḓagasi", "Masipala", "Fhethu ha ḓuvha", "Ṱhanga", "Fhasi", "Ṱhanga na fhasi", "A thi athu vha na vhungoho", "Vundu", "Muḓagasi u shumiswa nga maanḓa lini?", "Nga maanḓa masiari", "Ho ṱanganyiswa masiari na vhusiku", "Nga maanḓa nga madekwana / vhusiku", "Fhethu hu ṱoḓa maanḓa mangafhani?", "Mitengo u thoma", "Mihwalo ya ndeme", "U bvela phanḓa u thoma", "Thikhedzo i re hone fhethu ṋamusi", "A hu na tshithu zwa zwino", "Dzhenereitha ya dizili", "← Murahu", "Ndi mini tsha ndeme vhukuma kha inwi zwino?", "Vhulungani kuyele kwa tshelede", "Vhuṋe ha u fhedzisela", "Mbuyelo ya u ṱavhanya", "Awara dza ḓuvha dza nṱha / ḓuvha", "Nyengedzedzo ya mutengo wa ṅwaha i humbulelwaho (%)", "Tshikalo tsha dzangalelo (%)", "Tshifhinga (miṅwaha)", "Diphosithi (%)", "Vhuhulu ha sisiṱeme", "Nḓila yo themendelwaho", "Vhuimo", "Mutheo", "Nyengedzedzo ya nṱha", "Nga vhulondi", "Vhuvhulungi ho linganyiselwaho", "Awara dza ḓuvha", "Vhuyedzedzani kha zwo vhewaho"],
+    ts: ["Ndzi na kopi ya akhawunti ya mina", "Yi nghenise — hi ta ringeta ku hlaya tinhlayo", "Ndzi rhandza ku yi hlamusela ntsena", "Yi hlamusele hi marito ya wena", "Ndzi ta hlamula swivutiso", "Magoza yo kongomisa laha hansi", "A ku ve na munhu la ndzi fonelaka", "Vito ra wena", "Riqingho kumbe imeyili", "Yana emahlweni hi nkatsakanyo", "Sungula hi vuntshwa", "Sungula nakambe", "Akhawunti ya n'hweti hi xiavelo · ku katsa VAT (R)", "Matirhiselo ya n'hweti hi xiavelo", "Matimu ya tiakhawunti", "Nghenisa akhawunti ya gezi · PDF kumbe xifaniso", "Xopaxopa leswi ndzi swi vuleke", "Xiyenge", "Ku nyikiwa ka gezi", "Masipala", "Ndhawu ya dyambu", "Lwangu", "Ehansi", "Lwangu na le hansi", "A ndzi si tiyiseka", "Xifundzankulu", "Gezi ri tirhisiwa ngopfu rini?", "Ngopfu nhlikanhi", "Ku hlanganisiwe nhlikanhi na vusiku", "Ngopfu nimadyambu / vusiku", "Ndhawu yi lava matimba mangani?", "Tihakelo ku sungula", "Mindzhwalo ya nkoka", "Ku ya emahlweni ku sungula", "Nseketelo lowu nga kona endhawini namuntlha", "Ku hava se sweswi", "Jeneretara ya dizili", "← Endzhaku", "I yini xa nkoka swinene eka wena sweswi?", "Hlayisa ku famba ka mali", "Vun'wini bya makumu", "Vuyelo byo hatlisa", "Tiawara ta dyambu ta le henhla / siku", "Ku tlakuka ka nxavo wa lembe loku anakanyiwaka (%)", "Mpimo wa ntswalo (%)", "Nkarhi (malembe)", "Diphosithi (%)", "Vukulu bya sisiteme", "Ndlela leyi bumabumeriwaka", "Xiyimo", "Masungulo", "Ku tlakuka ka le henhla", "Hi vukheta", "Ku onga loku ringanyetiweke", "Tiawara ta dyambu", "Vuyisela eka leswo toloveleka"],
+    nr: ["Nginekhophi yebhili yami", "Yilayitjhe — sizokulinga ukufunda iimbalo", "Ngikhetha ukuyihlathulula nje", "Yihlathulule ngamezwi wakho", "Ngizokuphendula imibuzo", "Amagadango anqophisako ngenzasi", "Akube nomuntu ongifonelako", "Ibizo lakho", "Umtato namkha i-imeyili", "Ragela phambili ngerhunyezo", "Thoma butjha", "Thoma godu", "Ibhili yenyanga ngokulinganisa · kufakwa i-VAT (R)", "Ukusetjenziswa kwenyanga ngokulinganisa", "Umlando wamabhili", "Layitjha ibhili yegezi · i-PDF namkha isithombe", "Hlaziya engikutjhilo", "Umkhakha", "Ukunikelwa kwegezi", "Umasipala", "Indawo yelanga", "Uphahla", "Phasi", "Uphahla naphasi", "Angikaqiniseki", "Isifunda", "Igezi lisetjenziswa khulu nini?", "Khulukhulu emini", "Kuvangiwe imini nobusuku", "Khulukhulu ntambama / ebusuku", "Indawo itlhoga ukuqina okungangani?", "Iindleko qangi", "Imithwalo eqakathekileko", "Ukuragela phambili qangi", "Isekelo elikhona endaweni namhlanjesi", "Akunalitho okwanje", "Ijeneretha yedizili", "← Emva", "Khuyini eqakatheke khulu kuwe nje?", "Bulunga ukukhamba kwemali", "Ubunikazi ekugcineni", "Imbuyiselo erhabako", "Ama-awara welanga aphezulu / ilanga", "Ukukhula kwentengo yomnyaka okucatjangwako (%)", "Izinga lenzalo (%)", "Isikhathi (iminyaka)", "Idiphozithi (%)", "Ubukhulu behlelo", "Indlela enconywako", "Ubujamo", "Isisekelo", "Ukukhula okuphezulu", "Ngokutjheja", "Ukonga okulinganisiweko", "Ama-awara welanga", "Buyisela kokumisiweko"]
+  };
+  I18N_KEYS = I18N_KEYS.concat(I18N_KEYS2);
+  Object.keys(I18N2).forEach(function(L){ if (I18N[L]) I18N[L] = I18N[L].concat(I18N2[L]); });
+
+  var currentLang = "en";
+  try { currentLang = localStorage.getItem("chariot_lang") || "en"; } catch(e){}
+  if (!I18N_NAMES[currentLang]) currentLang = "en";
+
+  function i18nLookup(txt){
+    if (currentLang === "en") return null;
+    var i = I18N_KEYS.indexOf(txt);
+    if (i < 0) return null;
+    var arr = I18N[currentLang];
+    return (arr && arr[i]) || null;
+  }
+  function applyLang(){
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+    var n;
+    while ((n = walker.nextNode())){
+      var raw = n.nodeValue, t = raw.trim();
+      if (!t) continue;
+      if (n.__i18nOrig === undefined) n.__i18nOrig = raw;
+      var origRaw = n.__i18nOrig, origT = origRaw.trim();
+      if (currentLang === "en"){
+        if (raw !== origRaw) n.nodeValue = origRaw;
+        continue;
+      }
+      var tr = i18nLookup(origT);
+      if (tr && t !== tr) n.nodeValue = origRaw.replace(origT, tr);
+    }
+  }
+  var i18nTimer = null;
+  var i18nObserver = new MutationObserver(function(){
+    if (currentLang === "en") return;
+    if (i18nTimer) clearTimeout(i18nTimer);
+    i18nTimer = setTimeout(function(){
+      i18nObserver.disconnect();
+      applyLang();
+      i18nObserver.observe(document.body, {childList:true, subtree:true});
+    }, 250);
+  });
+  i18nObserver.observe(document.body, {childList:true, subtree:true});
+
+  var VOICE_LANG = { en:"en-ZA", af:"af-ZA", zu:"zu-ZA" };
+  function syncVoiceLang(){
+    if (typeof recognition !== "undefined" && recognition){
+      recognition.lang = VOICE_LANG[currentLang] || "en-ZA";
+    }
+  }
+
+  (function buildLangPicker(){
+    var st = document.createElement("style");
+    st.textContent = "#langPick{position:fixed;top:10px;right:10px;z-index:1000;background:rgba(255,255,255,.96);border:1px solid #D8DEDE;border-radius:999px;padding:4px 10px 4px 8px;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.08);font-family:Calibri,Arial,sans-serif;}#langPick svg{width:14px;height:14px;color:#0F3B3A;}#langSel{border:none;background:transparent;font-size:12px;outline:none;font-family:inherit;color:#1B1F22;max-width:110px;}@media (max-width:760px){#langPick{top:6px;right:6px;padding:3px 8px 3px 6px;}}#ckHoverTip{position:absolute;background:#fff;border:1px solid #D8DEDE;border-radius:8px;padding:8px 10px;font-size:11px;line-height:1.5;box-shadow:0 4px 14px rgba(0,0,0,.12);pointer-events:none;min-width:158px;z-index:50;font-family:Calibri,Arial,sans-serif;}#ckHoverTip .cht-y{font-weight:bold;margin-bottom:4px;color:#0F3B3A;}#ckHoverTip .cht-row{display:flex;justify-content:space-between;gap:12px;margin:2px 0;}#ckHoverTip .cht-row i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;}";
+    document.head.appendChild(st);
+    var pick = document.createElement("div");
+    pick.id = "langPick";
+    pick.title = "Machine-assisted translation \u2014 English wording is authoritative. Figures are unaffected.";
+    pick.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><select id="langSel" aria-label="Language / Ulimi / Taal"></select>';
+    document.body.appendChild(pick);
+    var sel = document.getElementById("langSel");
+    Object.keys(I18N_NAMES).forEach(function(code){
+      var o = document.createElement("option");
+      o.value = code; o.textContent = I18N_NAMES[code];
+      sel.appendChild(o);
+    });
+    sel.value = currentLang;
+    sel.addEventListener("change", function(){
+      currentLang = this.value;
+      try { localStorage.setItem("chariot_lang", currentLang); } catch(e){}
+      applyLang();
+      syncVoiceLang();
+    });
+  })();
+  if (currentLang !== "en") applyLang();
+  syncVoiceLang();
+
+
+  /* ---- Equipment quick-pick: typical loads, clearly assumed, always editable ---- */
+  var EQUIP = [
+    { id:"irrigation", label:"Irrigation / pivot pump", kw:22, timing:"high" },
+    { id:"borehole", label:"Borehole pump", kw:11, timing:"high" },
+    { id:"coldroom", label:"Cold room / chiller", kw:8, timing:"medium" },
+    { id:"dairy", label:"Dairy (milking + cooling)", kw:15, timing:"medium" },
+    { id:"mill", label:"Mill / processing", kw:30, timing:"high" },
+    { id:"packhouse", label:"Packhouse line", kw:25, timing:"high" },
+    { id:"compressors", label:"Compressors / welders", kw:15, timing:"high" },
+    { id:"hvac", label:"Retail / office HVAC", kw:12, timing:"high" }
+  ];
+  var equipSel = [];
+  var equipWrap = $("equipChips");
+  if (equipWrap){
+    EQUIP.forEach(function(eq){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "eq-chip"; b.textContent = eq.label; b.dataset.eq = eq.id;
+      b.addEventListener("click", function(){
+        var on = b.classList.toggle("on");
+        if (on) equipSel.push(eq.id); else equipSel = equipSel.filter(function(x){ return x !== eq.id; });
+        equipApply();
+      });
+      equipWrap.appendChild(b);
+    });
+  }
+  function equipApply(){
+    var hint = $("equipHint");
+    if (!equipSel.length){ if (hint) hint.style.display = "none"; recompute(); return; }
+    var chosen = EQUIP.filter(function(e){ return equipSel.indexOf(e.id) >= 0; });
+    var sumKw = chosen.reduce(function(s,e){ return s + e.kw; }, 0);
+    var suggested = Math.round(sumKw * 0.7);
+    var pd = $("peakDemand");
+    if (pd && (!pd.value || parseFloat(pd.value) === 0)){ pd.value = suggested; }
+    var day = chosen.filter(function(e){ return e.timing === "high"; }).length;
+    var lt = $("loadTiming");
+    if (lt && lt.value === "medium" && day > chosen.length/2){ lt.value = "high"; }
+    if (hint){
+      hint.style.display = "block";
+      hint.textContent = "Assumed from typical equipment ratings: ~" + sumKw + " kW connected, ~" + suggested + " kVA peak after diversity. These are typical figures, not measurements — edit peak demand and load timing to match your site.";
+    }
+    recompute();
+  }
+
 })();
 </script>
 
+<script>
+if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0){
+  window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+}
+</script>
 </body>
 </html>
