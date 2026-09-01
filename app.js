@@ -81,7 +81,7 @@
     $('saveBtn').addEventListener('click',save);
     $('restartBtn').addEventListener('click',restart);
     $('helpBtn').addEventListener('click',()=>$('helpDialog').showModal());
-    $('meetingBtn').addEventListener('click',()=>$('meetingDialog').showModal());
+    $('meetingBtn').addEventListener('click',()=>{submitLeadRecord('meeting');$('meetingDialog').showModal()});
     $('requestMeetingBtn').addEventListener('click',requestMeeting);
     $('whatsappBtn').addEventListener('click',shareWhatsapp);
     $('emailBtn').addEventListener('click',shareEmail);
@@ -147,11 +147,11 @@
 
   async function handleFiles(e){
     state.files=Array.from(e.target.files||[]);state.extracted=[];$('fileList').innerHTML=state.files.map(f=>`<div>⏳ Analysing ${esc(f.name)}…</div>`).join('');
-    for(const f of state.files){let text='',status='Attached for review';try{if(/\.(xlsx|xls)$/i.test(f.name)&&window.XLSX){text=await extractWorkbook(f);status=text?'Spreadsheet data extracted':'Spreadsheet attached; manual review needed'}else if(/csv|text/.test(f.type)||/\.(csv|txt)$/i.test(f.name)){text=await f.text();status='Meter or schedule data extracted'}else if(/pdf/.test(f.type)||/\.pdf$/i.test(f.name)){text=await extractPdf(f);status=text?'PDF text extracted':'PDF attached; manual review needed'}else if(/image/.test(f.type)&&window.Tesseract){const out=await Tesseract.recognize(f,'eng',{logger:()=>{}});text=out.data.text||'';status=text?'Image text extracted':'Image attached; manual review needed'}if(text)applyExtractedText(text,f.name);state.extracted.push({name:f.name,status,text:text.slice(0,1500)});}catch(err){state.extracted.push({name:f.name,status:'Attached; automatic extraction unavailable',text:''})}}
+    for(const f of state.files){let text='',status='Attached for review';try{if(/\.(xlsx|xls)$/i.test(f.name)&&await ensureXlsx()){text=await extractWorkbook(f);status=text?'Spreadsheet data extracted':'Spreadsheet attached; manual review needed'}else if(/csv|text/.test(f.type)||/\.(csv|txt)$/i.test(f.name)){text=await f.text();status='Meter or schedule data extracted'}else if(/pdf/.test(f.type)||/\.pdf$/i.test(f.name)){text=await extractPdf(f);status=text?'PDF text extracted':'PDF attached; manual review needed'}else if(/image/.test(f.type)&&window.Tesseract){const out=await Tesseract.recognize(f,'eng',{logger:()=>{}});text=out.data.text||'';status=text?'Image text extracted':'Image attached; manual review needed'}if(text)applyExtractedText(text,f.name);state.extracted.push({name:f.name,status,text:text.slice(0,1500)});}catch(err){state.extracted.push({name:f.name,status:'Attached; automatic extraction unavailable',text:''})}}
     $('fileList').innerHTML=state.extracted.map(x=>`<div>✓ ${esc(x.name)} · ${esc(x.status)}</div>`).join('');recompute();
   }
-  async function extractPdf(file){if(!window.pdfjsLib)return'';pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;let text='';for(let i=1;i<=Math.min(pdf.numPages,20);i++){const page=await pdf.getPage(i),content=await page.getTextContent();text+=' '+content.items.map(x=>x.str).join(' ')}return text}
-  async function extractWorkbook(file){if(!window.XLSX)return'';const workbook=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});return workbook.SheetNames.slice(0,12).map(name=>`Sheet: ${name}\n${XLSX.utils.sheet_to_csv(workbook.Sheets[name])}`).join('\n')}
+  async function extractPdf(file){if(!(await ensurePdf()))return'';pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;let text='';for(let i=1;i<=Math.min(pdf.numPages,20);i++){const page=await pdf.getPage(i),content=await page.getTextContent();text+=' '+content.items.map(x=>x.str).join(' ')}return text}
+  async function extractWorkbook(file){if(!(await ensureXlsx()))return'';const workbook=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});return workbook.SheetNames.slice(0,12).map(name=>`Sheet: ${name}\n${XLSX.utils.sheet_to_csv(workbook.Sheets[name])}`).join('\n')}
   function applyExtractedText(text,name){const clean=text.replace(/,/g,' ');const rand=[...clean.matchAll(/(?:total|amount due|current charges|invoice total|r)\s*[:r]?\s*(\d[\d ]+(?:\.\d{1,2})?)/ig)].map(m=>+m[1].replace(/ /g,'')).filter(v=>v>500&&v<5e7);const kwh=[...clean.matchAll(/(\d[\d ]+(?:\.\d+)?)\s*kwh/ig)].map(m=>+m[1].replace(/ /g,'')).filter(v=>v>100&&v<1e8);if(rand.length&&!num('monthlyBill'))$('monthlyBill').value=Math.round(rand[rand.length-1]);if(kwh.length&&!num('monthlyKwh'))$('monthlyKwh').value=Math.round(kwh.reduce((a,b)=>a+b,0)/kwh.length);if(/generator|diesel/i.test(text)){const diesel=[...clean.matchAll(/(?:diesel|fuel)\D{0,20}(\d[\d ]+)/ig)].map(m=>+m[1].replace(/ /g,'')).filter(v=>v>100);if(diesel.length&&!num('dieselSpend'))$('dieselSpend').value=diesel[0]} }
 
   async function searchAddress(){
@@ -180,8 +180,9 @@
     applyLocation(lat,lon,`${lat.toFixed(6)}, ${lon.toFixed(6)}`,'','manual-coordinates');
   }
   function applyLocation(lat,lon,label,province,source,accuracy){const changed=!state.location||Math.abs(state.location.lat-lat)>.00001||Math.abs(state.location.lon-lon)>.00001;state.location={lat,lon,label,province,source,accuracy:accuracy||null,confirmedAt:new Date().toISOString()};if(changed)state.solarResource=null;$('siteAddress').value=label;$('manualCoordinates').value=`${lat.toFixed(6)}, ${lon.toFixed(6)}`;if(province)$('province').value=province;$('geoStatus').className='status-line good';$('geoStatus').textContent='✓ Location confirmed · '+label+(accuracy?` · accuracy ±${Math.round(accuracy)} m`:'');$('solarResourceCard').hidden=false;$('pvgisLink').href=`https://re.jrc.ec.europa.eu/pvg_tools/en/#PVP?lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}`;$('solarDataStatus').textContent=state.solarResource?'NASA POWER climatology loaded.':'Provincial climatology fallback is active until you choose to retrieve free solar data.';showMap(lat,lon);recompute()}
-  function showMap(lat,lon){
+  async function showMap(lat,lon){
     const el=$('siteMap');el.hidden=false;$('mapReadout').hidden=false;
+    if(!(await ensureMap())){$('mapReadout').innerHTML='<strong>Coordinates confirmed.</strong> The satellite view needs a connection — everything else still works, and you can enter your area below.';return}
     if(!window.L){$('mapReadout').textContent=`Coordinates ${lat.toFixed(6)}, ${lon.toFixed(6)} confirmed. Interactive mapping is unavailable, but your location is saved.`;return}
     if(!map){
       map=L.map(el,{zoomControl:true}).setView([lat,lon],18);
@@ -243,19 +244,87 @@
     if(!state.siteArea&&!state.cableRunM&&!state.sitePins.length)text+=' · Choose a tool, then draw directly on the map.';
     $('mapReadout').innerHTML=text;$('mapTools')?.querySelectorAll('button').forEach(x=>x.classList.remove('active'));recompute()
   }
+  const _libs={};
+  function loadLib(url){
+    if(_libs[url])return _libs[url];
+    _libs[url]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=url;s.async=true;s.onload=()=>res(true);s.onerror=()=>rej(new Error('lib'));document.head.appendChild(s);}).catch(()=>false);
+    return _libs[url];
+  }
+  function loadCss(url){ if(_libs['c:'+url])return; _libs['c:'+url]=1; const l=document.createElement('link');l.rel='stylesheet';l.href=url;document.head.appendChild(l); }
+  async function ensureMap(){
+    if(window.L)return true;
+    loadCss('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+    loadCss('https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css');
+    await loadLib('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
+    await loadLib('https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js');
+    return !!window.L;
+  }
+  async function ensurePdf(){ if(window.pdfjsLib)return true; await loadLib('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'); return !!window.pdfjsLib; }
+  async function ensureXlsx(){ if(window.XLSX)return true; await loadLib('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'); return !!window.XLSX; }
+  async function ensureOcr(){ if(window.Tesseract)return true; await loadLib('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'); return !!window.Tesseract; }
+  async function fetchWithTimeout(url,ms){
+    const c=new AbortController(),t=setTimeout(()=>c.abort(),ms||9000);
+    try{ return await fetch(url,{mode:'cors',signal:c.signal}); } finally{ clearTimeout(t); }
+  }
+  async function tryPVGIS(lat,lon){
+    /* PVGIS v5.2 — European Commission JRC. Free, no key, no quota.
+       https://joint-research-centre.ec.europa.eu/pvgis-online-tool_en */
+    const endpoint=`https://re.jrc.ec.europa.eu/api/v5_2/MRcalc?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}&horirrad=1&outputformat=json`;
+    const r=await fetchWithTimeout(endpoint,9000);
+    if(!r.ok)throw new Error('PVGIS unavailable');
+    const j=await r.json();
+    const rows=j?.outputs?.monthly||[];
+    if(!rows.length)throw new Error('PVGIS series empty');
+    const byMonth={};
+    rows.forEach(x=>{ const m=x.month; if(!byMonth[m])byMonth[m]=[]; if(Number.isFinite(x['H(h)_m']))byMonth[m].push(x['H(h)_m']); });
+    const monthly=[];
+    for(let m=1;m<=12;m++){
+      const v=byMonth[m]; if(!v||!v.length)throw new Error('PVGIS month missing');
+      const avgMonthTotal=v.reduce((s,x)=>s+x,0)/v.length;
+      monthly.push(avgMonthTotal/30.4);
+    }
+    const annualDaily=monthly.reduce((s,x)=>s+x,0)/12;
+    if(!Number.isFinite(annualDaily)||annualDaily<2.5||annualDaily>9)throw new Error('PVGIS value out of range');
+    return {source:'PVGIS (EU JRC)',parameter:'H(h)_m horizontal irradiation',annualDaily,monthly,endpoint,fetchedAt:new Date().toISOString()};
+  }
+  async function tryNASA(lat,lon){
+    /* NASA POWER climatology — free, no key, no quota.
+       https://power.larc.nasa.gov/docs/services/api/ */
+    const endpoint=`https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude=${lon}&latitude=${lat}&format=JSON`;
+    const r=await fetchWithTimeout(endpoint,9000);
+    if(!r.ok)throw new Error('NASA POWER unavailable');
+    const d=await r.json(),s=d?.properties?.parameter?.ALLSKY_SFC_SW_DWN;
+    if(!s)throw new Error('NASA series unavailable');
+    const M=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const monthly=M.map(k=>Number(s[k])).filter(Number.isFinite);
+    const annualDaily=Number(s.ANN)||(monthly.reduce((x,y)=>x+y,0)/(monthly.length||1));
+    if(!Number.isFinite(annualDaily)||annualDaily<2.5||annualDaily>9)throw new Error('NASA value out of range');
+    return {source:'NASA POWER',parameter:'ALLSKY_SFC_SW_DWN',annualDaily,monthly,endpoint,fetchedAt:new Date().toISOString()};
+  }
   async function fetchSolarResource(){
-    const status=$('solarDataStatus'),btn=$('solarDataBtn');if(!state.location){status.textContent='Confirm the site coordinates first.';return}
-    btn.disabled=true;status.textContent='Retrieving long-term NASA POWER solar climatology…';
-    const {lat,lon}=state.location,endpoint=`https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=ALLSKY_SFC_SW_DWN&community=RE&longitude=${lon}&latitude=${lat}&format=JSON`;
-    try{
-      const response=await fetch(endpoint,{mode:'cors'});if(!response.ok)throw new Error('NASA POWER unavailable');
-      const data=await response.json(),series=data?.properties?.parameter?.ALLSKY_SFC_SW_DWN;if(!series)throw new Error('Solar series unavailable');
-      const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],monthly=months.map(k=>Number(series[k])).filter(Number.isFinite);
-      const annualDaily=Number(series.ANN)||monthly.reduce((a,b)=>a+b,0)/monthly.length;if(!Number.isFinite(annualDaily))throw new Error('Solar value unavailable');
-      state.solarResource={source:'NASA POWER',parameter:'ALLSKY_SFC_SW_DWN',annualDaily,monthly,endpoint,fetchedAt:new Date().toISOString()};
-      status.innerHTML=`<strong>NASA POWER loaded:</strong> ${annualDaily.toFixed(2)} kWh/m²/day long-term annual average. The model has updated.`;recompute()
-    }catch(err){state.solarResource=null;status.innerHTML='<strong>Live source unavailable.</strong> The assessment remains operational using the transparent provincial climatology fallback. Retry later or validate in PVGIS.';recompute()}
-    finally{btn.disabled=false}
+    const status=$('solarDataStatus'),btn=$('solarDataBtn');
+    if(!state.location){status.textContent='Confirm the site coordinates first.';return}
+    btn.disabled=true;
+    const {lat,lon}=state.location;
+    status.textContent='Retrieving measured solar resource for these coordinates…';
+    let res=null,notes=[];
+    try{ res=await tryPVGIS(lat,lon); }
+    catch(e){ notes.push('PVGIS did not respond'); }
+    if(!res){
+      status.textContent='PVGIS unavailable — trying NASA POWER…';
+      try{ res=await tryNASA(lat,lon); }
+      catch(e){ notes.push('NASA POWER did not respond'); }
+    }
+    if(res){
+      state.solarResource=res;
+      status.innerHTML=`<strong>${res.source}:</strong> ${res.annualDaily.toFixed(2)} kWh/m²/day long-term average at your coordinates. The model has updated.`+
+        (notes.length?` <span class="muted-note">(${notes.join('; ')})</span>`:'');
+    } else {
+      state.solarResource=null;
+      status.innerHTML='<strong>Live solar data unavailable right now.</strong> The assessment continues on the provincial climatology figure, which is shown in the assumptions so you can see exactly what was used.';
+    }
+    recompute();
+    btn.disabled=false;
   }
   function polygonArea(points){if(points.length<3)return 0;const lat0=points.reduce((s,p)=>s+p.lat,0)/points.length*Math.PI/180;const xy=points.map(p=>({x:p.lng*111320*Math.cos(lat0),y:p.lat*110540}));let a=0;for(let i=0,j=xy.length-1;i<xy.length;j=i++)a+=(xy[j].x+xy[i].x)*(xy[j].y-xy[i].y);return Math.abs(a/2)}
 
@@ -354,7 +423,37 @@
   function renderWaterfall(m){const vals=[m.energySaving,m.demandSaving,m.dieselSaving,-m.om],labels=['Energy','Demand','Diesel','O&M'],w=390,h=230,p=30,max=Math.max(...vals.map(Math.abs),1),bw=55;$('waterfallChart').innerHTML=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Year-one value waterfall">${vals.map((v,i)=>{const bh=Math.abs(v)/max*(h-2*p-25),x=45+i*80,y=v>=0?h-p-bh:h-p;return`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="5" fill="${v>=0?'#1c775e':'#b74b4b'}"/><text x="${x+bw/2}" y="${v>=0?y-6:y+bh+12}" text-anchor="middle" font-size="8">${compactMoney(Math.abs(v))}</text><text x="${x+bw/2}" y="${h-8}" text-anchor="middle" font-size="8" fill="#788589">${labels[i]}</text>`}).join('')}</svg>`}
   function renderEnergyFlow(m){const grid=Math.max(0,m.annualKwh-m.usableSolar);$('energyFlow').innerHTML=`<div class="energy-flow"><div class="flow-source"><div class="flow-box">Solar generation<b>${Math.round(m.solarGen/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Grid retained<b>${Math.round(grid/1000).toLocaleString('en-ZA')} MWh</b></div>${m.dieselSaving?`<div class="flow-box">Diesel avoided<b>${compactMoney(m.dieselSaving)}</b></div>`:''}</div><div class="flow-arrow">→</div><div class="flow-use"><div class="flow-box">Site consumption<b>${Math.round(m.annualKwh/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Solar used on site<b>${Math.round(m.usableSolar/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Battery allowance<b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'None'}</b></div></div></div>`}
   function renderSensitivity(m){const tariffs=[-.15,0,.15],production=[-.1,0,.1];let html='<div class="sensitivity"><div class="head">Production ↓ / Tariff →</div>'+tariffs.map(t=>`<div class="head">${t<0?'−15%':t>0?'+15%':'Base'}</div>`).join('');production.forEach(p=>{html+=`<div class="head">${p<0?'−10%':p>0?'+10%':'Base'}</div>`;tariffs.forEach(t=>{const benefit=m.annualBenefit*(1+p)*(1+t),npv=benefit*7.9-m.capex,cls=npv>m.capex*.5?'cell':npv>0?'cell medium':'cell low';html+=`<div class="${cls}">${compactMoney(npv)} NPV</div>`})});$('sensitivityMatrix').innerHTML=html+'</div>'}
-  function renderSystem(m){
+  function batteryInsight(m){
+    if(!m||!m.batteryKwh)return null;
+    const usable=m.batteryKwh*0.9;
+    const nightKw=Math.max(1,(m.annualKwh/365)/24*0.55);
+    const runtimeH=usable/nightKw;
+    const critKw=Math.max(0.5,nightKw*0.35);
+    const critH=usable/critKw;
+    const shaveKva=Math.min(m.peak||0,Math.round(usable/2));
+    return {usable,runtimeH,critH,shaveKva,nightKw};
+  }
+  function renderBattery(m){
+    const host=$('batteryInsight'); if(!host)return;
+    const b=batteryInsight(m);
+    if(!b){ host.innerHTML='<p class="muted-note">No storage is modelled in this configuration. Solar alone reduces daytime cost; storage is what carries you through an outage or an evening peak.</p>'; return; }
+    host.innerHTML=
+      '<div class="stat-row"><span>Usable storage</span><b>'+b.usable.toFixed(0)+' kWh</b></div>'+
+      '<div class="stat-row"><span>Runs the whole site for about</span><b>'+b.runtimeH.toFixed(1)+' hours</b></div>'+
+      '<div class="stat-row"><span>Runs critical loads only for about</span><b>'+b.critH.toFixed(1)+' hours</b></div>'+
+      '<div class="stat-row"><span>Peak demand it can shave</span><b>up to '+b.shaveKva+' kVA</b></div>'+
+      '<p class="muted-note">Modelled on your average overnight draw of roughly '+b.nightKw.toFixed(1)+' kW. Real runtime depends on which circuits are backed up — confirmed on site.</p>';
+  }
+  function renderStaged(m){
+    const host=$('stagedView'); if(!host)return;
+    if(!m||!m.capex){host.innerHTML='';return}
+    const solarOnly=Math.round(m.capex*(m.batteryKwh?0.62:1));
+    host.innerHTML=
+      '<div class="stage"><div class="stage-n">1</div><div><strong>Solar first</strong><p>About '+money(solarOnly)+'. Cuts daytime cost immediately and carries the strongest return per rand.</p></div></div>'+
+      (m.batteryKwh?'<div class="stage"><div class="stage-n">2</div><div><strong>Add storage when it pays</strong><p>The remaining '+money(m.capex-solarOnly)+' adds resilience and evening cover. Many sites stage this 12–24 months later once the solar saving is banked.</p></div></div>':'')+
+      '<p class="muted-note">Staging keeps the first cheque smaller. The array is sized so storage can be added later without replacing equipment.</p>';
+  }
+  function renderSystem(m){renderBattery(m);renderStaged(m);
     const upgrades=UPGRADES.filter(u=>state.upgrades.has(u.id)).map(u=>u.name).join(', ')||'Solar-only starting case';
     const resource=state.solarResource?`NASA POWER climatology · ${m.sun.toFixed(2)} kWh/m²/day`:`${m.province||'South Africa'} provincial climatology · ${m.sun.toFixed(2)} peak-sun-hours/day`;
     $('systemSnapshot').innerHTML=`<div class="system-list">
@@ -426,8 +525,34 @@
   }
 
   function summaryText(){const m=state.model;return`Chariot Energy Snapshot\n\n${tr('Site')}: ${state.sector||tr('Not specified')} · ${m.province||tr('Location to confirm')}\n${tr('Monthly bill')}: ${money(m.monthlyBill)}\n${tr('Indicative solar')}: ${Math.round(m.targetKwp)} kWp\n${tr('Battery allowance')}: ${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':tr('Not included')}\n${tr('Indicative capex')}: ${money(m.capex)}\n${tr('Year-one benefit')}: ${money(m.annualBenefit)}\n${tr('Recommended first route')}: ${tr(routeName(m.route))}\n${tr('Data confidence')}: ${m.confidence}%\n${tr('Solar resource')}: ${state.solarResource?'NASA POWER '+m.sun.toFixed(2)+' kWh/m²/day':'Provincial fallback'}\n${tr('Self-consumption')}: ${m.selfConsumptionPct.toFixed(0)}%\n${tr('Solar coverage')}: ${m.solarCoveragePct.toFixed(0)}%\n${tr('Mapped site')}: ${state.siteArea?state.siteArea.toFixed(0)+' m²':'Not mapped'} · ${state.cableRunM?state.cableRunM.toFixed(0)+' m cable':'Cable not measured'}\n\n${tr('Client notes')}: ${$('clientNotes').value||$('voiceNotes').value||tr('None supplied')}\n\n${tr('Indicative pre-feasibility only. Please contact me to validate the assessment.')}`}
-  function shareWhatsapp(){window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(summaryText())}`,'_blank','noopener')}
-  function shareEmail(){location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Chariot Energy Snapshot — pre-feasibility review')}&body=${encodeURIComponent(summaryText())}`}
+  const SUPABASE={url:"https://ircfpoeifedbuhvygufo.supabase.co",key:"sb_publishable_E_kyBi-bJ2_rDj_LipCBzw_-oRK2J6K"};
+  async function sbInsert(table,row){
+    try{ await fetch(SUPABASE.url+"/rest/v1/"+table,{method:"POST",headers:{apikey:SUPABASE.key,Authorization:"Bearer "+SUPABASE.key,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(row)}); }catch(e){}
+  }
+  function fv(id){const e=$(id);return e&&e.value?String(e.value).trim():''}
+  function submitLeadRecord(channel){
+    try{
+      const m=state.model||{};
+      sbInsert('leads',{
+        name:fv('meetingName')||null,contact:fv('meetingContact')||null,
+        province:(m.province||fv('province')||null),
+        monthly_bill:Number(fv('monthlyBill'))||null,
+        snapshot_json:{
+          channel,lang:(window.ChariotI18n&&ChariotI18n.current&&ChariotI18n.current())||'en',
+          sector:state.sector||null,location:state.location||null,
+          site_area_m2:state.siteArea||null,cable_run_m:state.cableRunM||null,
+          pins:(state.sitePins||[]).length,
+          solar_source:state.solarResource?state.solarResource.source:'provincial climatology',
+          solar_annual_daily:state.solarResource?state.solarResource.annualDaily:null,
+          kwp:m.targetKwp||null,battery_kwh:m.batteryKwh||null,capex:m.capex||null,
+          confidence:m.confidence||null,summary:(typeof summaryText==='function'?summaryText():null)
+        }
+      });
+      sbInsert('events',{event:'share_'+channel,meta:{confidence:(state.model||{}).confidence||null}});
+    }catch(e){}
+  }
+  function shareWhatsapp(){submitLeadRecord('whatsapp');window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(summaryText())}`,'_blank','noopener')}
+  function shareEmail(){submitLeadRecord('email');location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Chariot Energy Snapshot — pre-feasibility review')}&body=${encodeURIComponent(summaryText())}`}
   function requestMeeting(){const name=$('meetingName').value.trim(),contact=$('meetingContact').value.trim();if(!name||!contact){alert(tr('Please add your name and phone or email.'));return}if(CONTACT.calendar){window.open(CONTACT.calendar,'_blank','noopener');return}const text=`${tr('Chariot Energy Review Request')}\n\n${tr('Name')}: ${name}\n${tr('Company/site')}: ${$('meetingCompany').value||tr('Not supplied')}\n${tr('Contact')}: ${contact}\n${tr('Preferred time')}: ${$('meetingWindow').value}\n\n${summaryText()}`;window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(text)}`,'_blank','noopener')}
 
   function save(){try{localStorage.setItem('chariot_snapshot_v2',JSON.stringify(serialize()));$('saveBtn').textContent='Saved ✓';setTimeout(()=>$('saveBtn').textContent='Save progress',1800)}catch(err){}}
