@@ -32,6 +32,14 @@
 .map-tool.ghost{color:var(--muted,#6b8085);font-weight:600}
 .leaflet-container{font:inherit}
 </style>
+<style>
+.outstanding{margin-top:12px}
+.outstanding-head{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--deep,#073d49);margin-bottom:6px}
+.outstanding-ul{margin:0;padding-left:16px;display:grid;gap:5px}
+.outstanding-ul li{font-size:11px;line-height:1.5;color:var(--muted,#6b8085)}
+.outstanding-more,.outstanding-done{font-size:10.5px;color:var(--muted,#6b8085);margin-top:7px;line-height:1.5}
+.outstanding-done{color:#2e7d5b;font-weight:700}
+</style>
 </head>
 <body>
   <a class="skip-link" href="#workspace">Skip to assessment</a>
@@ -156,6 +164,7 @@
                   <button type="button" id="mapDrawArea" class="map-tool">✏️ Sketch area</button>
                   <button type="button" id="mapDrawRect" class="map-tool">▭ Rectangle</button>
                   <button type="button" id="mapDropPin" class="map-tool">📍 Drop pin</button>
+                  <button type="button" id="mapMeasure" class="map-tool">📏 Measure cable run</button>
                   <button type="button" id="mapClear" class="map-tool ghost">↺ Clear</button>
                 </div>
                 <div id="siteMap" class="site-map" hidden aria-label="Satellite site map"></div>
@@ -163,6 +172,12 @@
               </div>
               <div class="field-grid two compact-top">
                 <div class="field"><label for="province">Province</label><select id="province"><option value="">Choose province</option><option>KwaZulu-Natal</option><option>Gauteng</option><option>Western Cape</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select></div>
+                <div class="field"><label for="roofType">Roof construction</label><select id="roofType"><option value="">Not sure / ground mount</option><option>IBR sheeting</option><option>Chromadek</option><option>Corrugated iron</option><option>Concrete / flat</option><option>Tile</option><option>Shade net / structure</option></select></div>
+                <div class="field"><label for="roofCondition">Approximate age of the roof</label><select id="roofCondition"><option value="">Not sure</option><option>Under 5 years — good condition</option><option>5–15 years — sound</option><option>Over 15 years — serviceable</option><option>Needs repair or replacement</option><option>Not applicable — ground mount</option></select><small>Panels last 25 years or more, so roof condition affects whether we recommend roof or ground mounting.</small></div>
+                <div class="field"><label for="propertyOwnership">Is the property owned or leased?</label><select id="propertyOwnership"><option value="">Prefer to discuss</option><option>Owned by the business</option><option>Owned by a related entity or trust</option><option>Leased — long remaining term</option><option>Leased — short or uncertain term</option><option>Body corporate or shared premises</option></select><small>Ownership affects which funding routes are available, particularly zero-upfront options.</small></div>
+                <div class="field"><label for="cableDistance">Distance from the array to your main DB or Eskom point (m)</label><input id="cableDistance" type="number" min="0" step="5" placeholder="e.g. 120"><small>Cabling distance is a real cost driver. Use <em>Measure cable run</em> on the map and we fill this in.</small></div>
+                <div class="field"><label for="businessHours">When does the site operate?</label><select id="businessHours"><option value="">Select the closest match</option><option>Standard business hours (approx. 08:00–17:00, weekdays)</option><option>Extended day (approx. 06:00–18:00, six days)</option><option>Double shift (approx. 06:00–22:00)</option><option>Continuous operation (24/7)</option><option>Seasonal peaks (harvest, production runs)</option><option>Irregular or varies week to week</option></select><small>This tells us how much of your generation you would use directly, which drives the return.</small></div>
+                <div class="field"><label for="baseLoad">Overnight or standing load (kVA, if known)</label><input id="baseLoad" type="number" min="0" step="1" placeholder="e.g. 15"></div>
                 <div class="field"><label for="sunHours">Peak sun hours / day</label><input id="sunHours" type="number" step="0.1" min="2.5" max="9" placeholder="auto"><small id="sunSource">Set from your province. Use my location refines it to your town, then to NASA satellite data.</small></div>
                 <div class="field"><label for="supply">Electricity supply</label><select id="supply"><option value="eskom">Eskom direct</option><option value="municipal">Municipality</option><option value="private">Private / landlord</option><option value="unknown">Not sure</option></select></div>
               </div>
@@ -289,6 +304,12 @@
             <div class="action-layer">
               <div><span>NEXT STEP</span><h2>Progress from indicative opportunity to an investment-ready assessment.</h2><p>Chariot will validate the data, site, technical solution, regulatory requirements and funding structure with you before any commercial commitment.</p></div>
               <div class="action-buttons">
+                <div class="field"><label for="mainDriver">What is prompting this now?</label><select id="mainDriver"><option value="">Select the closest match</option><option>Rising electricity tariffs and cost certainty</option><option>Supply reliability for critical operations</option><option>Diesel or generator running costs</option><option>Business expansion or new equipment load</option><option>Customer, export or sustainability requirement</option><option>Replacing or extending an existing system</option><option>Exploring options at this stage</option></select></div>
+                <div class="field"><label for="decisionProcess">Who else is usually involved in a decision like this?</label><select id="decisionProcess"><option value="">Prefer to discuss</option><option>I decide</option><option>Owner or managing director</option><option>Finance director or CFO</option><option>Board or shareholders</option><option>Group or head office</option></select><small>So we bring the right detail to the right people, first time.</small></div>
+                <div class="field"><label for="installTimeline">If it made sense commercially, when would you want it installed?</label><select id="installTimeline"><option value="">Not sure yet</option><option>As soon as possible</option><option>Within 3 months</option><option>3–6 months</option><option>6–12 months</option><option>Just researching for now</option></select></div>
+                <div class="field"><label for="otherQuotes">Have you looked at other solar proposals?</label><select id="otherQuotes"><option value="">Prefer not to say</option><option>No quotes yet</option><option>One other quote</option><option>Two or more quotes</option><option>Quoted previously, did not proceed</option></select></div>
+                <div class="field"><label for="preferredContact">How would you prefer we follow up?</label><select id="preferredContact"><option value="">No preference</option><option>WhatsApp</option><option>Phone call</option><option>Email</option></select></div>
+                <div class="field"><label for="companyWebsite">Company website (optional)</label><input id="companyWebsite" type="url" placeholder="www.yourbusiness.co.za"></div>
                 <button class="primary-btn" id="meetingBtn" type="button">Schedule an energy review →</button>
                 <button class="secondary-btn" id="whatsappBtn" type="button">Share with Chariot on WhatsApp</button>
                 <button class="secondary-btn" id="emailBtn" type="button">Send by email</button>
@@ -310,7 +331,7 @@
             <div><span>Cash-flow route</span><strong id="liveRoute">—</strong></div>
           </div>
           <div class="mini-chart-card"><span>20-YEAR COST OUTLOOK</span><div id="miniChart" class="mini-chart"></div></div>
-          <div class="live-status"><div><span>Data confidence</span><strong id="liveConfidence">Starting</strong></div><div class="confidence-bar"><i id="confidenceBar"></i></div><p id="nextBestInput">Add your monthly bill to begin.</p></div>
+          <div class="live-status"><div><span>Data confidence</span><strong id="liveConfidence">Starting</strong></div><div class="confidence-bar"><i id="confidenceBar"></i></div><p id="nextBestInput">Add your monthly bill to begin.</p><div id="outstandingList" class="outstanding"></div></div>
           <div class="assumption-count"><span id="knownCount">0 supplied</span><span id="assumedCount">Assumptions visible</span></div>
         </aside>
       </div>

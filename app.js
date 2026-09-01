@@ -312,18 +312,30 @@
     }
     if(area)recompute();
   }
+  function measureLine(layer){
+    var pts=layer.getLatLngs(),d=0;
+    for(var i=1;i<pts.length;i++)d+=pts[i-1].distanceTo(pts[i]);
+    d=Math.round(d);
+    var f=$('cableDistance'); if(f)f.value=d;
+    var out=$('mapReadout');
+    if(out){out.hidden=false;out.innerHTML='<strong>Cable run measured:</strong> approximately '+d.toLocaleString('en-ZA')+' m from your array to the Eskom connection or main DB. Long runs add cable, protection and voltage-drop cost — our team confirms this on site.';}
+    if(typeof recompute==='function')recompute();
+  }
   function startDraw(kind){
     if(!window.L||!map||!L.Draw)return;
     try{ if(drawHandler&&drawHandler.disable)drawHandler.disable(); }catch(e){}
     var opts={shapeOptions:{color:'#00a8c8',weight:3,fillOpacity:.22}};
-    drawHandler = kind==='rect' ? new L.Draw.Rectangle(map,opts)
+    drawHandler = kind==='line' ? new L.Draw.Polyline(map,{shapeOptions:{color:'#f5a623',weight:4}})
+                : kind==='rect' ? new L.Draw.Rectangle(map,opts)
                 : kind==='pin'  ? new L.Draw.Marker(map)
                 :                 new L.Draw.Polygon(map,{allowIntersection:false,shapeOptions:opts.shapeOptions});
     drawHandler.enable();
     var st=$('mapReadout');
     if(st){st.hidden=false;st.innerHTML= kind==='pin'
       ? '<strong>Drop a pin:</strong> tap the exact spot on the map.'
-      : '<strong>Sketching:</strong> tap each corner of the area, then tap the first point again to close the shape.';}
+      : (kind==='line'
+        ? '<strong>Measuring:</strong> tap at your inverter room, then at the Eskom connection point or main DB. Double-tap to finish.'
+        : '<strong>Sketching:</strong> tap each corner of the area, then tap the first point again to close the shape.');}
   }
   function clearDraw(){
     if(drawnItems)drawnItems.clearLayers();
@@ -347,7 +359,10 @@
         {maxZoom:20,maxNativeZoom:19,attribution:'Imagery © Esri'}).addTo(map);
       if(L.control&&L.control.scale)L.control.scale({imperial:false}).addTo(map);
       drawnItems=new L.FeatureGroup().addTo(map);
-      map.on('draw:created',function(ev){ drawnItems.addLayer(ev.layer); drawHandler=null; mapAreaUpdate(); });
+      map.on('draw:created',function(ev){
+        drawnItems.addLayer(ev.layer); drawHandler=null;
+        if(ev.layerType==='polyline'){ measureLine(ev.layer); } else { mapAreaUpdate(); }
+      });
       map.on('draw:edited',mapAreaUpdate);
       map.on('draw:deleted',mapAreaUpdate);
       if(window.ResizeObserver){ new ResizeObserver(function(){ if(map)map.invalidateSize(); }).observe(el); }
@@ -362,7 +377,7 @@
     mapAreaUpdate();
   }
   function bindMapTools(){
-    var m={mapDrawArea:'poly',mapDrawRect:'rect',mapDropPin:'pin'};
+    var m={mapDrawArea:'poly',mapDrawRect:'rect',mapDropPin:'pin',mapMeasure:'line'};
     Object.keys(m).forEach(function(id){ var b=$(id); if(b)b.addEventListener('click',function(){ startDraw(m[id]); }); });
     var c=$('mapClear'); if(c)c.addEventListener('click',clearDraw);
   }
@@ -453,11 +468,97 @@
   function renderEnergyFlow(m){const grid=Math.max(0,m.annualKwh-m.usableSolar);$('energyFlow').innerHTML=`<div class="energy-flow"><div class="flow-source"><div class="flow-box">Solar generation<b>${Math.round(m.solarGen/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Grid retained<b>${Math.round(grid/1000).toLocaleString('en-ZA')} MWh</b></div>${m.dieselSaving?`<div class="flow-box">Diesel avoided<b>${compactMoney(m.dieselSaving)}</b></div>`:''}</div><div class="flow-arrow">→</div><div class="flow-use"><div class="flow-box">Site consumption<b>${Math.round(m.annualKwh/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Solar used on site<b>${Math.round(m.usableSolar/1000).toLocaleString('en-ZA')} MWh</b></div><div class="flow-box">Battery allowance<b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'None'}</b></div></div></div>`}
   function renderSensitivity(m){const tariffs=[-.15,0,.15],production=[-.1,0,.1];let html='<div class="sensitivity"><div class="head">Production ↓ / Tariff →</div>'+tariffs.map(t=>`<div class="head">${t<0?'−15%':t>0?'+15%':'Base'}</div>`).join('');production.forEach(p=>{html+=`<div class="head">${p<0?'−10%':p>0?'+10%':'Base'}</div>`;tariffs.forEach(t=>{const benefit=m.annualBenefit*(1+p)*(1+t),npv=benefit*7.9-m.capex,cls=npv>m.capex*.5?'cell':npv>0?'cell medium':'cell low';html+=`<div class="${cls}">${compactMoney(npv)} NPV</div>`})});$('sensitivityMatrix').innerHTML=html+'</div>'}
   function yieldBand(y){return y>=1750?'strong for South Africa':(y>=1500?'typical for a well-sited South African installation':(y>=1250?'moderate — shading, orientation or timing may be limiting':'low — worth a site review before committing'));}
-  function renderSystem(m){const upgrades=UPGRADES.filter(u=>state.upgrades.has(u.id)).map(u=>u.name).join(', ')||'Solar-only starting case';$('systemSnapshot').innerHTML=`<div class="system-list"><div><span>PV capacity</span><b>${Math.round(m.targetKwp)} kWp</b></div><div><span>Annual generation</span><b>${Math.round(m.solarGen).toLocaleString('en-ZA')} kWh</b></div><div><span>Battery allowance</span><b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'Not included'}</b></div><div><span>Indicative capex</span><b>${money(m.capex)}</b></div><div><span>Specific yield</span><b>${m.targetKwp?Math.round(m.solarGen/m.targetKwp).toLocaleString('en-ZA')+' kWh/kWp/yr':'—'}</b></div><div><span>Solar-resource source</span><b>${state.sunSource==='satellite'?'NASA satellite climatology at your coordinates':(state.sunSource==='town'?'Nearest-town solar resource':'Provincial climatology assumption')}</b></div><div><span>Performance ratio / degradation</span><b>${Math.round(m.pr*100)}% / ${(m.degradation*100).toFixed(1)}% p.a.</b></div><div><span>Mapped usable area</span><b>${state.siteArea?state.siteArea.toLocaleString('en-ZA')+' m²':'Requires site confirmation'}</b></div><div><span>Options</span><b>${esc(upgrades)}</b></div><div><span>Model version / date</span><b>Snapshot 2.0 · ${new Date().toLocaleDateString('en-ZA')}</b></div></div>`}
+  function renderOutstanding(){
+    var host=$('outstandingList'); if(!host)return;
+    var gaps=outstandingItems();
+    if(!gaps.length){ host.innerHTML='<div class="outstanding-done">✓ You have given us everything this screen can use. Our team confirms the rest on site.</div>'; return; }
+    host.innerHTML='<div class="outstanding-head">Want a sharper number?</div><ul class="outstanding-ul">'+
+      gaps.slice(0,4).map(function(g){return '<li>'+g+'</li>';}).join('')+'</ul>'+
+      (gaps.length>4?'<div class="outstanding-more">Our team will confirm the remaining detail with you directly.</div>':'');
+  }
+  function renderSystem(m){renderOutstanding();const upgrades=UPGRADES.filter(u=>state.upgrades.has(u.id)).map(u=>u.name).join(', ')||'Solar-only starting case';$('systemSnapshot').innerHTML=`<div class="system-list"><div><span>PV capacity</span><b>${Math.round(m.targetKwp)} kWp</b></div><div><span>Annual generation</span><b>${Math.round(m.solarGen).toLocaleString('en-ZA')} kWh</b></div><div><span>Battery allowance</span><b>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'Not included'}</b></div><div><span>Indicative capex</span><b>${money(m.capex)}</b></div><div><span>Specific yield</span><b>${m.targetKwp?Math.round(m.solarGen/m.targetKwp).toLocaleString('en-ZA')+' kWh/kWp/yr':'—'}</b></div><div><span>Solar-resource source</span><b>${state.sunSource==='satellite'?'NASA satellite climatology at your coordinates':(state.sunSource==='town'?'Nearest-town solar resource':'Provincial climatology assumption')}</b></div><div><span>Performance ratio / degradation</span><b>${Math.round(m.pr*100)}% / ${(m.degradation*100).toFixed(1)}% p.a.</b></div><div><span>Mapped usable area</span><b>${state.siteArea?state.siteArea.toLocaleString('en-ZA')+' m²':'Requires site confirmation'}</b></div><div><span>Options</span><b>${esc(upgrades)}</b></div><div><span>Model version / date</span><b>Snapshot 2.0 · ${new Date().toLocaleDateString('en-ZA')}</b></div></div>`}
   function renderTable(m){const ks=['grid','cash','bank','rent','ppa'],term=num('loanTerm')||10;$('comparisonTable').innerHTML=`<thead><tr><th>Route</th><th>Upfront</th><th>Monthly</th><th>Escalation / term</th><th>20-year nominal</th><th>20-year NPV</th><th>Year-one cash benefit</th><th>Break-even</th><th>Ownership / condition</th></tr></thead><tbody>${ks.map(k=>{const monthly=k==='grid'?m.monthlyBill:k==='cash'?m.residualGrid/12:k==='bank'?m.residualGrid/12+m.loanMonthly:k==='rent'?m.residualGrid/12+m.rentMonthly:m.ppaAnnual/12;const benefit=(m.monthlyBill+num('dieselSpend')-monthly)*12;return`<tr class="${k===m.route?'recommended-row':''}"><td>${routeName(k)}${k===m.route?' · Recommended':''}</td><td>${k==='cash'?compactMoney(m.capex):k==='bank'?compactMoney(m.capex*num('deposit')/100):k==='grid'?'R0':'Indicative R0'}</td><td>${money(monthly)}</td><td>${k==='grid'?num('gridEscalation')+'% assumed':k==='ppa'?num('ppaEscalation')+'% PPA':k==='bank'?term+' years':'Modelled term'}</td><td>${compactMoney(m.totals[k].nominal)}</td><td>${compactMoney(m.totals[k].npv)}</td><td>${compactMoney(benefit)}</td><td>${k==='cash'&&m.payback?m.payback.toFixed(1)+' yrs':k==='grid'?'Never':'Terms dependent'}</td><td>${k==='grid'?'None':k==='ppa'?'Credit + service agreement':k==='rent'?'Ownership at term end':'Client asset'}</td></tr>`}).join('')}</tbody>`}
   function renderConfidence(m){const extracted=state.extracted.length?`${state.extracted.length} document${state.extracted.length>1?'s':''} extracted`:'No document extracted';const rows=[['Electricity spend',m.monthlyBill?'Client supplied':'System assumed'],['Uploaded evidence',extracted],['Energy usage',num('monthlyKwh')?'Client supplied or extracted':'Derived from bill'],['Site location',state.location?'Externally verified map location':m.province?'Province supplied':'National assumption'],['Load profile',state.loads.size?'Client guided + editable':'Sector profile assumed'],['Peak demand',num('peakKva')?'Client supplied':'Requires technical validation'],['Solar space',num('roofArea')||num('groundArea')?'Client supplied / mapped':'Requires technical validation'],['Finance inputs',state.mode==='advanced'?'Client adjustable':'Standard assumptions']];$('confidencePanel').innerHTML=`<div class="confidence-list">${rows.map(r=>`<div><span>${r[0]}</span><i class="${/supplied|verified|extracted|editable/i.test(r[1])?'known':'assumed'}">${r[1]}</i></div>`).join('')}</div>`}
   function renderRisks(m){const risks=[];if(!state.files.length)risks.push(['Billing verification','Obtain 12 months of bills and interval data where available.']);if(!num('peakKva'))risks.push(['Demand profile','Confirm maximum demand, tariff structure and time-of-use charges.']);if(!num('roofArea')&&!num('groundArea'))risks.push(['Installation space','Confirm roof structure, shading, usable area or ground conditions.']);if(m.batteryKwh)risks.push(['Storage duty','Validate critical-load list, autonomy and battery cycling objective.']);risks.push(['Funding and approvals','Final rates, credit approval, grid permissions and tax treatment remain subject to review.']);$('riskPanel').innerHTML=`<div class="risk-list">${risks.slice(0,5).map(r=>`<div><b>${r[0]}</b><span>${r[1]}</span></div>`).join('')}</div>`}
 
+
+  function fv(id){var e=$(id);return e&&e.value?String(e.value).trim():'';}
+
+  function outstandingItems(){
+    var m=state.model||{},out=[];
+    var hist=num('billHistory')||0;
+    if(!(state.files&&state.files.length)) out.push('A recent electricity bill — the single biggest improvement to accuracy');
+    if(hist<6) out.push('Six to twelve months of billing history, so seasonal swings are visible');
+    if(!fv('peakKva')) out.push('Recorded maximum demand in kVA, shown on your Eskom bill');
+    if(!fv('baseLoad')) out.push('Your overnight standing load, which sizes any battery correctly');
+    if(!state.location) out.push('A confirmed site location for accurate solar resource');
+    if(!state.siteArea&&!fv('roofArea')&&!fv('groundArea')) out.push('Usable roof or ground area — you can sketch this on the map');
+    if(!fv('roofType')) out.push('Roof construction and age, to confirm mounting approach');
+    if(!fv('cableDistance')) out.push('Distance to your main DB or Eskom point, which affects cabling cost');
+    var own=fv('propertyOwnership');
+    if(own.indexOf('Leased')===0) out.push('Lease term and landlord consent, required for zero-upfront funding');
+    return out;
+  }
+  function repBrief(){
+    var m=state.model||{},L=[];
+    function line(k,v){ if(v)L.push(k+': '+v); }
+    L.push('CHARIOT POWER — SNAPSHOT LEAD');
+    L.push('Generated '+new Date().toLocaleString('en-ZA'));
+    L.push('');
+    L.push('1. CUSTOMER & CONTACT');
+    line('Name',fv('meetingName'));
+    line('Company',fv('meetingCompany'));
+    line('Contact',fv('meetingContact'));
+    line('Preferred contact',fv('preferredContact'));
+    line('Website',fv('companyWebsite'));
+    L.push('');
+    L.push('2. SITE & LOCATION');
+    line('Address / area',fv('siteAddress'));
+    line('Province',fv('province'));
+    if(state.location)line('Coordinates',state.location.lat.toFixed(6)+', '+state.location.lon.toFixed(6));
+    line('Roof construction',fv('roofType'));
+    line('Roof age / condition',fv('roofCondition'));
+    line('Property ownership',fv('propertyOwnership'));
+    line('Sketched usable area',state.siteArea?state.siteArea.toLocaleString('en-ZA')+' m² (~'+Math.round(state.siteArea/5.2)+' kWp before setbacks)':'');
+    line('Distance to Eskom / main DB',fv('cableDistance')?fv('cableDistance')+' m':'');
+    line('Solar resource',(fv('sunHours')||'—')+' peak sun hours/day ('+(state.sunSource==='satellite'?'NASA satellite':(state.sunSource==='town'?'nearest town':'provincial average'))+')');
+    L.push('');
+    L.push('3. BUSINESS BACKGROUND');
+    line('Sector',state.sector||'');
+    line('Operating pattern',fv('businessHours'));
+    L.push('');
+    L.push('4. ENERGY USAGE PROFILE');
+    line('Average monthly spend',fv('monthlyBill')?'R'+Number(fv('monthlyBill')).toLocaleString('en-ZA'):'');
+    line('Average monthly consumption',fv('monthlyKwh')?fv('monthlyKwh')+' kWh':'');
+    line('Peak demand',fv('peakKva')?fv('peakKva')+' kVA':'');
+    line('Night / base load',fv('baseLoad')?fv('baseLoad')+' kVA':'');
+    line('Usage pattern',state.timing||'');
+    line('Billing history held',fv('billHistory'));
+    line('Generator / diesel spend',fv('dieselSpend')?'R'+Number(fv('dieselSpend')).toLocaleString('en-ZA')+'/month':'');
+    line('Existing backup',fv('existingGenerator'));
+    L.push('');
+    L.push('5. INDICATIVE SYSTEM (modelled, not a quote)');
+    line('PV capacity',m.targetKwp?Math.round(m.targetKwp)+' kWp':'');
+    line('Specific yield',(m.targetKwp&&m.solarGen)?Math.round(m.solarGen/m.targetKwp)+' kWh/kWp/yr':'');
+    line('Battery allowance',m.batteryKwh?Math.round(m.batteryKwh)+' kWh':'None modelled');
+    line('Indicative capex',m.capex?money(m.capex):'');
+    L.push('');
+    L.push('6. FINANCING & TIMELINE');
+    line('Priority',state.priority||'');
+    line('Buying trigger',fv('mainDriver'));
+    line('Decision process',fv('decisionProcess'));
+    line('Install timeline',fv('installTimeline'));
+    line('Other quotes',fv('otherQuotes'));
+    var gaps=outstandingItems();
+    if(gaps.length){
+      L.push('');
+      L.push('7. STILL TO CONFIRM (raises confidence from '+(m.confidence||0)+'%)');
+      gaps.forEach(function(g){ L.push('- '+g); });
+    }
+    var notes=fv('clientNotes')||fv('voiceNotes');
+    if(notes){L.push('');L.push('8. CLIENT NOTES');L.push(notes);}
+    return L.join('\n');
+  }
   function summaryText(){const m=state.model;return`Chariot Energy Snapshot\n\n${tr('Site')}: ${state.sector||tr('Not specified')} · ${m.province||tr('Location to confirm')}\n${tr('Monthly bill')}: ${money(m.monthlyBill)}\n${tr('Indicative solar')}: ${Math.round(m.targetKwp)} kWp\n${tr('Battery allowance')}: ${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':tr('Not included')}\n${tr('Indicative capex')}: ${money(m.capex)}\n${tr('Year-one benefit')}: ${money(m.annualBenefit)}\n${tr('Recommended first route')}: ${tr(routeName(m.route))}\n${tr('Data confidence')}: ${m.confidence}%\n\n${tr('Client notes')}: ${$('clientNotes').value||$('voiceNotes').value||tr('None supplied')}\n\n${tr('Indicative pre-feasibility only. Please contact me to validate the assessment.')}`}
 
   var SUPABASE={url:"https://ircfpoeifedbuhvygufo.supabase.co",key:"sb_publishable_E_kyBi-bJ2_rDj_LipCBzw_-oRK2J6K"};
@@ -479,13 +580,22 @@
           sun_hours:num('sunHours')||null,sun_source:state.sunSource||'province',
           location:state.location||null,site_area:state.siteArea||null,
           equipment:(typeof selectedLoadData==='function'?selectedLoadData().map(function(l){return l[0];}):[]),
+          company:fv('meetingCompany')||null,website:fv('companyWebsite')||null,
+          preferred_contact:fv('preferredContact')||null,roof_type:fv('roofType')||null,
+          cable_distance_m:fv('cableDistance')||null,business_hours:fv('businessHours')||null,
+          base_load_kva:fv('baseLoad')||null,install_timeline:fv('installTimeline')||null,
+          other_quotes:fv('otherQuotes')||null,roof_condition:fv('roofCondition')||null,
+          property_ownership:fv('propertyOwnership')||null,main_driver:fv('mainDriver')||null,
+          decision_process:fv('decisionProcess')||null,peak_kva:fv('peakKva')||null,
+          diesel_spend:fv('dieselSpend')||null,bill_history:fv('billHistory')||null,
+          rep_brief:(typeof repBrief==='function'?repBrief():null),
           summary:(typeof summaryText==='function'?summaryText():null)}
       });
       sbInsert('events',{event:'share_'+channel,meta:{lang:(window.ChariotI18n&&window.ChariotI18n.current&&window.ChariotI18n.current())||'en'}});
     }catch(e){}
   }
-  function shareWhatsapp(){submitLeadRecord('whatsapp');window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(summaryText())}`,'_blank','noopener')}
-  function shareEmail(){submitLeadRecord('email');location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Chariot Energy Snapshot — pre-feasibility review')}&body=${encodeURIComponent(summaryText())}`}
+  function shareWhatsapp(){submitLeadRecord('whatsapp');window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(repBrief())}`,'_blank','noopener')}
+  function shareEmail(){submitLeadRecord('email');location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Chariot Energy Snapshot — pre-feasibility review')}&body=${encodeURIComponent(repBrief())}`}
   function requestMeeting(){const name=$('meetingName').value.trim(),contact=$('meetingContact').value.trim();if(!name||!contact){alert(tr('Please add your name and phone or email.'));return}submitLeadRecord('meeting');if(CONTACT.calendar){window.open(CONTACT.calendar,'_blank','noopener');return}const text=`${tr('Chariot Energy Review Request')}\n\n${tr('Name')}: ${name}\n${tr('Company/site')}: ${$('meetingCompany').value||tr('Not supplied')}\n${tr('Contact')}: ${contact}\n${tr('Preferred time')}: ${$('meetingWindow').value}\n\n${summaryText()}`;window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(text)}`,'_blank','noopener')}
 
   function save(){try{localStorage.setItem('chariot_snapshot_v2',JSON.stringify(serialize()));$('saveBtn').textContent='Saved ✓';setTimeout(()=>$('saveBtn').textContent='Save progress',1800)}catch(err){}}
