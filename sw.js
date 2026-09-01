@@ -1,6 +1,6 @@
 /* Chariot Energy Snapshot — offline cache.
    Network-first so updates always win; cache serves when the connection drops. */
-var C = "chariot-snapshot-v2";
+var C = "chariot-snapshot-v3";
 var CORE = ["./", "./index.html", "./styles.css", "./app.js", "./i18n.js",
             "./manifest.webmanifest", "./chariot-logo.svg",
             "./chariot-logo-transparent.png", "./icon-192.png"];

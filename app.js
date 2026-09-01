@@ -268,16 +268,16 @@
       var province='',label=lat.toFixed(4)+', '+lon.toFixed(4);
       if(near&&near.km<180){
         province=PROV_CODE[near.town.p]||'';
-        label=near.town.name+' area · '+province;
+        label=(near.km<=35? near.town.name+' area · '+province
+                          : province+' · '+lat.toFixed(4)+', '+lon.toFixed(4));
         var shField=$('performanceRatio')?$('sunHours')||$('peakSunHours'):null;
         var sh=$('sunHours')||$('peakSunHours');
-        if(sh){sh.value=near.town.sh;}
-        state.sunSource='town';
+        if(sh&&near.km<=35){sh.value=near.town.sh;state.sunSource='town';}
       }
       applyLocation(lat,lon,label,province,'device');
       if(btn)btn.disabled=false;
       status.className='status-line good';
-      status.textContent='✓ Location confirmed · '+label+(near&&near.km<180?' · using '+near.town.name+' solar resource ('+near.town.sh+' peak sun hours/day)':'');
+      status.textContent='✓ Location confirmed · '+label+(near&&near.km<180?(near.km<=35?' · using '+near.town.name+' solar resource ('+near.town.sh+' peak sun hours/day)':' · nearest reference town '+near.town.name+' is '+Math.round(near.km)+'km away, so we are using the provincial figure until satellite data confirms it'):'');
       var sat=await satelliteSunHours(lat,lon);
       if(sat){
         var shf=$('sunHours')||$('peakSunHours');
