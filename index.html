@@ -8,38 +8,12 @@
   <meta name="description" content="A clear, finance-first energy pre-feasibility assessment for South African businesses.">
   <meta property="og:title" content="Chariot Power — Energy Snapshot">
   <meta property="og:description" content="See what solar could mean for your site, cash flow and energy risk.">
-  <meta property="og:image" content="https://chariotpower.github.io/chariot-energy-snapshot/og-image.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:url" content="https://chariotpower.github.io/chariot-energy-snapshot/">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Chariot Power">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Chariot Power — Energy Snapshot">
-  <meta name="twitter:description" content="See what solar could mean for your site, cash flow and energy risk.">
-  <meta name="twitter:image" content="https://chariotpower.github.io/chariot-energy-snapshot/og-image.png">
+  <meta property="og:image" content="og-image.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="chariot-logo.svg">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynh6RlyHh6t4p2VRC1aQ9uJ0qQ+E=" crossorigin="">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
-  <link rel="stylesheet" href="styles.css?v=20260901g">
-<style>
-.site-map{height:440px!important}
-@media(max-width:760px){.site-map{height:340px!important}}
-.map-tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.map-tool{border:1px solid var(--line,#d7e3e6);background:#fff;color:var(--deep,#073d49);border-radius:999px;padding:9px 15px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s ease}
-.map-tool:hover{border-color:var(--cyan,#00a8c8);color:var(--cyan,#00a8c8)}
-.map-tool.ghost{color:var(--muted,#6b8085);font-weight:600}
-.leaflet-container{font:inherit}
-</style>
-<style>
-.outstanding{margin-top:12px}
-.outstanding-head{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--deep,#073d49);margin-bottom:6px}
-.outstanding-ul{margin:0;padding-left:16px;display:grid;gap:5px}
-.outstanding-ul li{font-size:11px;line-height:1.5;color:var(--muted,#6b8085)}
-.outstanding-more,.outstanding-done{font-size:10.5px;color:var(--muted,#6b8085);margin-top:7px;line-height:1.5}
-.outstanding-done{color:#2e7d5b;font-weight:700}
-</style>
+  <link rel="stylesheet" href="styles.css?v=20260901f">
 </head>
 <body>
   <a class="skip-link" href="#workspace">Skip to assessment</a>
@@ -63,7 +37,7 @@
       <p>Translate your energy profile into a decision-ready commercial view—covering indicative system strategy, capital requirements, funding routes, cash-flow impact and the priorities requiring validation.</p>
       <div class="scope-notice"><strong>Indicative pre-feasibility assessment</strong><span>All outputs are preliminary and subject to Chariot Power’s full technical, financial, credit, structural, site and regulatory assessment.</span></div>
       <div class="trust-row" aria-label="Assessment benefits">
-        <span>✓ About 3 minutes</span><span>✓ No obligation</span><span>✓ Assumptions shown</span><span>✓ You choose what you send</span>
+        <span>✓ About 3 minutes</span><span>✓ No obligation</span><span>✓ Assumptions shown</span><span>✓ Your data stays private</span>
       </div>
 
       <div class="start-grid">
@@ -157,28 +131,16 @@
               <div class="location-box">
                 <div class="location-search"><input id="siteAddress" type="search" placeholder="Search business, town or address"><button id="addressSearchBtn" type="button">Search</button></div>
                 <div id="addressResults" class="address-results" hidden></div>
+                <div class="location-search coordinate-search"><input id="manualCoordinates" type="text" inputmode="decimal" placeholder="Paste coordinates, e.g. -29.8587, 31.0218"><button id="coordinateBtn" type="button">Use coordinates</button></div>
                 <div class="location-divider"><span>or</span></div>
                 <button class="location-btn" id="geoBtn" type="button">◎ Use my current location</button>
                 <p id="geoStatus" class="status-line">You can also choose a province below.</p>
-                <div id="mapTools" class="map-tools" hidden>
-                  <button type="button" id="mapDrawArea" class="map-tool">✏️ Sketch area</button>
-                  <button type="button" id="mapDrawRect" class="map-tool">▭ Rectangle</button>
-                  <button type="button" id="mapDropPin" class="map-tool">📍 Drop pin</button>
-                  <button type="button" id="mapMeasure" class="map-tool">📏 Measure cable run</button>
-                  <button type="button" id="mapClear" class="map-tool ghost">↺ Clear</button>
-                </div>
                 <div id="siteMap" class="site-map" hidden aria-label="Satellite site map"></div>
+                <div id="mapTools" class="map-tools" hidden aria-label="Site mapping tools"><button type="button" data-map-tool="polygon">✏️ Sketch area</button><button type="button" data-map-tool="rectangle">▭ Rectangle</button><button type="button" data-map-tool="marker">📍 Drop pin</button><button type="button" data-map-tool="polyline">📏 Measure cable run</button><button type="button" data-map-tool="clear">↺ Clear</button></div>
                 <div id="mapReadout" class="map-readout" hidden></div>
               </div>
               <div class="field-grid two compact-top">
                 <div class="field"><label for="province">Province</label><select id="province"><option value="">Choose province</option><option>KwaZulu-Natal</option><option>Gauteng</option><option>Western Cape</option><option>Eastern Cape</option><option>Free State</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option><option>Northern Cape</option></select></div>
-                <div class="field"><label for="roofType">Roof construction</label><select id="roofType"><option value="">Not sure / ground mount</option><option>IBR sheeting</option><option>Chromadek</option><option>Corrugated iron</option><option>Concrete / flat</option><option>Tile</option><option>Shade net / structure</option></select></div>
-                <div class="field"><label for="roofCondition">Approximate age of the roof</label><select id="roofCondition"><option value="">Not sure</option><option>Under 5 years — good condition</option><option>5–15 years — sound</option><option>Over 15 years — serviceable</option><option>Needs repair or replacement</option><option>Not applicable — ground mount</option></select><small>Panels last 25 years or more, so roof condition affects whether we recommend roof or ground mounting.</small></div>
-                <div class="field"><label for="propertyOwnership">Is the property owned or leased?</label><select id="propertyOwnership"><option value="">Prefer to discuss</option><option>Owned by the business</option><option>Owned by a related entity or trust</option><option>Leased — long remaining term</option><option>Leased — short or uncertain term</option><option>Body corporate or shared premises</option></select><small>Ownership affects which funding routes are available, particularly zero-upfront options.</small></div>
-                <div class="field"><label for="cableDistance">Distance from the array to your main DB or Eskom point (m)</label><input id="cableDistance" type="number" min="0" step="5" placeholder="e.g. 120"><small>Cabling distance is a real cost driver. Use <em>Measure cable run</em> on the map and we fill this in.</small></div>
-                <div class="field"><label for="businessHours">When does the site operate?</label><select id="businessHours"><option value="">Select the closest match</option><option>Standard business hours (approx. 08:00–17:00, weekdays)</option><option>Extended day (approx. 06:00–18:00, six days)</option><option>Double shift (approx. 06:00–22:00)</option><option>Continuous operation (24/7)</option><option>Seasonal peaks (harvest, production runs)</option><option>Irregular or varies week to week</option></select><small>This tells us how much of your generation you would use directly, which drives the return.</small></div>
-                <div class="field"><label for="baseLoad">Overnight or standing load (kVA, if known)</label><input id="baseLoad" type="number" min="0" step="1" placeholder="e.g. 15"></div>
-                <div class="field"><label for="sunHours">Peak sun hours / day</label><input id="sunHours" type="number" step="0.1" min="2.5" max="9" placeholder="auto"><small id="sunSource">Set from your province. Use my location refines it to your town, then to NASA satellite data.</small></div>
                 <div class="field"><label for="supply">Electricity supply</label><select id="supply"><option value="eskom">Eskom direct</option><option value="municipal">Municipality</option><option value="private">Private / landlord</option><option value="unknown">Not sure</option></select></div>
               </div>
             </fieldset>
@@ -281,7 +243,7 @@
 
           <section class="step results-step" data-step="5">
             <div class="result-hero">
-              <div><div class="result-brand result-brand-dark"><img src="chariot-logo-transparent.png" onerror="this.onerror=null;this.src='chariot-logo.svg'" alt="Chariot Power"><span>ENERGY SNAPSHOT</span></div><div class="eyebrow light">INDICATIVE PRE-FEASIBILITY SNAPSHOT · SUBJECT TO FULL ASSESSMENT</div><h2 id="resultHeadline">A clearer energy path starts here.</h2><p id="resultSubhead"></p></div>
+              <div><div class="result-brand result-brand-dark"><img src="chariot-logo-transparent.png" alt="Chariot Power"><span>ENERGY SNAPSHOT</span></div><div class="eyebrow light">INDICATIVE PRE-FEASIBILITY SNAPSHOT · SUBJECT TO FULL ASSESSMENT</div><h2 id="resultHeadline">A clearer energy path starts here.</h2><p id="resultSubhead"></p></div>
               <div class="confidence-ring"><strong id="confidenceScore">—</strong><span>data confidence</span></div>
             </div>
             <div class="result-kpis" id="resultKpis"></div>
@@ -304,12 +266,6 @@
             <div class="action-layer">
               <div><span>NEXT STEP</span><h2>Progress from indicative opportunity to an investment-ready assessment.</h2><p>Chariot will validate the data, site, technical solution, regulatory requirements and funding structure with you before any commercial commitment.</p></div>
               <div class="action-buttons">
-                <div class="field"><label for="mainDriver">What is prompting this now?</label><select id="mainDriver"><option value="">Select the closest match</option><option>Rising electricity tariffs and cost certainty</option><option>Supply reliability for critical operations</option><option>Diesel or generator running costs</option><option>Business expansion or new equipment load</option><option>Customer, export or sustainability requirement</option><option>Replacing or extending an existing system</option><option>Exploring options at this stage</option></select></div>
-                <div class="field"><label for="decisionProcess">Who else is usually involved in a decision like this?</label><select id="decisionProcess"><option value="">Prefer to discuss</option><option>I decide</option><option>Owner or managing director</option><option>Finance director or CFO</option><option>Board or shareholders</option><option>Group or head office</option></select><small>So we bring the right detail to the right people, first time.</small></div>
-                <div class="field"><label for="installTimeline">If it made sense commercially, when would you want it installed?</label><select id="installTimeline"><option value="">Not sure yet</option><option>As soon as possible</option><option>Within 3 months</option><option>3–6 months</option><option>6–12 months</option><option>Just researching for now</option></select></div>
-                <div class="field"><label for="otherQuotes">Have you looked at other solar proposals?</label><select id="otherQuotes"><option value="">Prefer not to say</option><option>No quotes yet</option><option>One other quote</option><option>Two or more quotes</option><option>Quoted previously, did not proceed</option></select></div>
-                <div class="field"><label for="preferredContact">How would you prefer we follow up?</label><select id="preferredContact"><option value="">No preference</option><option>WhatsApp</option><option>Phone call</option><option>Email</option></select></div>
-                <div class="field"><label for="companyWebsite">Company website (optional)</label><input id="companyWebsite" type="url" placeholder="www.yourbusiness.co.za"></div>
                 <button class="primary-btn" id="meetingBtn" type="button">Schedule an energy review →</button>
                 <button class="secondary-btn" id="whatsappBtn" type="button">Share with Chariot on WhatsApp</button>
                 <button class="secondary-btn" id="emailBtn" type="button">Send by email</button>
@@ -322,7 +278,7 @@
         </div>
 
         <aside class="live-panel" id="livePanel">
-          <img class="live-logo" src="chariot-logo-transparent.png" onerror="this.onerror=null;this.src='chariot-logo.svg'" alt="Chariot Power">
+          <img class="live-logo" src="chariot-logo-transparent.png" alt="Chariot Power">
           <div class="live-head"><div><span>LIVE INDICATIVE VIEW · SUBJECT TO FULL ASSESSMENT</span><h2>Your energy opportunity</h2></div><b><i></i> LIVE</b></div>
           <div class="live-kpis">
             <div><span>System range</span><strong id="liveSystem">—</strong></div>
@@ -331,7 +287,7 @@
             <div><span>Cash-flow route</span><strong id="liveRoute">—</strong></div>
           </div>
           <div class="mini-chart-card"><span>20-YEAR COST OUTLOOK</span><div id="miniChart" class="mini-chart"></div></div>
-          <div class="live-status"><div><span>Data confidence</span><strong id="liveConfidence">Starting</strong></div><div class="confidence-bar"><i id="confidenceBar"></i></div><p id="nextBestInput">Add your monthly bill to begin.</p><div id="outstandingList" class="outstanding"></div></div>
+          <div class="live-status"><div><span>Data confidence</span><strong id="liveConfidence">Starting</strong></div><div class="confidence-bar"><i id="confidenceBar"></i></div><p id="nextBestInput">Add your monthly bill to begin.</p></div>
           <div class="assumption-count"><span id="knownCount">0 supplied</span><span id="assumedCount">Assumptions visible</span></div>
         </aside>
       </div>
@@ -347,12 +303,12 @@
   </dialog>
 
   <template id="customLoadTemplate"><div class="custom-load-row"><input data-custom="name" placeholder="Equipment"><input data-custom="kw" type="number" min="0" placeholder="kW"><input data-custom="hours" type="number" min="0" max="24" placeholder="Hours/day"><button type="button" aria-label="Remove">×</button></div></template>
-  <script src="i18n.js?v=20260901g" defer></script>
-  <script src="app.js?v=20260901g" defer></script>
-<script>
-if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
-  window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});
-}
-</script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="i18n.js?v=20260901f" defer></script>
+  <script src="app.js?v=20260901f" defer></script>
 </body>
 </html>
