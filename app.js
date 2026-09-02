@@ -10,6 +10,7 @@
   const money=v=>'R'+Math.round(Math.max(0,v||0)).toLocaleString('en-ZA');
   const compactMoney=v=>{v=Math.max(0,v||0);return v>=1e9?'R'+(v/1e9).toFixed(1)+'bn':v>=1e6?'R'+(v/1e6).toFixed(1)+'m':v>=1e3?'R'+Math.round(v/1e3)+'k':'R'+Math.round(v)};
   const pct=v=>Math.round(v)+'%';
+  const signedMoney=v=>(v<0?'−':'')+'R'+Math.round(Math.abs(v||0)).toLocaleString('en-ZA');
   const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   const PROVINCES={
@@ -51,8 +52,8 @@
     {id:'om',name:'Performance & O&M plan',copy:'Monitoring, preventative maintenance and reporting allowance.',impact:'Protects long-term performance'}
   ];
 
-  const state={mode:'guided',step:1,energyMode:'bill',sector:'',timing:'mixed',priority:'cashflow',resilience:'saving',loads:new Set(),upgrades:new Set(),customLoads:[],equipmentDetails:{},location:null,siteArea:0,cableRunM:0,sitePins:[],solarResource:null,files:[],extracted:[],scenario:'base',model:null};
-  let map=null,drawnItems=null,siteMarker=null,activeDraw=null,mapToolsBound=false,freehandCleanup=null;
+  const state={mode:'guided',step:1,energyMode:'bill',sector:'',timing:'mixed',priority:'cashflow',resilience:'saving',loads:new Set(),upgrades:new Set(),customLoads:[],equipmentDetails:{},location:null,siteArea:0,cableRunM:0,sitePins:[],solarResource:null,files:[],extracted:[],scenario:'base',resultView:'executive',model:null};
+  let map=null,drawnItems=null,siteMarker=null,activeDraw=null,mapToolsBound=false,freehandCleanup=null,resultMap=null,resultMapMarker=null;
 
   function init(){
     renderLoads('farm'); renderUpgrades(); bind(); restore(); recompute();
@@ -86,8 +87,10 @@
     $('whatsappBtn').addEventListener('click',shareWhatsapp);
     $('emailBtn').addEventListener('click',shareEmail);
     $('printBtn').addEventListener('click',printOnePage);
+    $('proposalBtn')?.addEventListener('click',requestProposal);
     $('editBtn').addEventListener('click',()=>go(1));
     $$('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{state.scenario=b.dataset.scenario;$$('[data-scenario]').forEach(x=>x.classList.toggle('active',x===b));recompute()}));
+    $$('[data-result-view]').forEach(b=>b.addEventListener('click',()=>setResultView(b.dataset.resultView)));
     document.addEventListener('chariot:languagechange',()=>recompute());
   }
 
@@ -218,7 +221,8 @@
       map=L.map(el,{zoomControl:true}).setView([lat,lon],17);
       if(window.ResizeObserver){new ResizeObserver(()=>{if(map)map.invalidateSize()}).observe(el)}
       window.addEventListener('resize',()=>{if(map)map.invalidateSize()});
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+      const imagery=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles &copy; Esri'}).addTo(map);
+      imagery.on('tileerror',()=>{if(!map._chariotFallback){map._chariotFallback=true;L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map)}});
       drawnItems=new L.FeatureGroup().addTo(map);
       if(L.Draw){
         map.on(L.Draw.Event.CREATED,e=>{
@@ -409,10 +413,74 @@
   }
 
   function renderResults(){
-    const m=state.model,route=routeName(m.route);$('confidenceScore').textContent=m.confidence+'%';$('resultHeadline').textContent=m.monthlyImpact>=0?'Your energy spend can become a strategic advantage.':'Your site requires a more detailed commercial and technical review.';$('resultSubhead').textContent=`Based on the information supplied, a ${Math.round(m.targetKwp)} kWp configuration with ${route.toLowerCase()} presents a preliminary starting case. All sizing, performance and commercial outcomes remain subject to full assessment.`;
-    $('resultKpis').innerHTML=[['Indicative system size',Math.round(m.targetKwp)+' kWp','Subject to technical design'],['Indicative net monthly impact',money(m.monthlyImpact),m.monthlyImpact>=0?'Subject to tariff and funding validation':'Requires further assessment'],['Indicative 20-year NPV benefit',compactMoney(m.totals.grid.npv-m.totals[m.route].npv),'Subject to verified assumptions'],['Indicative return',m.irr>0?pct(m.irr*100)+' IRR':'To validate',m.payback?m.payback.toFixed(1)+' year simple payback':'Insufficient data']].map(x=>`<div><span>${x[0]}</span><strong>${x[1]}</strong><small>${x[2]}</small></div>`).join('');
+    const m=state.model,route=routeName(m.route),scores=decisionScores(m);$('confidenceScore').textContent=m.confidence+'%';$('resultHeadline').textContent=m.monthlyImpact>=0?'A credible path to lower, more predictable energy cost.':'The opportunity is visible, but the commercial structure needs validation.';$('resultSubhead').textContent=executiveSummary(m);
+    $('resultKpis').innerHTML=[
+      ['Recommended system',Math.round(m.targetKwp)+' kWp',state.location?'Calculated · site located':'Calculated · location assumed'],
+      ['Capital allowance',compactMoney(m.capex),'Modelled · supplier validation required'],
+      ['Net monthly cash effect',money(m.monthlyImpact),m.monthlyImpact>=0?'Calculated · positive indicative impact':'Calculated · structure requires review'],
+      ['Year-one benefit',compactMoney(m.annualBenefit),'Calculated from supplied and assumed inputs'],
+      ['20-year NPV advantage',compactMoney(m.totals.grid.npv-m.totals[m.route].npv),'Scenario result · not a guarantee']
+    ].map(x=>`<div><span>${x[0]}</span><strong>${x[1]}</strong><small><i></i>${x[2]}</small></div>`).join('');
     $('recommendation').textContent=route;$('recommendationWhy').textContent=recommendationWhy(m);$('fitBadge').textContent=m.confidence>=70?'PRIORITY FOR VALIDATION':m.confidence>=45?'FURTHER ASSESSMENT REQUIRED':'EARLY INDICATION';
-    renderCostChart(m);renderLoadChart(m);renderSystem(m);renderMonthlyChart(m);renderWaterfall(m);renderEnergyFlow(m);renderSensitivity(m);renderTable(m);renderConfidence(m);renderRisks(m);renderStagedPlan(m);
+    $('opportunityScore').textContent=scores.opportunity;$('financeScore').textContent=scores.finance;
+    $('opportunityStatus').textContent=scoreStatus(scores.opportunity);$('financeStatus').textContent=scoreStatus(scores.finance);
+    renderCostChart(m);renderLoadChart(m);renderExecutiveIntelligence(m);renderSystem(m);renderMonthlyChart(m);renderWaterfall(m);renderEnergyFlow(m);renderSensitivity(m);renderTable(m);renderConfidence(m);renderRisks(m);renderStagedPlan(m);renderAdvisor(m);renderAssumptions(m);renderResultSite(m);setResultView(state.resultView||'executive');
+  }
+  function executiveSummary(m){
+    const coverage=Math.round(m.solarCoveragePct),impact=m.monthlyImpact>=0?`an indicative positive monthly cash effect of ${money(m.monthlyImpact)}`:'a need to refine the funding terms before proceeding';
+    return `The current information supports an initial ${Math.round(m.targetKwp)} kWp solar strategy covering approximately ${coverage}% of annual site energy, with ${impact}. ${routeName(m.route)} is the first structure to validate; every outcome remains subject to full technical, commercial and credit assessment.`;
+  }
+  function decisionScores(m){
+    const daytime=state.timing==='day'?16:state.timing==='mixed'?10:4;
+    const opportunity=clamp(Math.round(24+daytime+Math.min(20,m.solarCoveragePct*.28)+Math.min(18,m.selfConsumptionPct*.2)+(m.annualBenefit>m.currentAnnual*.12?12:5)+(m.confidence>65?8:3)),18,96);
+    const evidence=(state.files.length?14:0)+(state.location?10:0)+(num('monthlyKwh')?10:0)+(num('peakKva')?8:0)+(state.siteArea?8:0);
+    const finance=clamp(Math.round(m.confidence*.52+evidence+(m.monthlyImpact>=0?12:4)),15,96);
+    return {opportunity,finance};
+  }
+  function scoreStatus(v){return v>=80?'Strong case':v>=65?'Promising':v>=45?'Developing':'Early view'}
+  function setResultView(view){
+    state.resultView=view==='detailed'?'detailed':'executive';const host=$('decisionCockpit');if(!host)return;
+    host.classList.toggle('detailed-view',state.resultView==='detailed');host.classList.toggle('executive-view',state.resultView!=='detailed');
+    $$('.view-switch [data-result-view]').forEach(b=>b.classList.toggle('active',b.dataset.resultView===state.resultView));
+    if(state.resultView==='detailed')setTimeout(()=>document.querySelector('.detail-intro')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
+  }
+  function renderExecutiveIntelligence(m){
+    const annualGridRisk=m.currentAnnual*((Math.pow(1+num('gridEscalation')/100,5)-1));
+    $('loadMatchInsight').innerHTML=`<b>${m.selfConsumptionPct.toFixed(0)}%</b><span>of modelled solar used on site</span>`;
+    $('cashFlowInsight').innerHTML=`<strong>${m.monthlyImpact>=0?signedMoney(m.monthlyImpact):'Needs review'}</strong><span>${m.monthlyImpact>=0?'indicative monthly benefit after the recommended structure':'monthly impact before commercial optimisation'}</span><small>Subject to verified tariff and approved funding terms.</small>`;
+    $('resilienceInsight').innerHTML=`<strong>${m.batteryKwh?m.backupHours.toFixed(1)+' hours':'Solar-first'}</strong><span>${m.batteryKwh?'critical-load runtime proxy':'storage can be staged after load validation'}</span><small>${m.batteryKwh?Math.round(m.batteryKwh)+' kWh modelled storage':'No battery cost included in the current base solution.'}</small>`;
+    $('tariffInsight').innerHTML=`<strong>${num('gridEscalation').toFixed(1)}%</strong><span>annual grid escalation assumption</span><small>Five-year modelled exposure: ${compactMoney(annualGridRisk)} additional annual cost.</small>`;
+    $('dataQualityInsight').innerHTML=`<strong>${m.confidence}%</strong><span>${scoreStatus(m.confidence)} evidence quality</span><small>${state.files.length?state.files.length+' uploaded document(s) considered':'Upload bills or interval data to strengthen the case.'}</small>`;
+    $('fundingHeadline').textContent=m.route==='ppa'?'Preserve capital and pay for delivered energy':m.route==='cash'?'Prioritise long-term ownership value':m.route==='bank'?'Balance ownership with staged repayment':'Create a structured path to ownership';
+    $('fundingSummary').innerHTML=`<div class="funding-route"><span>Recommended first route</span><strong>${routeName(m.route)}</strong></div><div class="funding-facts"><div><span>Indicative monthly energy cost</span><b>${money(m.recommendedMonthly)}</b></div><div><span>Year-one cash benefit</span><b>${compactMoney(Math.max(0,m.monthlyImpact*12))}</b></div><div><span>20-year NPV cost</span><b>${compactMoney(m.totals[m.route].npv)}</b></div><div><span>Primary condition</span><b>${m.route==='ppa'?'Credit + service agreement':m.route==='bank'?'Approved lending terms':m.route==='cash'?'Available capital':'Final rental terms'}</b></div></div><p>${recommendationWhy(m)}</p>`;
+    $('costDecisionSummary').innerHTML=`<span>Modelled NPV advantage versus grid-only</span><strong>${compactMoney(m.totals.grid.npv-m.totals[m.route].npv)}</strong><small>${state.scenario==='base'?'Base':state.scenario==='conservative'?'Conservative':'Optimistic'} scenario · indicative only</small>`;
+  }
+  function renderAdvisor(m){
+    const items=[];
+    if(!state.files.length)items.push(['01','Verify the energy baseline','Upload 12 months of electricity bills and interval data where available.']);
+    if(!state.location)items.push(['02','Confirm the site','Search the address or capture exact coordinates to validate solar resource and usable area.']);
+    if(!state.siteArea)items.push(['03','Validate usable solar space','Map the roof, carport or ground area and identify equipment and cable routes.']);
+    if(m.batteryKwh&&!num('peakKva'))items.push(['04','Confirm battery duty','Identify critical circuits, maximum demand and required outage duration before sizing storage.']);
+    items.push([String(items.length+1).padStart(2,'0'),'Validate the commercial structure',`Review ${routeName(m.route).toLowerCase()}, tariff assumptions, credit requirements and contractual terms with Chariot.`]);
+    items.push([String(items.length+1).padStart(2,'0'),'Commission the formal assessment','Complete the site survey, engineering design, grid review and investment proposal.']);
+    $('advisorRecommendations').innerHTML=items.slice(0,4).map(x=>`<div><span>${x[0]}</span><div><b>${x[1]}</b><p>${x[2]}</p></div></div>`).join('');
+  }
+  function renderAssumptions(m){
+    const rows=[['Electricity bill',money(m.monthlyBill),num('monthlyBill')?'Client supplied':'System-derived'],['Monthly consumption',Math.round(m.monthlyKwh).toLocaleString('en-ZA')+' kWh',num('monthlyKwh')?'Client supplied/extracted':'Derived from bill'],['Grid tariff',`R${m.tariff.toFixed(2)}/kWh`,'Calculated/assumed'],['Solar resource',`${m.sun.toFixed(2)} kWh/m²/day`,state.solarResource?'Externally retrieved':'Provincial fallback'],['Performance ratio',pct(m.pr*100),'Editable model assumption'],['Annual degradation',pct(m.degradation*100),'Editable model assumption'],['Analysis period',m.years+' years','Client adjustable'],['Grid escalation',pct(num('gridEscalation')),'Client adjustable']];
+    $('assumptionSummary').innerHTML=`<div class="assumption-table">${rows.map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b><i>${r[2]}</i></div>`).join('')}</div><p>These assumptions support an indicative pre-feasibility view only. Chariot will replace assumptions with verified project data during the formal assessment.</p>`;
+  }
+  async function renderResultSite(m){
+    const host=$('resultSiteMap'),meta=$('siteSnapshotMeta'),title=$('siteSnapshotTitle');if(!host||!meta||!title)return;
+    if(!state.location?.lat){title.textContent=m.province?`${m.province} · location estimated`:'Location awaiting confirmation';host.classList.add('map-empty');host.innerHTML='<div><b>Confirm the site to activate satellite intelligence</b><span>Address search, exact coordinates and device location are available in the site step.</span></div>';meta.innerHTML=`<span>Solar resource</span><b>${m.sun.toFixed(2)} kWh/m²/day · provincial assumption</b>`;return}
+    const {lat,lon,label}=state.location;title.textContent=label||`${lat.toFixed(5)}, ${lon.toFixed(5)}`;host.classList.remove('map-empty');host.innerHTML='';
+    if(!(await ensureMap())||!window.L){host.classList.add('map-empty');host.innerHTML='<div><b>Coordinates confirmed</b><span>Satellite tiles are unavailable; the location remains stored in this browser.</span></div>';return}
+    if(resultMap){resultMap.remove();resultMap=null}
+    resultMap=L.map(host,{zoomControl:false,attributionControl:true,scrollWheelZoom:false,dragging:true}).setView([lat,lon],18);
+    const imagery=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles &copy; Esri'}).addTo(resultMap);
+    imagery.on('tileerror',()=>{if(!resultMap._chariotFallback){resultMap._chariotFallback=true;L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(resultMap)}});
+    resultMapMarker=L.circleMarker([lat,lon],{radius:8,color:'#fff',weight:3,fillColor:'#30b97a',fillOpacity:1}).addTo(resultMap);
+    setTimeout(()=>resultMap?.invalidateSize(),100);
+    meta.innerHTML=`<div><span>Coordinates</span><b>${lat.toFixed(6)}, ${lon.toFixed(6)}</b></div><div><span>Solar resource</span><b>${m.sun.toFixed(2)} kWh/m²/day · ${state.solarResource?'retrieved':'fallback'}</b></div><div><span>Mapped area</span><b>${state.siteArea?state.siteArea.toLocaleString('en-ZA')+' m²':'Not yet mapped'}</b></div>`;
   }
   function recommendationWhy(m){if(m.route==='cash')return'Highest indicative long-term value where capital is available and ownership is the priority.';if(m.route==='bank')return'Balances ownership with staged repayment; final affordability depends on approved lending terms.';if(m.route==='rent')return'Provides a structured ownership path while reducing initial capital pressure.';return'Preserves capital and aligns payments to delivered energy, subject to credit approval and final PPA pricing.'}
   function scenarioModel(m){const factor=state.scenario==='conservative'?1.12:(state.scenario==='upside'?.91:1);return {factor}}
@@ -530,6 +598,7 @@
   function summaryText(){const m=state.model;return`Chariot Energy Snapshot\n\n${tr('Site')}: ${state.sector||tr('Not specified')} · ${m.province||tr('Location to confirm')}\n${tr('Monthly bill')}: ${money(m.monthlyBill)}\n${tr('Indicative solar')}: ${Math.round(m.targetKwp)} kWp\n${tr('Battery allowance')}: ${m.batteryKwh?Math.round(m.batteryKwh)+' kWh':tr('Not included')}\n${tr('Indicative capex')}: ${money(m.capex)}\n${tr('Year-one benefit')}: ${money(m.annualBenefit)}\n${tr('Recommended first route')}: ${tr(routeName(m.route))}\n${tr('Data confidence')}: ${m.confidence}%\n${tr('Solar resource')}: ${state.solarResource?state.solarResource.source+' '+m.sun.toFixed(2)+' kWh/m²/day':'Provincial fallback'}\n${tr('Self-consumption')}: ${m.selfConsumptionPct.toFixed(0)}%\n${tr('Solar coverage')}: ${m.solarCoveragePct.toFixed(0)}%\n${tr('Mapped site')}: ${state.siteArea?state.siteArea.toFixed(0)+' m²':'Not mapped'} · ${state.cableRunM?state.cableRunM.toFixed(0)+' m cable':'Cable not measured'}\n\n${tr('Client notes')}: ${$('clientNotes').value||$('voiceNotes').value||tr('None supplied')}\n\n${tr('Indicative pre-feasibility only. Please contact me to validate the assessment.')}`}
   function shareWhatsapp(){window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(summaryText())}`,'_blank','noopener')}
   function shareEmail(){location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Chariot Energy Snapshot — pre-feasibility review')}&body=${encodeURIComponent(summaryText())}`}
+  function requestProposal(){location.href=`mailto:${CONTACT.email}?subject=${encodeURIComponent('Request for formal Chariot energy proposal')}&body=${encodeURIComponent('Please contact me to validate this Energy Snapshot and prepare a formal proposal.\n\n'+summaryText())}`}
   function requestMeeting(){const name=$('meetingName').value.trim(),contact=$('meetingContact').value.trim();if(!name||!contact){alert(tr('Please add your name and phone or email.'));return}if(CONTACT.calendar){window.open(CONTACT.calendar,'_blank','noopener');return}const text=`${tr('Chariot Energy Review Request')}\n\n${tr('Name')}: ${name}\n${tr('Company/site')}: ${$('meetingCompany').value||tr('Not supplied')}\n${tr('Contact')}: ${contact}\n${tr('Preferred time')}: ${$('meetingWindow').value}\n\n${summaryText()}`;window.open(`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(text)}`,'_blank','noopener')}
 
   function save(){try{localStorage.setItem('chariot_snapshot_v2',JSON.stringify(serialize()));$('saveBtn').textContent='Saved ✓';setTimeout(()=>$('saveBtn').textContent='Save progress',1800)}catch(err){}}
