@@ -53,6 +53,15 @@
   ];
 
   const state={mode:'guided',step:1,energyMode:'bill',sector:'',timing:'mixed',priority:'cashflow',resilience:'saving',loads:new Set(),upgrades:new Set(),customLoads:[],equipmentDetails:{},location:null,siteArea:0,cableRunM:0,sitePins:[],solarResource:null,files:[],extracted:[],scenario:'base',resultView:'executive',model:null};
+  const PIN_TYPES={
+    solar:{name:'Solar placement',icon:'☀',colour:'#e7a72e'},
+    inverterBattery:{name:'Inverter / battery',icon:'▣',colour:'#2f9b72'},
+    grid:{name:'Eskom / grid connection',icon:'⚡',colour:'#3178b9'},
+    generator:{name:'Generator',icon:'G',colour:'#cf7036'},
+    critical:{name:'Critical loads',icon:'!',colour:'#bf4f55'},
+    cable:{name:'Cable run point',icon:'●',colour:'#7259b5'}
+  };
+  function sitePinIcon(type){const p=PIN_TYPES[type]||PIN_TYPES.solar;return L.divIcon({className:'chariot-map-pin',html:`<span style="--pin-colour:${p.colour}"><b>${p.icon}</b></span>`,iconSize:[34,40],iconAnchor:[17,38],popupAnchor:[0,-34]})}
   let map=null,drawnItems=null,siteMarker=null,activeDraw=null,mapToolsBound=false,freehandCleanup=null,resultMap=null,resultMapMarker=null;
 
   function init(){
@@ -227,8 +236,8 @@
       if(L.Draw){
         map.on(L.Draw.Event.CREATED,e=>{
           if(e.layerType==='marker'){
-            const type=$('pinType')?.value||'inverter',names={inverter:'Inverter',battery:'Battery',grid:'Grid point',critical:'Critical load'};
-            e.layer.bindPopup(names[type]).openPopup();e.layer._chariotPinType=type;drawnItems.addLayer(e.layer);
+            const type=$('pinType')?.value||'solar',pin=PIN_TYPES[type]||PIN_TYPES.solar;
+            e.layer.setIcon(sitePinIcon(type));e.layer.bindPopup(`${pin.icon} ${pin.name}`).openPopup();e.layer._chariotPinType=type;drawnItems.addLayer(e.layer);
             state.sitePins.push({type,lat:e.layer.getLatLng().lat,lon:e.layer.getLatLng().lng});updateMappedMeasurements();return
           }
           drawnItems.addLayer(e.layer);updateMappedMeasurements()
@@ -249,7 +258,9 @@
       if(type==='freehand'){startFreehand(b);return}
       if(!window.L?.Draw){$('mapReadout').textContent='Mapping tools could not load. Your confirmed coordinates have still been saved.';return}
       if(activeDraw?.disable)activeDraw.disable();
-      const constructors={rectangle:L.Draw.Rectangle,marker:L.Draw.Marker,polyline:L.Draw.Polyline};activeDraw=new constructors[type](map,{shapeOptions:{color:'#00a8d2',weight:3}});
+      const constructors={rectangle:L.Draw.Rectangle,marker:L.Draw.Marker,polyline:L.Draw.Polyline},options={shapeOptions:{color:'#00a8d2',weight:3}};
+      if(type==='marker')options.icon=sitePinIcon($('pinType')?.value||'solar');
+      activeDraw=new constructors[type](map,options);
       activeDraw.enable();$('mapTools').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b))
     })
   }
@@ -276,7 +287,7 @@
     const loc=state.location;let text=loc?`<strong>Coordinates:</strong> ${loc.lat.toFixed(6)}, ${loc.lon.toFixed(6)}`:'';
     if(state.siteArea)text+=` · <strong>Mapped area:</strong> ${state.siteArea.toLocaleString('en-ZA')} m² (about ${Math.round(state.siteArea/5.2)} kWp before setbacks)`;
     if(state.cableRunM)text+=` · <strong>Cable run:</strong> ${state.cableRunM.toLocaleString('en-ZA')} m`;
-    if(state.sitePins.length)text+=` · <strong>Equipment pins:</strong> ${state.sitePins.length}`;
+    if(state.sitePins.length){const groups=state.sitePins.reduce((a,p)=>(a[p.type]=(a[p.type]||0)+1,a),{});text+=` · <strong>Site pins:</strong> `+Object.entries(groups).map(([type,count])=>`${PIN_TYPES[type]?.icon||'•'} ${PIN_TYPES[type]?.name||type}${count>1?` ×${count}`:''}`).join(', ')}
     if(!state.siteArea&&!state.cableRunM&&!state.sitePins.length)text+=' · Choose a tool, then draw directly on the map.';
     $('mapReadout').innerHTML=text;$('mapTools')?.querySelectorAll('button').forEach(x=>x.classList.remove('active'));recompute()
   }
