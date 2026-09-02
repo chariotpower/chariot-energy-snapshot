@@ -11,7 +11,7 @@
   <meta property="og:image" content="og-image.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="chariot-logo.svg">
-  <link rel="stylesheet" href="styles.css?v=20260902n">
+  <link rel="stylesheet" href="styles.css?v=20260902p">
 <style>
 .stat-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:13px}
 .stat-row:last-of-type{border-bottom:0}
@@ -148,7 +148,7 @@
                 <button class="location-btn" id="geoBtn" type="button">◎ Use my current location</button>
                 <p id="geoStatus" class="status-line">You can also choose a province below.</p>
                 <div id="siteMap" class="site-map" hidden aria-label="Satellite site map"></div>
-                <div id="mapTools" class="map-tools" hidden aria-label="Site mapping tools"><button type="button" data-map-tool="freehand">✏️ Freehand area</button><button type="button" data-map-tool="rectangle">▭ Rectangle</button><label class="map-pin-type"><span>Pin type</span><select id="pinType"><option value="inverter">Inverter</option><option value="battery">Battery</option><option value="grid">Grid point</option><option value="critical">Critical load</option></select></label><button type="button" data-map-tool="marker">📍 Drop pin</button><button type="button" data-map-tool="polyline">📏 Measure cable run</button><button type="button" data-map-tool="clear">↺ Clear</button></div>
+                <div id="mapTools" class="map-tools" hidden aria-label="Site mapping tools"><button type="button" data-map-tool="freehand">✏️ Freehand area</button><button type="button" data-map-tool="rectangle">▭ Rectangle</button><label class="map-pin-type"><span>Pin type</span><select id="pinType"><option value="solar">☀ Solar placement</option><option value="inverterBattery">▣ Inverter / battery</option><option value="grid">⚡ Eskom / grid connection</option><option value="generator">G Generator</option><option value="critical">! Critical loads</option><option value="cable">● Cable run point</option></select></label><button type="button" data-map-tool="marker">📍 Drop selected pin</button><button type="button" data-map-tool="polyline">📏 Measure cable run</button><button type="button" data-map-tool="clear">↺ Clear map</button></div>
                 <div id="mapReadout" class="map-readout" hidden></div>
                 <div id="solarResourceCard" class="solar-resource-card" hidden>
                   <div><strong>Free solar-resource check</strong><p>With your permission, retrieve satellite-derived long-term solar climatology for these coordinates from NASA POWER. Your coordinates leave this browser only when you press the button.</p></div>
@@ -387,8 +387,8 @@
     <div class="analytics-consent-actions"><button class="allow" type="button" data-analytics-allow>Allow anonymous analytics</button><button class="decline" type="button" data-analytics-decline>No thanks</button></div>
   </aside>
   <template id="customLoadTemplate"><div class="custom-load-row"><input data-custom="name" placeholder="Equipment"><input data-custom="kw" type="number" min="0" placeholder="kW"><input data-custom="hours" type="number" min="0" max="24" placeholder="Hours/day"><button type="button" aria-label="Remove">×</button></div></template>
-  <script src="i18n.js?v=20260902n" defer></script>
-  <script src="app.js?v=20260902n" defer></script>
-  <script src="analytics.js?v=20260902n" defer></script>
+  <script src="i18n.js?v=20260902p" defer></script>
+  <script src="app.js?v=20260902p" defer></script>
+  <script src="analytics.js?v=20260902p" defer></script>
 </body>
 </html>
