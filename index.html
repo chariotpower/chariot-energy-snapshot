@@ -11,7 +11,7 @@
   <meta property="og:image" content="og-image.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="chariot-logo.svg">
-  <link rel="stylesheet" href="styles.css?v=20260902l">
+  <link rel="stylesheet" href="styles.css?v=20260902m">
 <style>
 .stat-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:13px}
 .stat-row:last-of-type{border-bottom:0}
@@ -259,37 +259,97 @@
             <div class="step-actions"><button class="ghost-btn back" type="button" data-back="3">← Back</button><button class="primary-btn next" type="button" data-next="5">View my snapshot →</button></div>
           </section>
 
-          <section class="step results-step" data-step="5">
-            <div class="result-hero">
-              <div><div class="result-brand result-brand-dark"><img src="chariot-logo-transparent.png" alt="Chariot Power"><span>ENERGY SNAPSHOT</span></div><div class="eyebrow light">INDICATIVE PRE-FEASIBILITY SNAPSHOT · SUBJECT TO FULL ASSESSMENT</div><h2 id="resultHeadline">A clearer energy path starts here.</h2><p id="resultSubhead"></p></div>
-              <div class="confidence-ring"><strong id="confidenceScore">—</strong><span>data confidence</span></div>
-            </div>
-            <div class="result-kpis" id="resultKpis"></div>
-            <div class="decision-card"><div><span>INDICATIVE ROUTE FOR FURTHER ASSESSMENT</span><h3 id="recommendation"></h3><p id="recommendationWhy"></p></div><div class="decision-badge" id="fitBadge"></div></div>
-            <div class="dashboard-grid">
-              <article class="chart-card wide"><header><div><span>20-YEAR CAPITAL DECISION</span><h3>What each route could cost</h3></div><div class="scenario-switch"><button class="active" data-scenario="base">Base</button><button data-scenario="conservative">Conservative</button><button data-scenario="upside">Upside</button></div></header><div id="costChart" class="chart"></div></article>
-              <article class="chart-card"><header><div><span>ENERGY MATCH</span><h3>Typical operating day</h3></div></header><div id="loadChart" class="chart"></div></article>
-              <article class="chart-card"><header><div><span>SOLUTION</span><h3>Proposed first configuration</h3></div></header><div id="systemSnapshot"></div></article><article class="chart-card"><header><div><span>STAGED ROADMAP</span><h3>Build now, remain ready for later</h3></div></header><div id="stagedPlan"></div></article>
-              <article class="chart-card wide"><header><div><span>MONTHLY ENERGY</span><h3>Consumption and solar generation through the year</h3></div></header><div id="monthlyChart" class="chart"></div></article>
-              <article class="chart-card"><header><div><span>YEAR-ONE CASH FLOW</span><h3>Where the value comes from</h3></div></header><div id="waterfallChart" class="chart"></div></article>
-              <article class="chart-card"><header><div><span>ENERGY FLOW</span><h3>How energy moves through the site</h3></div></header><div id="energyFlow"></div></article>
-              <article class="chart-card wide"><header><div><span>SENSITIVITY</span><h3>How tariff and production changes affect value</h3></div></header><div id="sensitivityMatrix"></div></article>
-              <article class="chart-card wide"><header><div><span>FINANCE COMPARISON</span><h3>Decision table</h3></div></header><div class="table-wrap"><table id="comparisonTable"></table></div></article>
-              <article class="chart-card"><header><div><span>STORAGE</span><h3>What the battery actually does</h3></div></header><div id="batteryInsight"></div></article>
-              <article class="chart-card"><header><div><span>SEQUENCE</span><h3>You do not have to do it all at once</h3></div></header><div id="stagedView"></div></article>
-              <article class="chart-card"><header><div><span>READINESS</span><h3>What we know</h3></div></header><div id="confidencePanel"></div></article>
-              <article class="chart-card"><header><div><span>NEXT REVIEW</span><h3>What could change this result</h3></div></header><div id="riskPanel"></div></article>
+          <section class="step results-step executive-view" data-step="5" id="decisionCockpit">
+            <div class="cockpit-toolbar" aria-label="Results view controls">
+              <div class="view-switch" role="group" aria-label="Analysis depth">
+                <button class="active" type="button" data-result-view="executive">Executive View</button>
+                <button type="button" data-result-view="detailed">Detailed Analysis</button>
+              </div>
+              <span class="assessment-status"><i></i> Indicative assessment · validation required</span>
             </div>
 
-            <div class="notes-card"><label for="clientNotes">Anything Chariot should know?</label><textarea id="clientNotes" rows="4" placeholder="Add operating constraints, planned equipment, landlord considerations, preferred timing or questions..."></textarea></div>
+            <header class="decision-hero">
+              <div class="decision-hero-copy">
+                <div class="result-brand result-brand-dark"><img src="chariot-logo-transparent.png" alt="Chariot Power"><span>ENERGY INVESTMENT SNAPSHOT</span></div>
+                <div class="eyebrow light">EXECUTIVE DECISION COCKPIT · SUBJECT TO FULL ASSESSMENT</div>
+                <h2 id="resultHeadline">A clearer energy path starts here.</h2>
+                <p id="resultSubhead"></p>
+                <div class="recommendation-strip">
+                  <div><span>RECOMMENDED STRUCTURE TO VALIDATE</span><strong id="recommendation"></strong></div>
+                  <div class="decision-badge" id="fitBadge"></div>
+                </div>
+                <p class="recommendation-rationale" id="recommendationWhy"></p>
+              </div>
+              <div class="score-cluster" aria-label="Opportunity and readiness scores">
+                <div class="premium-score"><span>Energy Opportunity</span><strong id="opportunityScore">—</strong><small id="opportunityStatus">Calculating</small></div>
+                <div class="premium-score"><span>Finance Readiness</span><strong id="financeScore">—</strong><small id="financeStatus">Calculating</small></div>
+              </div>
+            </header>
 
-            <div class="action-layer">
-              <div><span>NEXT STEP</span><h2>Progress from indicative opportunity to an investment-ready assessment.</h2><p>Chariot will validate the data, site, technical solution, regulatory requirements and funding structure with you before any commercial commitment.</p></div>
+            <div class="confidence-disclosure"><span id="confidenceScore">—</span> model confidence · Each figure below identifies whether it is supplied, calculated or assumed.</div>
+
+            <section class="metric-section" aria-labelledby="primaryMetricsTitle">
+              <div class="section-heading"><div><span>PRIMARY METRICS</span><h3 id="primaryMetricsTitle">The investment case at a glance</h3></div><small>Indicative · subject to technical, commercial and credit assessment</small></div>
+              <div class="result-kpis" id="resultKpis"></div>
+            </section>
+
+            <div class="executive-grid">
+              <article class="chart-card investment-card executive-cost-card">
+                <header><div><span>20-YEAR CAPITAL DECISION</span><h3>Projected cumulative energy cost</h3><p>Compare the recommended structure with remaining grid-only and ownership routes.</p></div><div class="scenario-switch"><button class="active" type="button" data-scenario="base">Base</button><button type="button" data-scenario="conservative">Conservative</button><button type="button" data-scenario="upside">Optimistic</button></div></header>
+                <div id="costChart" class="chart"></div>
+                <div id="costDecisionSummary" class="chart-decision"></div>
+              </article>
+              <article class="funding-priority-card">
+                <span>FUNDING STRUCTURE</span><h3 id="fundingHeadline">Structure the project around cash flow</h3>
+                <div id="fundingSummary"></div>
+                <button class="text-action" type="button" data-result-view="detailed">Compare all funding routes →</button>
+              </article>
+            </div>
+
+            <section class="intelligence-section" aria-labelledby="intelligenceTitle">
+              <div class="section-heading"><div><span>SUPPORTING INTELLIGENCE</span><h3 id="intelligenceTitle">What supports the recommendation</h3></div></div>
+              <div class="intelligence-grid">
+                <article class="intel-card intel-chart"><span>LOAD MATCH</span><h4>Daytime energy fit</h4><div id="loadChart" class="chart compact-chart"></div><div id="loadMatchInsight" class="intel-foot"></div></article>
+                <article class="intel-card"><span>CASH FLOW</span><h4>Year-one operating impact</h4><div id="cashFlowInsight" class="intel-value"></div></article>
+                <article class="intel-card"><span>RESILIENCE</span><h4>Critical-load cover</h4><div id="resilienceInsight" class="intel-value"></div></article>
+                <article class="intel-card"><span>TARIFF EXPOSURE</span><h4>Grid-cost sensitivity</h4><div id="tariffInsight" class="intel-value"></div></article>
+                <article class="intel-card"><span>DATA QUALITY</span><h4>Decision confidence</h4><div id="dataQualityInsight" class="intel-value"></div></article>
+                <article class="intel-card site-intel-card"><span>SITE SNAPSHOT</span><h4 id="siteSnapshotTitle">Location awaiting confirmation</h4><div id="resultSiteMap" class="result-site-map" aria-label="Satellite site snapshot"></div><div id="siteSnapshotMeta" class="site-meta"></div></article>
+              </div>
+            </section>
+
+            <section class="advisor-section" aria-labelledby="advisorTitle">
+              <div><span>CHARIOT ADVISOR</span><h3 id="advisorTitle">Recommended next actions</h3><p>Prioritised from the information currently available.</p></div>
+              <div id="advisorRecommendations" class="advisor-list"></div>
+            </section>
+
+            <section class="detailed-analysis" aria-label="Detailed analysis">
+              <div class="detail-intro"><span>DETAILED ANALYSIS</span><h2>Technical and commercial working view</h2><p>Open this view when you need the supporting model, sensitivities and assumptions behind the executive recommendation.</p></div>
+              <div class="dashboard-grid">
+                <article class="chart-card"><header><div><span>SOLUTION</span><h3>Proposed first configuration</h3></div></header><div id="systemSnapshot"></div></article>
+                <article class="chart-card"><header><div><span>STAGED ROADMAP</span><h3>Build now, remain ready for later</h3></div></header><div id="stagedPlan"></div></article>
+                <article class="chart-card wide"><header><div><span>MONTHLY ENERGY</span><h3>Consumption and solar generation through the year</h3></div></header><div id="monthlyChart" class="chart"></div></article>
+                <article class="chart-card"><header><div><span>YEAR-ONE CASH FLOW</span><h3>Where the value comes from</h3></div></header><div id="waterfallChart" class="chart"></div></article>
+                <article class="chart-card"><header><div><span>ENERGY FLOW</span><h3>How energy moves through the site</h3></div></header><div id="energyFlow"></div></article>
+                <article class="chart-card wide"><header><div><span>SENSITIVITY</span><h3>How tariff and production changes affect value</h3></div></header><div id="sensitivityMatrix"></div></article>
+                <article class="chart-card wide"><header><div><span>FINANCE COMPARISON</span><h3>Decision table</h3></div></header><div class="table-wrap"><table id="comparisonTable"></table></div></article>
+                <article class="chart-card"><header><div><span>STORAGE</span><h3>What the battery actually does</h3></div></header><div id="batteryInsight"></div></article>
+                <article class="chart-card"><header><div><span>SEQUENCE</span><h3>You do not have to do it all at once</h3></div></header><div id="stagedView"></div></article>
+                <article class="chart-card"><header><div><span>READINESS</span><h3>What we know</h3></div></header><div id="confidencePanel"></div></article>
+                <article class="chart-card"><header><div><span>NEXT REVIEW</span><h3>What could change this result</h3></div></header><div id="riskPanel"></div></article>
+              </div>
+              <details class="assumptions-drawer"><summary><span>MODEL ASSUMPTIONS</span><b>Review the inputs behind this assessment</b><i>+</i></summary><div id="assumptionSummary"></div></details>
+              <div class="notes-card"><label for="clientNotes">Notes for Chariot’s review</label><textarea id="clientNotes" rows="4" placeholder="Add operating constraints, planned equipment, landlord considerations, preferred timing or questions..."></textarea></div>
+            </section>
+
+            <div class="action-layer premium-action-layer">
+              <div><span>MOVE TO VALIDATION</span><h2>Turn this opportunity into an investment-ready proposal.</h2><p>Chariot will validate the energy data, site, technical solution, regulatory requirements and funding structure before any commercial commitment.</p></div>
               <div class="action-buttons">
-                <button class="primary-btn" id="meetingBtn" type="button">Schedule an energy review →</button>
-                <button class="secondary-btn" id="whatsappBtn" type="button">Share with Chariot on WhatsApp</button>
-                <button class="secondary-btn" id="emailBtn" type="button">Send by email</button>
-                <button class="secondary-btn" id="printBtn" type="button">Print one-page board summary</button>
+                <button class="primary-btn" id="meetingBtn" type="button">Book an Energy Review →</button>
+                <button class="secondary-btn" id="proposalBtn" type="button">Request Formal Proposal</button>
+                <button class="secondary-btn" id="whatsappBtn" type="button">Share Snapshot via WhatsApp</button>
+                <button class="secondary-btn" id="emailBtn" type="button">Email Chariot</button>
+                <button class="secondary-btn" id="printBtn" type="button">Print / Save Board Summary</button>
               </div>
             </div>
             <p class="legal legal-strong"><strong>Important:</strong> Every output in this snapshot—including system sizing, generation, savings, costs, cash flow, NPV, IRR, payback, resilience and funding comparisons—is indicative only and subject to full assessment. This is not a quotation, credit offer, tax opinion, engineering design, regulatory approval or performance guarantee. Final outcomes require verified consumption data, site and structural assessment, detailed engineering, equipment selection, grid and regulatory review, credit approval, tax advice and signed commercial terms.</p>
@@ -327,8 +387,8 @@
     <div class="analytics-consent-actions"><button class="allow" type="button" data-analytics-allow>Allow anonymous analytics</button><button class="decline" type="button" data-analytics-decline>No thanks</button></div>
   </aside>
   <template id="customLoadTemplate"><div class="custom-load-row"><input data-custom="name" placeholder="Equipment"><input data-custom="kw" type="number" min="0" placeholder="kW"><input data-custom="hours" type="number" min="0" max="24" placeholder="Hours/day"><button type="button" aria-label="Remove">×</button></div></template>
-  <script src="i18n.js?v=20260902l" defer></script>
-  <script src="app.js?v=20260902l" defer></script>
-  <script src="analytics.js?v=20260902l" defer></script>
+  <script src="i18n.js?v=20260902m" defer></script>
+  <script src="app.js?v=20260902m" defer></script>
+  <script src="analytics.js?v=20260902m" defer></script>
 </body>
 </html>
