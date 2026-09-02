@@ -457,13 +457,13 @@
   }
   function renderAdvisor(m){
     const items=[];
-    if(!state.files.length)items.push(['01','Verify the energy baseline','Upload 12 months of electricity bills and interval data where available.']);
-    if(!state.location)items.push(['02','Confirm the site','Search the address or capture exact coordinates to validate solar resource and usable area.']);
-    if(!state.siteArea)items.push(['03','Validate usable solar space','Map the roof, carport or ground area and identify equipment and cable routes.']);
-    if(m.batteryKwh&&!num('peakKva'))items.push(['04','Confirm battery duty','Identify critical circuits, maximum demand and required outage duration before sizing storage.']);
-    items.push([String(items.length+1).padStart(2,'0'),'Validate the commercial structure',`Review ${routeName(m.route).toLowerCase()}, tariff assumptions, credit requirements and contractual terms with Chariot.`]);
-    items.push([String(items.length+1).padStart(2,'0'),'Commission the formal assessment','Complete the site survey, engineering design, grid review and investment proposal.']);
-    $('advisorRecommendations').innerHTML=items.slice(0,4).map(x=>`<div><span>${x[0]}</span><div><b>${x[1]}</b><p>${x[2]}</p></div></div>`).join('');
+    if(!state.files.length)items.push(['Verify the energy baseline','Upload 12 months of electricity bills and interval data where available.']);
+    if(!state.location)items.push(['Confirm the site','Search the address or capture exact coordinates to validate solar resource and usable area.']);
+    if(!state.siteArea)items.push(['Validate usable solar space','Map the roof, carport or ground area and identify equipment and cable routes.']);
+    if(m.batteryKwh&&!num('peakKva'))items.push(['Confirm battery duty','Identify critical circuits, maximum demand and required outage duration before sizing storage.']);
+    items.push(['Validate the commercial structure',`Review ${routeName(m.route)}, tariff assumptions, credit requirements and contractual terms with Chariot.`]);
+    items.push(['Commission the formal assessment','Complete the site survey, engineering design, grid review and investment proposal.']);
+    $('advisorRecommendations').innerHTML=items.slice(0,4).map((x,i)=>`<div><span>${String(i+1).padStart(2,'0')}</span><div><b>${x[0]}</b><p>${x[1]}</p></div></div>`).join('');
   }
   function renderAssumptions(m){
     const rows=[['Electricity bill',money(m.monthlyBill),num('monthlyBill')?'Client supplied':'System-derived'],['Monthly consumption',Math.round(m.monthlyKwh).toLocaleString('en-ZA')+' kWh',num('monthlyKwh')?'Client supplied/extracted':'Derived from bill'],['Grid tariff',`R${m.tariff.toFixed(2)}/kWh`,'Calculated/assumed'],['Solar resource',`${m.sun.toFixed(2)} kWh/m²/day`,state.solarResource?'Externally retrieved':'Provincial fallback'],['Performance ratio',pct(m.pr*100),'Editable model assumption'],['Annual degradation',pct(m.degradation*100),'Editable model assumption'],['Analysis period',m.years+' years','Client adjustable'],['Grid escalation',pct(num('gridEscalation')),'Client adjustable']];
