@@ -185,7 +185,29 @@
     const lat=+match[1],lon=+match[2];if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){$('geoStatus').className='status-line bad';$('geoStatus').textContent='Those coordinates are outside the valid latitude and longitude range.';return}
     applyLocation(lat,lon,`${lat.toFixed(6)}, ${lon.toFixed(6)}`,'','manual-coordinates');
   }
-  function applyLocation(lat,lon,label,province,source,accuracy){const changed=!state.location||Math.abs(state.location.lat-lat)>.00001||Math.abs(state.location.lon-lon)>.00001;state.location={lat,lon,label,province,source,accuracy:accuracy||null,confirmedAt:new Date().toISOString()};if(changed)state.solarResource=null;$('siteAddress').value=label;$('manualCoordinates').value=`${lat.toFixed(6)}, ${lon.toFixed(6)}`;if(province)$('province').value=province;$('geoStatus').className='status-line good';$('geoStatus').textContent='✓ Location confirmed · '+label+(accuracy?` · accuracy ±${Math.round(accuracy)} m`:'');$('solarResourceCard').hidden=false;$('pvgisLink').href=`https://re.jrc.ec.europa.eu/pvg_tools/en/#PVP?lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}`;$('solarDataStatus').textContent=state.solarResource?'NASA POWER climatology loaded.':'Provincial climatology fallback is active until you choose to retrieve free solar data.';showMap(lat,lon);recompute()}
+  function applyLocation(lat,lon,label,province,source,accuracy){
+    const hadLocation=!!state.location;
+    const changed=!state.location||Math.abs(state.location.lat-lat)>.00001||Math.abs(state.location.lon-lon)>.00001;
+    if(changed){
+      state.solarResource=null;
+      if(hadLocation){
+        const mappedArea=state.siteArea;
+        if(drawnItems)drawnItems.clearLayers();
+        state.siteArea=0;state.cableRunM=0;state.sitePins=[];
+        if(mappedArea&&Number($('roofArea').value)===mappedArea)$('roofArea').value='';
+      }
+    }
+    state.location={lat,lon,label,province,source,accuracy:accuracy||null,confirmedAt:new Date().toISOString()};
+    $('siteAddress').value=label;
+    $('manualCoordinates').value=`${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+    if(province)$('province').value=province;else if(changed&&hadLocation)$('province').value='';
+    $('geoStatus').className='status-line good';
+    $('geoStatus').textContent='✓ Location confirmed · '+label+(accuracy?` · accuracy ±${Math.round(accuracy)} m`:'');
+    $('solarResourceCard').hidden=false;
+    $('pvgisLink').href=`https://re.jrc.ec.europa.eu/pvg_tools/en/#PVP?lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}`;
+    $('solarDataStatus').textContent='Provincial climatology fallback is active until you choose to retrieve free solar data.';
+    showMap(lat,lon);recompute();
+  }
   async function showMap(lat,lon){
     const el=$('siteMap');el.hidden=false;$('mapReadout').hidden=false;
     const _fix=()=>{if(map){map.invalidateSize({animate:false})}};
