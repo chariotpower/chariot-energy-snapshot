@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
   <link rel="stylesheet" href="application.css?v=20260903t">
+<style id="consentCss">.analytics-consent{position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;background:#0B3A33;color:#fff;border-radius:12px;padding:16px 18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:13px;line-height:1.5;max-width:900px;margin:0 auto}.analytics-consent[hidden]{display:none}.analytics-consent strong{display:block;font-size:14px;margin-bottom:4px}.analytics-consent p{margin:0;opacity:.85;font-size:12px}.analytics-consent-actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}.analytics-consent button{border-radius:8px;padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff}.analytics-consent button.allow{background:#00A8C8;border-color:#00A8C8;color:#04333d}</style>
 </head>
 <body>
 <header class="topbar">
@@ -177,5 +178,8 @@
 <script src="application.js?v=20260903t"></script>
 <p style="font-size:11px;line-height:1.55;opacity:.7;margin:14px auto 0;max-width:860px;padding:0 18px;text-align:center;font-family:inherit">We use anonymous usage analytics (Google Analytics) to see which parts of this tool are used. IP addresses are anonymised and no advertising or personalisation signals are collected. Your inputs stay in your browser until you choose to send them.</p>
 <script src="chariot-track.js?v=1"></script>
+
+<aside id="analyticsConsent" class="analytics-consent" hidden role="dialog" aria-label="Analytics choice"><div><strong data-analytics-title>Help improve this free tool</strong><p data-analytics-body>With your permission, Google Analytics will receive anonymous usage data such as page views and feature clicks. It will never receive your bills, uploads, notes, contact details or site coordinates.</p></div><div class="analytics-consent-actions"><button class="allow" type="button" data-analytics-allow>Allow anonymous analytics</button><button class="decline" type="button" data-analytics-decline>No thanks</button></div></aside>
+<script src="analytics.js?v=1"></script>
 </body>
 </html>
