@@ -295,7 +295,7 @@
     else if (/factory|manufactur|plant|mill|industrial|fabriek|nywer|ifektri|imboni/.test(text)) suggest("sector","Industrial");
     else if (/hotel|lodge|guest|hospitality|ihhotela|indawo yokulala/.test(text)) suggest("sector","Hospitality");
     else if (/office|retail|shop|warehouse|commercial|ihhovisi|isitolo/.test(text)) suggest("sector","Commercial");
-    const amountMatch = text.match(/(?:r|zar)\s*([\d\s,.]+?)\s*(k|m|million|miljoen)?(?:\s|per|a month|monthly|per maand|ngenyanga|$)/i);
+    const amountMatch = text.match(/(?:r|zar)\s*([\d][\d\s,.]*)(?:\s*(k|m|million|miljoen))?/i);
     if (amountMatch) {
       let amount = Number(amountMatch[1].replace(/[\s,]/g,""));
       if (/k/i.test(amountMatch[2] || "")) amount *= 1000;
