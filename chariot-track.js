@@ -14,41 +14,60 @@
 (function () {
   "use strict";
 
-  /* ---------- 1. CONFIG — EDIT THIS LINE ONLY ---------- */
-  var GA_ID = "G-XXXXXXXXXX";   // <-- paste your GA4 Measurement ID here
+  /* ---------- 1. CONFIG ----------
+     GA tag is the SAME one analytics.js already uses, and the SAME consent key.
+     Change it here only if the Google tag itself changes. */
+  var GA_ID = "GT-NFJBJXPC";
+  var CONSENT_KEY = "chariot_analytics_consent_v1";
 
   var SUPABASE = {
     url: "https://ircfpoeifedbuhvygufo.supabase.co",
     key: "sb_publishable_E_kyBi-bJ2_rDj_LipCBzw_-oRK2J6K"
   };
 
-  /* Which tool is this? Derived from the filename — no config needed. */
   var page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   var TOOL = page.indexOf("qualify") === 0 ? "qualify"
            : page.indexOf("application") === 0 ? "application"
            : "snapshot";
 
-  /* ---------- 2. GOOGLE ANALYTICS 4 ---------- */
+  /* ---------- 2. GOOGLE ANALYTICS 4 (consent-gated, never duplicated) ---------- */
   window.dataLayer = window.dataLayer || [];
   function gtag() { window.dataLayer.push(arguments); }
   window.gtag = window.gtag || gtag;
 
-  if (GA_ID && GA_ID.indexOf("G-") === 0 && GA_ID !== "G-XXXXXXXXXX") {
+  function consentGranted() {
+    try { return localStorage.getItem(CONSENT_KEY) === "granted"; } catch (e) { return false; }
+  }
+  /* analytics.js owns GA on any page that loads it — never configure twice. */
+  function analyticsAlreadyLoaded() {
+    return !!document.querySelector('script[src*="analytics.js"]') ||
+           !!document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
+  }
+  var gaReady = false;
+  function loadGA() {
+    if (gaReady || analyticsAlreadyLoaded() || !consentGranted()) return;
+    gaReady = true;
     var s = document.createElement("script");
     s.async = true;
     s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(GA_ID);
     document.head.appendChild(s);
     gtag("js", new Date());
-    /* anonymize_ip and no ad signals: keeps us aligned with the privacy promise */
     gtag("config", GA_ID, {
+      send_page_view: true,
       anonymize_ip: true,
       allow_google_signals: false,
       allow_ad_personalization_signals: false,
+      cookie_expires: 7776000,
       page_title: "Chariot " + TOOL
     });
   }
+  loadGA();
+  /* If the person grants consent later in this session, pick it up. */
+  window.addEventListener("storage", function (e) { if (e.key === CONSENT_KEY) loadGA(); });
+  document.addEventListener("click", function () { setTimeout(loadGA, 300); }, true);
 
   function track(event, params) {
+    if (!consentGranted()) return;   /* no consent, no analytics event */
     try { window.gtag("event", event, Object.assign({ tool: TOOL }, params || {})); } catch (e) {}
   }
   window.chariotTrack = track;
