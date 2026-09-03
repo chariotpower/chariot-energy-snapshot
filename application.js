@@ -51,20 +51,76 @@
   Object.assign(I18N.en,{summaryShareLink:"Document sharing link",reselectFiles:"Some files were selected in an earlier session. For privacy, select them again before creating the ZIP, or add a sharing link."});
   Object.assign(I18N.af,{summaryShareLink:"Dokumentdeelskakel",reselectFiles:"Sommige lêers is in ’n vorige sessie gekies. Kies dit om privaatheidsredes weer voordat u die ZIP skep, of voeg ’n deelskakel by."});
   Object.assign(I18N.zu,{summaryShareLink:"Isixhumanisi samadokhumenti",reselectFiles:"Amanye amafayela akhethwe esikhathini esedlule. Ngenxa yobumfihlo, wakhethe futhi ngaphambi kokudala i-ZIP, noma ufake isixhumanisi sokwabelana."});
+  Object.assign(I18N.en,{
+    documentGuidance:"Document guidance",documentGuidanceCopy:"These documents help Chariot validate consumption, site rights, technical feasibility and suitable funding routes. Start with what is available and only share sensitive records through an approved channel.",draftRequestEmail:"Draft a request email",close:"Close",
+    emailEyebrow:"Document request assistant",emailTitle:"Ask for missing paperwork professionally.",emailHelp:"Choose who should receive the request. The draft will use your application, document statuses and voice note.",requestRecipient:"Request from",recipientAccountant:"Accountant / finance team",recipientLandlord:"Landlord / property owner",recipientMunicipality:"Municipality / utility",recipientInternal:"Internal operations team",requestDocuments:"Draft request for missing documents",draftEmail:"Draft application email to Chariot",
+    coreDocuments:"Core commercial & funding documents",coreDocumentsHint:"Best prepared first",technicalDocuments:"Technical & site documents",technicalDocumentsHint:"Add when applicable",statusLabel:"Document status",infoAria:"Why this document is useful",removeFile:"Remove file",
+    docBills:"Electricity bills — 12 months preferred",docBillsHelp:"Complete utility bills, including tariff, demand and consumption pages.",docCompany:"Company registration documents",docCompanyHelp:"CIPC registration certificate, MOI or equivalent constitutional records.",docTenure:"Proof of site ownership or lease",docTenureHelp:"Title deed, current lease and landlord consent where relevant.",docDirector:"Director / authorised representative details",docDirectorHelp:"Identity and authority records only where required for funding and due diligence.",docBank:"Recent bank statements — last 3–6 months",docBankHelp:"Business operating-account statements used only for the relevant funding assessment.",docAfs:"Latest Annual Financial Statements (AFS)",docAfsHelp:"Most recent signed or final AFS; draft accounts may be noted as such.",docManagement:"Current management accounts or trial balance",docManagementHelp:"Useful when the latest AFS is older than six months.",docTax:"Tax compliance and VAT details",docTaxHelp:"SARS tax compliance status or VAT information where requested by a funder.",docInterval:"Interval or smart-meter data",docIntervalHelp:"Half-hourly or hourly CSV data materially improves solar and storage sizing.",docGenerator:"Generator specifications and fuel records",docGeneratorHelp:"Nameplate size, runtime, fuel consumption, service records and recent invoices.",docExisting:"Existing energy proposals and system records",docExistingHelp:"Previous solar, storage or generator proposals, warranties and monitoring exports.",docPhotos:"Site and electrical photographs",docPhotosHelp:"Roof or land, main distribution board, transformer, meter and generator photographs.",docStructural:"Roof condition and structural information",docStructuralHelp:"Structural drawings, engineer reports, asbestos status or known roof constraints.",docElectrical:"Electrical drawings and supply information",docElectricalHelp:"Single-line diagram, notified maximum demand, transformer and main-breaker details.",docUtility:"Utility and grid correspondence",docUtilityHelp:"Municipal or Eskom account details, applications, approvals and point-of-connection information.",
+    requestNoMissing:"No outstanding documents match this recipient. Change the recipient or update a document status.",requestSubject:"Request for energy assessment documents — {company}",requestGreetingAccountant:"Good day,",requestGreetingLandlord:"Good day,",requestGreetingMunicipality:"Good day,",requestGreetingInternal:"Hi team,",requestIntro:"We are preparing an energy assessment for {company}{site}. Please assist with the following documents:",requestContext:"Application context",requestVoiceContext:"Client note",requestAsk:"Please share the available documents securely, or confirm when they are likely to be ready. Sensitive records should only be sent through an approved channel.",requestClose:"Thank you for your assistance.\n\nKind regards,\n{name}",requestPrepared:"Your document request has been prepared in your email app. Nothing was sent automatically."
+  });
+  Object.assign(I18N.af,{
+    documentGuidance:"Dokumentriglyne",documentGuidanceCopy:"Hierdie dokumente help Chariot om verbruik, perseelregte, tegniese uitvoerbaarheid en geskikte finansieringsroetes te bevestig. Begin met wat beskikbaar is en deel sensitiewe rekords slegs deur ’n goedgekeurde kanaal.",draftRequestEmail:"Stel ’n versoek-e-pos op",close:"Sluit",
+    emailEyebrow:"Dokumentversoek-assistent",emailTitle:"Versoek ontbrekende dokumente professioneel.",emailHelp:"Kies wie die versoek moet ontvang. Die konsep gebruik u aansoek, dokumentstatusse en stemnota.",requestRecipient:"Versoek van",recipientAccountant:"Rekenmeester / finansiële span",recipientLandlord:"Verhuurder / eienaar",recipientMunicipality:"Munisipaliteit / nutsdiens",recipientInternal:"Interne bedryfspan",requestDocuments:"Stel versoek vir ontbrekende dokumente op",draftEmail:"Stel aansoek-e-pos aan Chariot op",
+    coreDocuments:"Kern kommersiële en finansieringsdokumente",coreDocumentsHint:"Berei verkieslik eerste voor",technicalDocuments:"Tegniese en perseeldokumente",technicalDocumentsHint:"Voeg by waar van toepassing",statusLabel:"Dokumentstatus",infoAria:"Waarom hierdie dokument nuttig is",removeFile:"Verwyder lêer",
+    docBills:"Elektrisiteitsrekeninge — verkieslik 12 maande",docBillsHelp:"Volledige nutsrekeninge, insluitend tarief-, aanvraag- en verbruiksbladsye.",docCompany:"Maatskappyregistrasiedokumente",docCompanyHelp:"CIPC-registrasiesertifikaat, MOI of gelykwaardige stigtingsrekords.",docTenure:"Bewys van perseeleienaarskap of huur",docTenureHelp:"Titelakte, huidige huurkontrak en verhuurdertoestemming waar toepaslik.",docDirector:"Direkteur / gemagtigde verteenwoordiger se besonderhede",docDirectorHelp:"Identiteits- en magtigingsrekords slegs waar finansiering en omsigtigheid dit vereis.",docBank:"Onlangse bankstate — laaste 3–6 maande",docBankHelp:"Besigheid se bedryfsrekeningstate wat slegs vir die toepaslike finansieringsbeoordeling gebruik word.",docAfs:"Jongste Finansiële Jaarstate (AFS)",docAfsHelp:"Mees onlangse getekende of finale AFS; konseprekeninge kan as sodanig aangedui word.",docManagement:"Huidige bestuursrekeninge of proefbalans",docManagementHelp:"Nuttig wanneer die jongste AFS ouer as ses maande is.",docTax:"Belastingnakoming en BTW-besonderhede",docTaxHelp:"SARS-belastingnakomingstatus of BTW-inligting waar ’n finansierder dit versoek.",docInterval:"Interval- of slimmetermeting",docIntervalHelp:"Halfuurlikse of uurlikse CSV-data verbeter sonkrag- en batterygroottebepaling beduidend.",docGenerator:"Kragopwekkerspesifikasies en brandstofrekords",docGeneratorHelp:"Naamplaatgrootte, looptyd, brandstofverbruik, diensrekords en onlangse fakture.",docExisting:"Bestaande energievoorstelle en stelselrekords",docExistingHelp:"Vorige sonkrag-, battery- of kragopwekkervoorstelle, waarborge en moniteringsuitvoere.",docPhotos:"Perseel- en elektriese foto’s",docPhotosHelp:"Dak of grond, hoofverdeelbord, transformator, meter en kragopwekkerfoto’s.",docStructural:"Dakkondisie en strukturele inligting",docStructuralHelp:"Struktuurtekeninge, ingenieursverslae, asbesstatus of bekende dakbeperkings.",docElectrical:"Elektriese tekeninge en voorsieningsinligting",docElectricalHelp:"Enkellyndiagram, aangemelde maksimum aanvraag, transformator- en hoofbrekerbesonderhede.",docUtility:"Nutsdiens- en netkorrespondensie",docUtilityHelp:"Munisipale of Eskom-rekeningbesonderhede, aansoeke, goedkeurings en aansluitpuntinligting.",
+    requestNoMissing:"Geen uitstaande dokumente pas by hierdie ontvanger nie. Verander die ontvanger of werk ’n dokumentstatus by.",requestSubject:"Versoek vir energiebeoordelingsdokumente — {company}",requestGreetingAccountant:"Goeiedag,",requestGreetingLandlord:"Goeiedag,",requestGreetingMunicipality:"Goeiedag,",requestGreetingInternal:"Hallo span,",requestIntro:"Ons berei ’n energiebeoordeling vir {company}{site} voor. Help asseblief met die volgende dokumente:",requestContext:"Aansoekkonteks",requestVoiceContext:"Kliëntnota",requestAsk:"Deel asseblief die beskikbare dokumente veilig, of bevestig wanneer dit gereed sal wees. Sensitiewe rekords moet slegs deur ’n goedgekeurde kanaal gestuur word.",requestClose:"Dankie vir u hulp.\n\nVriendelike groete,\n{name}",requestPrepared:"U dokumentversoek is in u e-posprogram voorberei. Niks is outomaties gestuur nie."
+  });
+  Object.assign(I18N.zu,{
+    documentGuidance:"Umhlahlandlela wamadokhumenti",documentGuidanceCopy:"La madokhumenti asiza uChariot aqinisekise ukusetshenziswa kwamandla, amalungelo endawo, ukufaneleka kobuchwepheshe nezindlela ezifanele zoxhaso. Qala ngalokho okukhona futhi wabelane ngamarekhodi ayimfihlo kuphela ngendlela egunyaziwe.",draftRequestEmail:"Bhala i-imeyili yesicelo",close:"Vala",
+    emailEyebrow:"Umsizi wokucela amadokhumenti",emailTitle:"Cela amadokhumenti angekho ngobungcweti.",emailHelp:"Khetha ozothola isicelo. Okusalungiswa kuzosebenzisa isicelo sakho, isimo samadokhumenti nomlayezo wezwi.",requestRecipient:"Cela ku",recipientAccountant:"Umgcini-mabhuku / ithimba lezezimali",recipientLandlord:"Umnikazi wendawo",recipientMunicipality:"Umasipala / umhlinzeki kagesi",recipientInternal:"Ithimba langaphakathi lokusebenza",requestDocuments:"Bhala isicelo samadokhumenti angekho",draftEmail:"Bhala i-imeyili yesicelo eya kuChariot",
+    coreDocuments:"Amadokhumenti ayisisekelo ebhizinisi noxhaso",coreDocumentsHint:"Kuhle ukuqala ngawo",technicalDocuments:"Amadokhumenti obuchwepheshe nendawo",technicalDocumentsHint:"Wengeze uma esebenza",statusLabel:"Isimo sedokhumenti",infoAria:"Kungani le dokhumenti iwusizo",removeFile:"Susa ifayela",
+    docBills:"Izikweletu zikagesi — kukhethwa izinyanga eziyi-12",docBillsHelp:"Izikweletu ezigcwele ezibonisa intela, amandla aphezulu nokusetshenziswa.",docCompany:"Amadokhumenti okubhaliswa kwenkampani",docCompanyHelp:"Isitifiketi se-CIPC, i-MOI noma amarekhodi afanayo enkampani.",docTenure:"Ubufakazi bobunikazi noma besivumelwano sokuqasha indawo",docTenureHelp:"I-title deed, isivumelwano samanje nemvume yomnikazi lapho kudingeka.",docDirector:"Imininingwane yomqondisi / omele inkampani",docDirectorHelp:"Umazisi nobufakazi begunya kuphela lapho kudingwa uxhaso nokuhlolwa.",docBank:"Izitatimende zasebhange — izinyanga ezi-3–6",docBankHelp:"Izitatimende ze-akhawunti yebhizinisi ezisetshenziselwa kuphela ukuhlolwa koxhaso olufanele.",docAfs:"Izitatimende Zezimali Zonyaka zakamuva (AFS)",docAfsHelp:"Ama-AFS akamuva asayiniwe noma aqediwe; awokuqala angaphawulwa kanjalo.",docManagement:"Ama-management accounts noma trial balance yamanje",docManagementHelp:"Iwusizo uma ama-AFS akamuva esedlule izinyanga eziyisithupha.",docTax:"Ukuthobela intela nemininingwane ye-VAT",docTaxHelp:"Isimo sokuthobela i-SARS noma imininingwane ye-VAT uma icelwa umxhasi.",docInterval:"Idatha ye-interval noma ye-smart meter",docIntervalHelp:"Idatha ye-CSV yehora noma yesigamu sehora ithuthukisa ukusizwa kosayizi welanga nebhethri.",docGenerator:"Imininingwane ye-generator namarekhodi kaphethiloli",docGeneratorHelp:"Usayizi, isikhathi sokusebenza, ukusetshenziswa kukaphethiloli, isevisi nama-invoyisi akamuva.",docExisting:"Iziphakamiso zamandla namarekhodi esistimu akhona",docExistingHelp:"Iziphakamiso zelanga, ibhethri noma generator, amawaranti nedatha yokuqapha.",docPhotos:"Izithombe zendawo nezikagesi",docPhotosHelp:"Uphahla noma umhlaba, ibhodi elikhulu, i-transformer, imitha ne-generator.",docStructural:"Isimo sophahla nolwazi lwesakhiwo",docStructuralHelp:"Imidwebo, imibiko kanjiniyela, isimo se-asbestos noma imikhawulo yophahla.",docElectrical:"Imidwebo kagesi nolwazi lokuhlinzekwa",docElectricalHelp:"I-single-line diagram, maximum demand, i-transformer ne-main breaker.",docUtility:"Ukuxhumana nomhlinzeki kagesi / igridi",docUtilityHelp:"Imininingwane ye-akhawunti kaMasipala noma Eskom, izicelo, izimvume nendawo yokuxhuma.",
+    requestNoMissing:"Awekho amadokhumenti angekho ahambisana nalo mamukeli. Shintsha umamukeli noma isimo sedokhumenti.",requestSubject:"Isicelo samadokhumenti okuhlolwa kwamandla — {company}",requestGreetingAccountant:"Sawubona,",requestGreetingLandlord:"Sawubona,",requestGreetingMunicipality:"Sawubona,",requestGreetingInternal:"Sanibonani thimba,",requestIntro:"Silungiselela ukuhlolwa kwamandla kwe-{company}{site}. Sicela nisize ngala madokhumenti:",requestContext:"Umongo wesicelo",requestVoiceContext:"Umlayezo wekhasimende",requestAsk:"Sicela nabelane ngokuphephile ngamadokhumenti akhona, noma niqinisekise ukuthi azolunga nini. Amarekhodi ayimfihlo kufanele athunyelwe kuphela ngendlela egunyaziwe.",requestClose:"Siyabonga ngosizo lwenu.\n\nOzithobayo,\n{name}",requestPrepared:"Isicelo sakho samadokhumenti silungisiwe ohlelweni lwe-imeyili. Akukho okuthunyelwe ngokuzenzakalela."
+  });
   window.__APPLICATION_I18N = I18N;
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const form = $("#applicationForm");
   const STORE = "chariot-client-application-v2";
+  const DOCUMENTS = [
+    {group:"core",id:"bills",title:"docBills",help:"docBillsHelp",recipient:"internal"},
+    {group:"core",id:"company",title:"docCompany",help:"docCompanyHelp",recipient:"accountant"},
+    {group:"core",id:"tenure",title:"docTenure",help:"docTenureHelp",recipient:"landlord"},
+    {group:"core",id:"director",title:"docDirector",help:"docDirectorHelp",recipient:"accountant"},
+    {group:"core",id:"bank",title:"docBank",help:"docBankHelp",recipient:"accountant"},
+    {group:"core",id:"afs",title:"docAfs",help:"docAfsHelp",recipient:"accountant"},
+    {group:"core",id:"management",title:"docManagement",help:"docManagementHelp",recipient:"accountant"},
+    {group:"core",id:"tax",title:"docTax",help:"docTaxHelp",recipient:"accountant"},
+    {group:"technical",id:"interval",title:"docInterval",help:"docIntervalHelp",recipient:"internal"},
+    {group:"technical",id:"generator",title:"docGenerator",help:"docGeneratorHelp",recipient:"internal"},
+    {group:"technical",id:"existing",title:"docExisting",help:"docExistingHelp",recipient:"internal"},
+    {group:"technical",id:"photos",title:"docPhotos",help:"docPhotosHelp",recipient:"internal"},
+    {group:"technical",id:"structural",title:"docStructural",help:"docStructuralHelp",recipient:"landlord"},
+    {group:"technical",id:"electrical",title:"docElectrical",help:"docElectricalHelp",recipient:"internal"},
+    {group:"technical",id:"utility",title:"docUtility",help:"docUtilityHelp",recipient:"municipality"}
+  ];
   const state = { step:1, language:"en", location:null, layers:[], files:[], drawing:null };
   const selectedFiles = [];
-  let map, drawnItems, activeDrawer, recognition, finalTranscript = "";
+  let map, drawnItems, activeDrawer, recognition, finalTranscript = "", selectedHelpDocument = null;
 
   function tr(key, vars = {}) {
     let text = (I18N[state.language] && I18N[state.language][key]) || I18N.en[key] || key;
     Object.entries(vars).forEach(([name, value]) => { text = text.replaceAll(`{${name}}`, value); });
     return text;
+  }
+
+  function documentRow(item) {
+    return `<div class="document-row" data-document="${item.id}" data-recipient="${item.recipient}">
+      <div class="doc-copy"><div class="doc-title"><b data-i18n="${item.title}">${escapeHtml(tr(item.title))}</b><button class="doc-info" type="button" data-doc-info="${item.id}" aria-label="${escapeHtml(tr("infoAria"))}" data-i18n-aria="infoAria">i</button></div><small data-i18n="${item.help}">${escapeHtml(tr(item.help))}</small></div>
+      <label class="status-control"><span class="sr-only" data-i18n="statusLabel">${escapeHtml(tr("statusLabel"))}</span><select aria-label="${escapeHtml(tr("statusLabel"))}" data-i18n-aria="statusLabel"><option value="Will send later" data-i18n="sendLater">${escapeHtml(tr("sendLater"))}</option><option value="Available" data-i18n="available">${escapeHtml(tr("available"))}</option><option value="Need help" data-i18n="needHelp">${escapeHtml(tr("needHelp"))}</option><option value="Not applicable" data-i18n="notApplicable">${escapeHtml(tr("notApplicable"))}</option></select></label>
+      <label class="mini-upload"><span data-i18n="chooseFile">${escapeHtml(tr("chooseFile"))}</span><input type="file" multiple aria-label="${escapeHtml(tr("chooseFile"))}" data-i18n-aria="chooseFile"></label>
+    </div>`;
+  }
+
+  function renderDocuments() {
+    const list = $("#documentList");
+    if (!list) return;
+    const group = (name,title,hint,open) => {
+      const rows = DOCUMENTS.filter(item=>item.group===name).map(documentRow).join("");
+      return `<details class="document-group" ${open ? "open" : ""}><summary><span><b data-i18n="${title}">${escapeHtml(tr(title))}</b><small data-i18n="${hint}">${escapeHtml(tr(hint))}</small></span><em>${DOCUMENTS.filter(item=>item.group===name).length}</em></summary><div class="document-group-body">${rows}</div></details>`;
+    };
+    list.innerHTML = group("core","coreDocuments","coreDocumentsHint",true) + group("technical","technicalDocuments","technicalDocumentsHint",false);
   }
 
   function applyLanguage(language) {
@@ -73,6 +129,7 @@
     $("#language").value = state.language;
     $$("[data-i18n]").forEach(el => { el.textContent = tr(el.dataset.i18n); });
     $$("[data-i18n-placeholder]").forEach(el => { el.placeholder = tr(el.dataset.i18nPlaceholder); });
+    $$("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label",tr(el.dataset.i18nAria)); });
     updateProgress(); updateMapReadout(); updatePaperwork(); buildSummary(); save();
   }
 
@@ -165,7 +222,7 @@
   }
 
   function save() {
-    const docs = $$(".document-row").map(row => row.querySelector("select").value);
+    const docs = Object.fromEntries($$(".document-row").map(row => [row.dataset.document,row.querySelector("select").value]));
     const payload = { step:state.step,language:state.language,location:state.location,layers:state.layers,files:state.files,transcript:$("#transcript").value,documents:docs,form:formSnapshot() };
     try { localStorage.setItem(STORE, JSON.stringify(payload)); } catch (_) {}
   }
@@ -186,7 +243,10 @@
     state.layers = Array.isArray(data.layers) ? data.layers : [];
     state.files = [];
     $("#transcript").value = data.transcript || "";
-    (data.documents || []).forEach((value,index) => { const select = $$(".document-row select")[index]; if (select) select.value = value; });
+    if (Array.isArray(data.documents)) {
+      const legacyIds = ["bills","company","tenure","director","generator"];
+      data.documents.forEach((value,index) => { const select = $(`.document-row[data-document="${legacyIds[index]}"] select`); if (select) select.value = value; });
+    } else Object.entries(data.documents || {}).forEach(([id,value]) => { const select = $(`.document-row[data-document="${id}"] select`); if (select) select.value = value; });
     state.step = Number(data.step) || 1;
     state.language = data.language || "en";
   }
@@ -235,16 +295,23 @@
     else if (/factory|manufactur|plant|mill|industrial|fabriek|nywer|ifektri|imboni/.test(text)) suggest("sector","Industrial");
     else if (/hotel|lodge|guest|hospitality|ihhotela|indawo yokulala/.test(text)) suggest("sector","Hospitality");
     else if (/office|retail|shop|warehouse|commercial|ihhovisi|isitolo/.test(text)) suggest("sector","Commercial");
-    const amountMatch = text.match(/(?:r|zar)\s?([\d,.]+)\s*(k|m|million|miljoen)?/i);
+    const amountMatch = text.match(/(?:r|zar)\s*([\d\s,.]+?)\s*(k|m|million|miljoen)?(?:\s|per|a month|monthly|per maand|ngenyanga|$)/i);
     if (amountMatch) {
-      let amount = Number(amountMatch[1].replace(/,/g,""));
+      let amount = Number(amountMatch[1].replace(/[\s,]/g,""));
       if (/k/i.test(amountMatch[2] || "")) amount *= 1000;
       if (/m|million|miljoen/i.test(amountMatch[2] || "")) amount *= 1000000;
       suggest("bill",amount < 25000 ? "Under R25,000" : amount < 75000 ? "R25,000–R75,000" : amount < 250000 ? "R75,000–R250,000" : "Over R250,000");
     }
     if (/eskom/.test(text)) suggest("supply","Eskom");
     else if (/municip|council|city power|umasipala|munisip/.test(text)) suggest("supply","Municipal");
-    if (/generator|genset|diesel|kragopwekker|ijeneretha/.test(text)) suggest("generator","Yes");
+    if (/generator|genset|diesel|kragopwekker|ijeneretha/.test(text)) {
+      suggest("generator","Yes");
+      const kva = text.match(/(\d[\d\s,.]*)\s*kva/i);
+      if (kva) {
+        const size = Number(kva[1].replace(/[\s,]/g,""));
+        form.elements.generatorSize.value = size < 100 ? "Under 100 kVA" : size <= 500 ? "100–500 kVA" : "Over 500 kVA";
+      }
+    }
     const cost = /cost|saving|save|cheaper|koste|bespaar|izindleko|onga/.test(text);
     const resilience = /backup|outage|reliab|load.?shedding|rugsteun|betrou|isipele|ukuthembeka/.test(text);
     if (cost && resilience) suggest("goal","Cost and resilience");
@@ -255,9 +322,18 @@
     else if (/cash|outright|kontant|ngokuphelele/.test(text)) suggest("funding","Outright purchase");
     else if (/rent.to.own|huur.tot|qasha/.test(text)) suggest("funding","Rent-to-own");
     else if (/compare|vergelyk|qhathanisa/.test(text)) suggest("funding","Compare all options");
-    if (/carport|parking|motorafdak/.test(text)) suggest("placement","Carport");
+    const mentionsRoof = /roof|rooftop|dak|uphahla/.test(text), mentionsGround = /ground|land|veld|grond|umhlaba/.test(text), mentionsCarport = /carport|parking|motorafdak/.test(text);
+    if ([mentionsRoof,mentionsGround,mentionsCarport].filter(Boolean).length > 1) suggest("placement","Mixed");
+    else if (mentionsCarport) suggest("placement","Carport");
     else if (/roof|rooftop|dak|uphahla/.test(text)) suggest("placement","Roof");
     else if (/ground|land|veld|grond|umhlaba/.test(text)) suggest("placement","Ground");
+    const markAvailable = (id,pattern) => {
+      const row = $(`.document-row[data-document="${id}"]`);
+      if (row && pattern.test(text) && row.querySelector("select").value === "Will send later") { row.querySelector("select").value = "Available"; count++; }
+    };
+    markAvailable("bills",/(?:have|attached|available|het|beskikbaar|sinawo).{0,28}(?:electricity|utility|eskom|municipal|bill|rekening|isikweletu)/);
+    markAvailable("bank",/(?:have|attached|available|het|beskikbaar|sinawo).{0,28}(?:bank statement|bankstaat|isitatimende sasebhange)/);
+    markAvailable("afs",/(?:have|attached|available|het|beskikbaar|sinawo).{0,28}(?:afs|annual financial|finansiële jaarstate|izitatimende zezimali)/);
     $("#voiceStatus").textContent = count ? tr("guideDone",{count}) : tr("guideNone");
     save();
   }
@@ -298,7 +374,7 @@
   }
 
   const PIN = {
-    solar:{icon:"☀",colour:"#e4a329"},inverterBattery:{icon:"▣",colour:"#1f7457"},grid:{icon:"⚡",colour:"#2878b8"},
+    solar:{icon:"☀",colour:"#e4a329"},inverterBattery:{icon:"▣",colour:"#00a9d6"},grid:{icon:"⚡",colour:"#2878b8"},
     generator:{icon:"G",colour:"#5c6570"},critical:{icon:"!",colour:"#b94646"},cable:{icon:"●",colour:"#754ea0"}
   };
 
@@ -311,8 +387,8 @@
     if (!drawnItems || !item) return;
     let layer;
     if (item.kind === "marker") layer = L.marker(item.latlng,{icon:pinIcon(item.pinType)}).bindTooltip(item.label || item.pinType);
-    else if (item.kind === "polygon") layer = L.polygon(item.latlngs,{color:"#1f7457",weight:2,fillOpacity:.16});
-    else if (item.kind === "rectangle") layer = L.rectangle(item.bounds,{color:"#1f7457",weight:2,fillOpacity:.16});
+    else if (item.kind === "polygon") layer = L.polygon(item.latlngs,{color:"#00a9d6",weight:2,fillOpacity:.16});
+    else if (item.kind === "rectangle") layer = L.rectangle(item.bounds,{color:"#00a9d6",weight:2,fillOpacity:.16});
     else if (item.kind === "polyline") layer = L.polyline(item.latlngs,{color:"#8a5cb8",weight:4,dashArray:"7 7"});
     if (layer) drawnItems.addLayer(layer);
   }
@@ -334,7 +410,7 @@
     if (tool === "clear") {
       drawnItems.clearLayers(); state.layers = []; updateMapReadout(); save(); $$("[data-tool]").forEach(b=>b.classList.remove("active")); return;
     }
-    if (tool === "rectangle") activeDrawer = new L.Draw.Rectangle(map,{shapeOptions:{color:"#1f7457",weight:2,fillOpacity:.16}});
+    if (tool === "rectangle") activeDrawer = new L.Draw.Rectangle(map,{shapeOptions:{color:"#00a9d6",weight:2,fillOpacity:.16}});
     if (tool === "polyline") activeDrawer = new L.Draw.Polyline(map,{shapeOptions:{color:"#8a5cb8",weight:4,dashArray:"7 7"},showLength:true,metric:true});
     if (activeDrawer) { activeDrawer.enable(); return; }
     if (tool === "marker") {
@@ -356,7 +432,7 @@
     map.dragging.disable();
     const down = event => {
       event.preventDefault(); drawing = true; points = [map.mouseEventToLatLng(event)];
-      preview = L.polyline(points,{color:"#1f7457",weight:3}).addTo(map);
+      preview = L.polyline(points,{color:"#00a9d6",weight:3}).addTo(map);
       container.setPointerCapture?.(event.pointerId);
     };
     const move = event => {
@@ -368,7 +444,7 @@
       if (!drawing) return; drawing = false;
       container.removeEventListener("pointerdown",down); container.removeEventListener("pointermove",move); container.removeEventListener("pointerup",up);
       if (preview) map.removeLayer(preview);
-      if (points.length > 2) { const layer = L.polygon(points,{color:"#1f7457",weight:2,fillOpacity:.16}).addTo(drawnItems); recordLayer("polygon",layer); }
+      if (points.length > 2) { const layer = L.polygon(points,{color:"#00a9d6",weight:2,fillOpacity:.16}).addTo(drawnItems); recordLayer("polygon",layer); }
       map.dragging.enable(); $$("[data-tool]").forEach(b=>b.classList.remove("active")); updateMapReadout();
     };
     container.addEventListener("pointerdown",down,{passive:false}); container.addEventListener("pointermove",move,{passive:false}); container.addEventListener("pointerup",up,{passive:false});
@@ -394,7 +470,7 @@
     const values = rows.map(row=>row.querySelector("select").value);
     const counts = {available:values.filter(v=>v==="Available").length,later:values.filter(v=>v==="Will send later").length,help:values.filter(v=>v==="Need help").length,files:state.files.length};
     $("#paperworkStatus").textContent = tr("paperwork",counts);
-    $("#fileList").innerHTML = state.files.map((file,index)=>`<div class="file-pill"><span>${escapeHtml(file.name)} · ${formatBytes(file.size)}</span><button type="button" data-remove-file="${index}" aria-label="Remove file">×</button></div>`).join("");
+    $("#fileList").innerHTML = state.files.map((file,index)=>`<div class="file-pill"><span>${escapeHtml(file.name)} · ${formatBytes(file.size)}</span><button type="button" data-remove-file="${index}" aria-label="${escapeHtml(tr("removeFile"))}">×</button></div>`).join("");
   }
 
   function formatBytes(bytes) { return bytes < 1024*1024 ? Math.ceil(bytes/1024)+" KB" : (bytes/(1024*1024)).toFixed(1)+" MB"; }
@@ -484,7 +560,7 @@
       },null,2));
       if(state.layers.length) zip.file("site-layout.json",JSON.stringify(state.layers,null,2));
       const folder=zip.folder("documents");
-      selectedFiles.forEach(file=>folder.file(file.name,file));
+      selectedFiles.forEach((file,index)=>folder.folder(safeFilename(state.files[index]?.documentId || "general")).file(file.name,file));
       const blob=await zip.generateAsync({type:"blob",compression:"DEFLATE",compressionOptions:{level:6}});
       const url=URL.createObjectURL(blob);
       const anchor=document.createElement("a");
@@ -508,6 +584,47 @@
     const subject = tr("emailSubject",{company});
     const body = tr("emailIntro")+plainSummary()+tr("emailClose",{name:form.elements.name.value.trim()||""})+"\n\n"+tr("filesLocal");
     window.location.href = `mailto:admin@chariotpower.co.za?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
+  function documentById(id) { return DOCUMENTS.find(item=>item.id===id); }
+
+  function openDocumentHelp(id = null) {
+    selectedHelpDocument = id;
+    const item = documentById(id);
+    $("#helpDialogTitle").textContent = item ? tr(item.title) : tr("documentsTitle");
+    $("#helpDialogCopy").textContent = item ? tr(item.help) + " " + tr("documentGuidanceCopy") : tr("documentGuidanceCopy");
+    if (item) $("#requestRecipient").value = item.recipient;
+    const dialog = $("#documentHelpDialog");
+    if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open","");
+  }
+
+  function outstandingDocuments(recipient, specificId = null) {
+    return $$(".document-row").filter(row => {
+      const status = row.querySelector("select").value;
+      const matches = specificId ? row.dataset.document === specificId : row.dataset.recipient === recipient;
+      return matches && status !== "Available" && status !== "Not applicable";
+    });
+  }
+
+  function draftDocumentRequest(specificId = null) {
+    const recipient = $("#requestRecipient").value;
+    const rows = outstandingDocuments(recipient,specificId);
+    if (!rows.length) { alert(tr("requestNoMissing")); return; }
+    const company = form.elements.company.value.trim() || tr("summaryCompany");
+    const name = form.elements.name.value.trim() || "";
+    const site = state.location && state.location.label ? ` (${state.location.label})` : "";
+    const greetingKey = "requestGreeting" + recipient.charAt(0).toUpperCase() + recipient.slice(1);
+    const list = rows.map(row=>`• ${row.querySelector("b").textContent} — ${row.querySelector("select").selectedOptions[0].textContent}`).join("\n");
+    const context = [
+      `${tr("summaryCompany")}: ${company}`,
+      `${tr("summarySector")}: ${displayValue(radioValue("sector"))}`,
+      `${tr("summarySupply")}: ${displayValue(radioValue("supply"))}`,
+      `${tr("summaryLocation")}: ${state.location ? `${state.location.lat.toFixed(6)}, ${state.location.lng.toFixed(6)}` : tr("noLocation")}`
+    ].join("\n");
+    const transcript = $("#transcript").value.trim();
+    const body = `${tr(greetingKey)}\n\n${tr("requestIntro",{company,site})}\n\n${list}\n\n${tr("requestContext")}:\n${context}${transcript ? `\n\n${tr("requestVoiceContext")}:\n${transcript}` : ""}\n\n${tr("requestAsk")}\n\n${tr("requestClose",{name})}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(tr("requestSubject",{company}))}&body=${encodeURIComponent(body)}`;
+    $("#paperworkStatus").textContent = tr("requestPrepared");
   }
 
   async function searchAddress() {
@@ -543,9 +660,15 @@
     $("#skipLocation").addEventListener("click",()=>{state.location=null;$("#locationStatus").className="location-status";$("#locationStatus").textContent=tr("locationSkipped");save();});
     $$("[data-tool]").forEach(button=>button.addEventListener("click",()=>activateMapTool(button.dataset.tool)));
     $$(".document-row input[type=file]").forEach(input=>input.addEventListener("change",()=>{
-      [...input.files].forEach(file=>{selectedFiles.push(file);state.files.push({name:file.name,size:file.size,type:file.type,available:true});});
+      [...input.files].forEach(file=>{selectedFiles.push(file);state.files.push({name:file.name,size:file.size,type:file.type,available:true,documentId:input.closest(".document-row").dataset.document});});
+      if (input.files.length) input.closest(".document-row").querySelector("select").value="Available";
       input.value="";updatePaperwork();save();
     }));
+    $("#documentList").addEventListener("click",event=>{const button=event.target.closest("[data-doc-info]");if(button)openDocumentHelp(button.dataset.docInfo);});
+    $("#documentInfo").addEventListener("click",()=>openDocumentHelp());
+    $("#dialogClose").addEventListener("click",()=>$("#documentHelpDialog").close?.());
+    $("#dialogRequestEmail").addEventListener("click",()=>{$("#documentHelpDialog").close?.();draftDocumentRequest(selectedHelpDocument);});
+    $("#requestDocuments").addEventListener("click",()=>draftDocumentRequest());
     $("#fileList").addEventListener("click",event=>{const button=event.target.closest("[data-remove-file]");if(!button)return;const index=Number(button.dataset.removeFile);state.files.splice(index,1);selectedFiles.splice(index,1);updatePaperwork();save();});
     $("#draftEmail").addEventListener("click",draftEmail);$("#reviewEmail").addEventListener("click",draftEmail);
     $("#prepareSubmit").addEventListener("click",prepareSubmission);
@@ -554,7 +677,7 @@
     $("#clearDraft").addEventListener("click",()=>{if(confirm(tr("clearConfirm"))){localStorage.removeItem(STORE);location.reload();}});
   }
 
-  restore(); bindEvents(); toggleConditionals(); setupSpeech(); updatePaperwork(); applyLanguage(state.language);
+  renderDocuments(); restore(); bindEvents(); toggleConditionals(); setupSpeech(); updatePaperwork(); applyLanguage(state.language);
   if(state.location)setLocation(state.location.lat,state.location.lng,state.location.label||"");
   showStep(state.step);
 })();
