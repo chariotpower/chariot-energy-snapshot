@@ -446,7 +446,7 @@
     const button = $("#prepareSubmit");
     const totalBytes = selectedFiles.reduce((sum,file)=>sum+file.size,0);
     const shareLink = form.elements.shareLink.value.trim();
-    if (totalBytes > 80 * 1024 * 1024) {
+    if (totalBytes > 20 * 1024 * 1024) {
       $("#submitHelp").textContent = tr("zipTooLarge");
       if (!shareLink) {
         alert(tr("shareLinkMissing"));
