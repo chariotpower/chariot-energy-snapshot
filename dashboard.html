@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chariot Power — Weekly Growth Dashboard</title>
+<meta name="theme-color" content="#0B3A33">
+<style>
+:root{
+  --ink:#12211F; --deep:#0B3A33; --forest:#145146; --sage:#7FA69B; --mist:#DCE7E3;
+  --paper:#F4F7F6; --card:#FFFFFF; --line:#E2EAE7; --muted:#65807A;
+  --green:#2E7D5B; --amber:#C08A3E; --red:#B04A3F;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5}
+.sheet{max-width:1500px;margin:0 auto;padding:26px 30px 60px}
+
+/* header */
+.head{display:flex;align-items:flex-start;gap:22px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.logo{width:150px;height:64px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;flex:none;padding:8px}
+.logo img{max-width:100%;max-height:100%}
+.logo span{font-family:var(--serif);font-size:15px;letter-spacing:.06em;color:var(--deep);text-align:center}
+.htitle{flex:1;border-left:1px solid var(--line);padding-left:22px}
+.htitle h1{margin:0;font-size:23px;letter-spacing:.01em;font-weight:800;text-transform:uppercase}
+.htitle p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.hmeta{text-align:right;font-size:11px}
+.hmeta .wk{color:var(--forest);font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.hmeta .by{color:var(--muted);margin-top:5px}
+
+/* kpi strip */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:26px;padding:26px 0 30px;border-bottom:1px solid var(--line)}
+.kpi .lbl{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.kpi .row{display:flex;align-items:baseline;gap:9px;margin-top:8px}
+.kpi .num{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.kpi .num.money{font-size:29px}
+.kpi .sub{font-size:11.5px;color:var(--muted)}
+.kpi .sub.warn{color:var(--amber)}
+.kpi .sub.up{color:var(--green)}
+
+/* main grid */
+.grid{display:grid;grid-template-columns:250px 1fr 300px;gap:34px;padding-top:28px}
+h2.sec{font-family:var(--serif);font-size:21px;margin:0 0 3px;font-weight:600}
+.sec-sub{color:var(--muted);font-size:12px;margin:0 0 16px}
+
+/* funnel */
+.stage{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:7px;margin-bottom:8px;font-weight:700;font-size:13.5px}
+.stage b{font-weight:800}
+.rule{font-size:10.5px;color:var(--muted);margin-top:14px;line-height:1.5}
+.rule strong{color:var(--forest);letter-spacing:.1em;text-transform:uppercase;font-size:9.5px;display:block;margin-bottom:3px}
+
+/* table */
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--mist);color:var(--forest);font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;text-align:left;padding:10px 12px}
+tbody td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+tbody tr:last-child td{border-bottom:0}
+.acct{font-weight:700}
+.proj{color:var(--muted);font-size:11.5px;margin-top:2px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.g{background:var(--green)}.dot.a{background:var(--amber)}.dot.r{background:var(--red)}
+.due{font-size:11px;color:var(--muted);margin-top:2px}
+.due.over{color:var(--red);font-weight:700}
+
+/* actions */
+.act{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.act:last-of-type{border-bottom:0}
+.act .n{width:26px;height:26px;border-radius:50%;background:var(--deep);color:#fff;display:grid;place-items:center;font-size:11.5px;font-weight:700;flex:none}
+.act .t{font-weight:700;font-size:13.5px}
+.act .d{color:var(--muted);font-size:11.5px;margin-top:2px}
+.escal{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:11.5px;color:var(--muted)}
+
+/* health */
+.foot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:34px;margin-top:34px;padding-top:26px;border-top:1px solid var(--line)}
+.bar{display:flex;height:13px;border-radius:4px;overflow:hidden;margin:14px 0 9px}
+.bar i{display:block}
+.legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.qs{font-size:12.5px;color:var(--muted);line-height:2}
+.principle .eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--forest)}
+.principle h3{font-family:var(--serif);font-size:22px;margin:8px 0 6px;font-weight:600}
+.principle p{color:var(--muted);font-size:12.5px;margin:0}
+
+/* data bar */
+.databar{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:14px 16px;margin-bottom:22px;display:flex;gap:11px;align-items:center;flex-wrap:wrap}
+.databar input[type=url]{flex:1;min-width:250px;padding:9px 11px;border:1px solid var(--line);border-radius:7px;font:inherit}
+.btn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer}
+.btn:hover{border-color:var(--forest)}
+.btn.primary{background:var(--deep);color:#fff;border-color:var(--deep)}
+.status{font-size:11.5px;color:var(--muted);width:100%}
+.status.err{color:var(--red)}
+.status.ok{color:var(--green)}
+.hide{display:none!important}
+@media(max-width:1150px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr);gap:20px}.foot{grid-template-columns:1fr}}
+@media print{.databar{display:none}body{background:#fff}.sheet{padding:0}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="databar" id="databar">
+    <strong style="font-size:12.5px">Pipeline source</strong>
+    <input type="url" id="csvUrl" placeholder="Paste your published Google Sheet CSV link (File → Share → Publish to web → CSV)">
+    <button class="btn primary" id="loadBtn" type="button">Load</button>
+    <button class="btn" id="fileBtn" type="button">Upload CSV</button>
+    <input type="file" id="fileInput" accept=".csv,text/csv" class="hide">
+    <button class="btn" id="demoBtn" type="button">Show example</button>
+    <button class="btn" id="printBtn" type="button">Print</button>
+    <div class="status" id="status">No pipeline loaded. Paste a published CSV link, upload a CSV, or view the example layout.</div>
+  </div>
+
+  <div class="head">
+    <div class="logo"><span>CHARIOT<br>POWER</span></div>
+    <div class="htitle">
+      <h1 id="dashTitle">Weekly Growth Dashboard</h1>
+      <p>Qualified pipeline, ownership and next actions</p>
+    </div>
+    <div class="hmeta">
+      <div class="wk" id="weekEnding">Week ending —</div>
+      <div class="by">Confidential working view</div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Active opportunities</div><div class="row"><span class="num" id="kActive">—</span><span class="sub" id="kActiveSub"></span></div></div>
+    <div class="kpi"><div class="lbl">Qualified</div><div class="row"><span class="num" id="kQual">—</span><span class="sub" id="kQualSub"></span></div></div>
+    <div class="kpi"><div class="lbl">Indicative pipeline value</div><div class="row"><span class="num money" id="kValue">—</span><span class="sub warn">Subject to qualification</span></div></div>
+    <div class="kpi"><div class="lbl">Proposals in play</div><div class="row"><span class="num" id="kProp">—</span><span class="sub" id="kPropSub"></span></div></div>
+    <div class="kpi"><div class="lbl">30-day decision gates</div><div class="row"><span class="num" id="kGates">—</span><span class="sub">Owned and dated</span></div></div>
+  </div>
+
+  <div class="grid">
+    <section>
+      <h2 class="sec">Pipeline by stage</h2>
+      <p class="sec-sub">Movement matters more than volume.</p>
+      <div id="funnel"></div>
+      <div class="rule"><strong>Weekly rule</strong>Every lead has an owner and a dated next action.</div>
+    </section>
+
+    <section>
+      <h2 class="sec">Priority opportunity pipeline</h2>
+      <p class="sec-sub" id="tableSub">Ranked by stage, then by soonest dated action.</p>
+      <table>
+        <thead><tr><th>Account / Project</th><th>Owner</th><th>Stage</th><th>Value</th><th>Next action</th><th>RAG</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="6" style="color:#65807A">Load a pipeline to populate this table.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2 class="sec">This week</h2>
+      <p class="sec-sub">Actions that move revenue.</p>
+      <div id="actions"></div>
+      <div class="escal"><span class="dot a"></span> Escalate blockers within 48 hours</div>
+    </section>
+  </div>
+
+  <div class="foot">
+    <div>
+      <h2 class="sec" style="font-size:17px">Pipeline health</h2>
+      <div class="bar" id="healthBar"></div>
+      <div class="legend" id="healthLegend"></div>
+    </div>
+    <div>
+      <h2 class="sec" style="font-size:17px">Weekly review questions</h2>
+      <div class="qs">• What moved? &nbsp;• What is blocked? &nbsp;• Who owns the next action?<br>• Which opportunities fit Chariot's mandate? &nbsp;• What should we stop?</div>
+    </div>
+    <div class="principle">
+      <div class="eyebrow">Operating principle</div>
+      <h3>No lead without an owner.</h3>
+      <p>No opportunity without a dated decision.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+
+/* Stage order = the funnel. Anything unrecognised lands in Discovery. */
+var STAGES=["Discovery","Qualified","Proposal","Credit / DD","Won"];
+var STAGE_MAP={
+  "new":"Discovery","new / unreviewed":"Discovery","unreviewed":"Discovery","research":"Discovery",
+  "origination":"Discovery","contacted":"Discovery","discovery":"Discovery","access":"Discovery",
+  "snapshot in progress":"Discovery","qualify":"Qualified","qualified":"Qualified",
+  "qualified – snapshot complete":"Qualified","data & documents":"Qualified",
+  "site / technical assessment":"Qualified","solution & finance modelling":"Proposal",
+  "proposal":"Proposal","proposal presented":"Proposal","credit":"Credit / DD",
+  "credit / approval":"Credit / DD","credit / dd":"Credit / DD","contracting":"Credit / DD",
+  "won":"Won","won / handover":"Won","closed won":"Won"
+};
+var rows=[];
+
+/* ---------- CSV parsing (handles quoted commas and newlines) ---------- */
+function parseCSV(text){
+  var out=[],row=[],cur="",q=false;
+  text=text.replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+  for(var i=0;i<text.length;i++){
+    var c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++} else q=false }
+      else cur+=c;
+    } else {
+      if(c==='"')q=true;
+      else if(c===","){row.push(cur);cur=""}
+      else if(c==="\n"){row.push(cur);out.push(row);row=[];cur=""}
+      else cur+=c;
+    }
+  }
+  if(cur||row.length){row.push(cur);out.push(row)}
+  return out.filter(function(r){return r.some(function(c){return String(c).trim()})});
+}
+
+/* Tolerant header matching — the sheet does not have to be renamed. */
+function pick(headers,cands){
+  for(var i=0;i<cands.length;i++){
+    for(var j=0;j<headers.length;j++){
+      var h=headers[j].toLowerCase().replace(/[^a-z]/g,"");
+      if(h===cands[i]||h.indexOf(cands[i])>=0)return j;
+    }
+  }
+  return -1;
+}
+function money(n){
+  if(!n&&n!==0)return "TBC";
+  if(n>=1e6)return "R"+(n/1e6).toFixed(n>=1e7?0:1)+"m";
+  if(n>=1e3)return "R"+Math.round(n/1e3)+"k";
+  return "R"+Math.round(n);
+}
+function num(v){ var n=parseFloat(String(v||"").replace(/[^0-9.\-]/g,"")); return isFinite(n)?n:0 }
+
+function ingest(text){
+  var t=parseCSV(text);
+  if(t.length<2)throw new Error("Not enough rows");
+  /* find the header row — the first row containing something like 'account' or 'company' */
+  var hi=0;
+  for(var i=0;i<Math.min(8,t.length);i++){
+    var joined=t[i].join(" ").toLowerCase();
+    if(/account|company|opportunity|client/.test(joined)){hi=i;break}
+  }
+  var H=t[hi];
+  var iAcc=pick(H,["account","company","client","opportunity","name"]),
+      iProj=pick(H,["project","site","facility","description"]),
+      iStage=pick(H,["stage","status"]),
+      iVal=pick(H,["indicativevalue","value","amount","dealvalue"]),
+      iOwn=pick(H,["owner","rep","assignedto","salesperson"]),
+      iAct=pick(H,["nextaction","action","nextstep"]),
+      iDue=pick(H,["due","nextcontact","actiondate","date"]),
+      iRag=pick(H,["rag","priority","confidence","health"]);
+  if(iAcc<0)throw new Error("No 'Account' or 'Company' column found");
+
+  rows=[];
+  for(var r=hi+1;r<t.length;r++){
+    var c=t[r];
+    var acct=(c[iAcc]||"").trim();
+    if(!acct)continue;
+    if(/^(stage|total|pipeline|dashboard)/i.test(acct))continue;
+    var rawStage=(iStage>=0?c[iStage]:"").trim();
+    var stage=STAGE_MAP[rawStage.toLowerCase()]||(STAGES.indexOf(rawStage)>=0?rawStage:"Discovery");
+    rows.push({
+      account:acct,
+      project:iProj>=0?(c[iProj]||"").trim():"",
+      stage:stage, rawStage:rawStage||stage,
+      value:iVal>=0?num(c[iVal]):0,
+      owner:iOwn>=0?(c[iOwn]||"").trim():"",
+      action:iAct>=0?(c[iAct]||"").trim():"",
+      due:iDue>=0?(c[iDue]||"").trim():"",
+      rag:iRag>=0?(c[iRag]||"").trim():""
+    });
+  }
+  if(!rows.length)throw new Error("No data rows found under the header");
+  render();
+  return rows.length;
+}
+
+/* ---------- RAG: computed, not decorative ---------- */
+function ragOf(r){
+  var today=new Date(); today.setHours(0,0,0,0);
+  var d=r.due?new Date(r.due):null;
+  var overdue=d&&!isNaN(d)&&d<today;
+  if(!r.owner||!r.action)return {c:"r",why:"No owner or no next action"};
+  if(overdue)return {c:"r",why:"Next action overdue"};
+  if(!r.due)return {c:"a",why:"Next action has no date"};
+  if(!r.value)return {c:"a",why:"Value not yet established"};
+  return {c:"g",why:"Owned, dated and valued"};
+}
+
+function render(){
+  var active=rows.filter(function(r){return r.stage!=="Won"});
+  var qual=rows.filter(function(r){return ["Qualified","Proposal","Credit / DD"].indexOf(r.stage)>=0});
+  var prop=rows.filter(function(r){return r.stage==="Proposal"});
+  var total=active.reduce(function(s,r){return s+r.value},0);
+
+  var today=new Date(); today.setHours(0,0,0,0);
+  var in30=new Date(today.getTime()+30*864e5);
+  var gates=rows.filter(function(r){
+    if(!r.due)return false; var d=new Date(r.due);
+    return !isNaN(d)&&d>=today&&d<=in30&&r.owner;
+  });
+
+  $("kActive").textContent=active.length;
+  $("kQual").textContent=qual.length;
+  $("kQualSub").textContent=active.length?Math.round(qual.length/active.length*100)+"% of pipeline":"";
+  $("kValue").textContent=total?money(total):"TBC";
+  $("kProp").textContent=prop.length;
+  var awaiting=prop.filter(function(r){return !r.value}).length;
+  $("kPropSub").textContent=awaiting?awaiting+" awaiting data":"";
+  $("kGates").textContent=gates.length;
+  var noOwner=rows.filter(function(r){return !r.owner}).length;
+  $("kActiveSub").textContent=noOwner?noOwner+" unowned":"all owned";
+  $("kActiveSub").className="sub "+(noOwner?"warn":"up");
+
+  /* funnel */
+  var maxN=Math.max.apply(null,STAGES.map(function(s){return rows.filter(function(r){return r.stage===s}).length}).concat([1]));
+  $("funnel").innerHTML=STAGES.map(function(s,i){
+    var n=rows.filter(function(r){return r.stage===s}).length;
+    var w=62+(i*8);
+    var shade=["#E8EFEC","#CFDFDA","#A9C7BF","#6E9E93","#145146"][i];
+    var col=i>=3?"#fff":"#12211F";
+    return '<div class="stage" style="width:'+w+'%;background:'+shade+';color:'+col+'"><span>'+s+'</span><b>'+n+'</b></div>';
+  }).join("");
+
+  /* priority table — stage weight, then soonest dated action */
+  var order={"Credit / DD":0,"Proposal":1,"Qualified":2,"Discovery":3,"Won":4};
+  var sorted=rows.slice().sort(function(a,b){
+    if(order[a.stage]!==order[b.stage])return order[a.stage]-order[b.stage];
+    var da=a.due?new Date(a.due).getTime():Infinity, db=b.due?new Date(b.due).getTime():Infinity;
+    return da-db;
+  }).slice(0,8);
+
+  $("rows").innerHTML=sorted.map(function(r){
+    var rag=ragOf(r);
+    var d=r.due?new Date(r.due):null;
+    var over=d&&!isNaN(d)&&d<today;
+    return '<tr><td><div class="acct">'+esc(r.account)+'</div>'+(r.project?'<div class="proj">'+esc(r.project)+'</div>':'')+'</td>'+
+      '<td>'+(r.owner?esc(r.owner):'<span style="color:#B04A3F;font-weight:700">Unassigned</span>')+'</td>'+
+      '<td>'+esc(r.rawStage)+'</td>'+
+      '<td>'+(r.value?money(r.value):'TBC')+'</td>'+
+      '<td>'+(r.action?esc(r.action):'<span style="color:#B04A3F">No next action</span>')+
+        (r.due?'<div class="due'+(over?' over':'')+'">'+(over?'Overdue ':'Due ')+esc(r.due)+'</div>':'')+'</td>'+
+      '<td title="'+esc(rag.why)+'"><span class="dot '+rag.c+'"></span></td></tr>';
+  }).join("");
+
+  /* this week — generated from the data, not typed by hand */
+  var acts=[];
+  if(noOwner)acts.push(["Assign owners",noOwner+" opportunit"+(noOwner>1?"ies have":"y has")+" no owner"]);
+  var noAction=rows.filter(function(r){return r.owner&&!r.action}).length;
+  if(noAction)acts.push(["Set next actions",noAction+" owned deal"+(noAction>1?"s":"")+" without a next step"]);
+  var overdue=rows.filter(function(r){var d=r.due?new Date(r.due):null;return d&&!isNaN(d)&&d<today}).length;
+  if(overdue)acts.push(["Clear overdue actions",overdue+" action"+(overdue>1?"s":"")+" past its date"]);
+  var noVal=qual.filter(function(r){return !r.value}).length;
+  if(noVal)acts.push(["Establish value",noVal+" qualified deal"+(noVal>1?"s":"")+" still unvalued"]);
+  var noDate=rows.filter(function(r){return r.action&&!r.due}).length;
+  if(noDate)acts.push(["Date the commitments",noDate+" action"+(noDate>1?"s":"")+" without a date"]);
+  if(prop.length)acts.push(["Chase proposals",prop.length+" proposal"+(prop.length>1?"s":"")+" awaiting a decision"]);
+  while(acts.length<3)acts.push(["Add qualified pipeline","Run the Snapshot link into new accounts"]);
+  $("actions").innerHTML=acts.slice(0,5).map(function(a,i){
+    return '<div class="act"><div class="n">'+(i+1)+'</div><div><div class="t">'+esc(a[0])+'</div><div class="d">'+esc(a[1])+'</div></div></div>';
+  }).join("");
+
+  /* health */
+  var g=0,a=0,r2=0;
+  rows.forEach(function(r){var c=ragOf(r).c; if(c==="g")g++; else if(c==="a")a++; else r2++});
+  var tot=Math.max(1,g+a+r2);
+  $("healthBar").innerHTML=
+    '<i style="width:'+(g/tot*100)+'%;background:#2E7D5B"></i>'+
+    '<i style="width:'+(a/tot*100)+'%;background:#C08A3E"></i>'+
+    '<i style="width:'+(r2/tot*100)+'%;background:#B04A3F"></i>';
+  $("healthLegend").innerHTML='<span>'+g+' healthy</span><span>'+a+' needs data</span><span>'+r2+' blocked or unowned</span>';
+
+  var wk=new Date();
+  $("weekEnding").textContent="Week ending "+wk.toLocaleDateString("en-ZA",{day:"numeric",month:"long",year:"numeric"});
+}
+
+/* ---------- loading ---------- */
+function status(msg,cls){ var s=$("status"); s.textContent=msg; s.className="status"+(cls?" "+cls:"") }
+function load(url){
+  if(!url)return status("Paste a published CSV link first.","err");
+  status("Loading pipeline…");
+  fetch(url).then(function(r){ if(!r.ok)throw new Error("HTTP "+r.status); return r.text() })
+    .then(function(t){
+      var n=ingest(t);
+      localStorage.setItem("chariot_csv_url",url);
+      status("Loaded "+n+" opportunities. Refresh this page any time for the latest.","ok");
+    })
+    .catch(function(e){
+      status("Could not load that link ("+e.message+"). Check the sheet is published to the web as CSV, or upload the file instead.","err");
+    });
+}
+$("loadBtn").addEventListener("click",function(){ load($("csvUrl").value.trim()) });
+$("fileBtn").addEventListener("click",function(){ $("fileInput").click() });
+$("fileInput").addEventListener("change",function(e){
+  var f=e.target.files[0]; if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){ try{ var n=ingest(rd.result); status("Loaded "+n+" opportunities from "+f.name+".","ok") }
+    catch(err){ status("Could not read that file: "+err.message,"err") } };
+  rd.readAsText(f);
+});
+$("printBtn").addEventListener("click",function(){ window.print() });
+$("demoBtn").addEventListener("click",function(){
+  var demo="Account,Project,Stage,Value,Owner,Next Action,Due,RAG\n"+
+  "Aviagen South Africa,Schikfontein expansion,Qualified,2400000,Patrick,Map FD and site manager; approach GM on expansion,"+new Date(Date.now()+2*864e5).toISOString().slice(0,10)+",\n"+
+  "Ecovado,Avocado oil plant,Proposal,1850000,Patrick,Present PPA vs RTO comparison to founder,"+new Date(Date.now()+4*864e5).toISOString().slice(0,10)+",\n"+
+  "Mahela Group,Letsitele + Ohrigstad packhouses,Qualified,5200000,Alan,Book post-season discovery with FD,"+new Date(Date.now()+9*864e5).toISOString().slice(0,10)+",\n"+
+  "WIPHOLD / Zebediela,Estate rehabilitation,Discovery,,Alan,Identify irrigation design lead,"+new Date(Date.now()-3*864e5).toISOString().slice(0,10)+",\n"+
+  "Cultivate Trading,White River oil plant,Discovery,,,Reach project manager before design freeze,,\n"+
+  "CCH / PECS,Gqeberha cold store,Credit / DD,9800000,Patrick,Confirm financier outstanding conditions,"+new Date(Date.now()+1*864e5).toISOString().slice(0,10)+",\n"+
+  "Marquis Macadamias,Pongola NIS facility,Proposal,3100000,Alan,Follow up on proposal issued,"+new Date(Date.now()+6*864e5).toISOString().slice(0,10)+",\n"+
+  "African Realty Trust,Letaba concentrate factory,Discovery,,Patrick,Run 20-minute qualification call,"+new Date(Date.now()+3*864e5).toISOString().slice(0,10)+",\n";
+  ingest(demo);
+  status("Showing EXAMPLE data so you can see the layout. Load your own CSV to replace it.","");
+});
+
+var saved=localStorage.getItem("chariot_csv_url");
+if(saved){ $("csvUrl").value=saved; load(saved) }
+})();
+</script>
+</body>
+</html>
