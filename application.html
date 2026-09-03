@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b3025">
+  <meta name="theme-color" content="#073d49">
   <meta name="description" content="Chariot Power guided client energy application.">
   <title>Client Energy Application | Chariot Power</title>
   <link rel="icon" href="chariot-logo-transparent.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
-  <link rel="stylesheet" href="application.css?v=20260902r">
+  <link rel="stylesheet" href="application.css?v=20260903s">
 </head>
 <body>
 <header class="topbar">
@@ -128,20 +128,16 @@
       </section>
 
       <section class="step" data-step="4" hidden>
-        <div class="step-head"><p class="eyebrow" data-i18n="step4">Step 4 · Documents</p><h2 data-i18n="documentsTitle">Prepare the assessment documents.</h2><p data-i18n="documentsHelp">Choose a status for each item. Files remain on this device until you deliberately share them.</p></div>
+        <div class="step-head"><p class="eyebrow" data-i18n="step4">Step 4 · Documents</p><div class="heading-with-info"><h2 data-i18n="documentsTitle">Prepare the assessment documents.</h2><button id="documentInfo" class="info-button" type="button" aria-label="Document checklist guidance" data-i18n-aria="documentGuidance">i</button></div><p data-i18n="documentsHelp">Choose a status for each item. Files remain on this device until you deliberately share them.</p></div>
         <div class="documents-layout">
           <aside class="email-assistant">
-            <div class="email-icon" aria-hidden="true">✉</div><p class="eyebrow" data-i18n="emailEyebrow">Representative email assistant</p><h3 data-i18n="emailTitle">Turn your answers into a clear handover.</h3><p data-i18n="emailHelp">We will prepare a professional email using your application and voice note. You can review it before opening your email app.</p><button id="draftEmail" class="btn primary" type="button" data-i18n="draftEmail">Draft email to Chariot</button><small data-i18n="emailPrivacy">Nothing is sent automatically.</small>
+            <div class="email-icon" aria-hidden="true">✉</div><p class="eyebrow" data-i18n="emailEyebrow">Document request assistant</p><h3 data-i18n="emailTitle">Ask for missing paperwork professionally.</h3><p data-i18n="emailHelp">Choose who should receive the request. The draft will use your application, document statuses and voice note.</p>
+            <label class="assistant-select"><span data-i18n="requestRecipient">Request from</span><select id="requestRecipient"><option value="accountant" data-i18n="recipientAccountant">Accountant / finance team</option><option value="landlord" data-i18n="recipientLandlord">Landlord / property owner</option><option value="municipality" data-i18n="recipientMunicipality">Municipality / utility</option><option value="internal" data-i18n="recipientInternal">Internal operations team</option></select></label>
+            <button id="requestDocuments" class="btn primary" type="button" data-i18n="requestDocuments">Draft request for missing documents</button><button id="draftEmail" class="btn assistant-secondary" type="button" data-i18n="draftEmail">Draft application email to Chariot</button><small data-i18n="emailPrivacy">Nothing is sent automatically.</small>
           </aside>
           <div class="documents">
             <div class="document-intro" data-i18n="documentsIntro">A recent electricity bill is the most useful starting point. The other items can follow when available.</div>
-            <div id="documentList" class="document-list">
-              <div class="document-row" data-document="Recent electricity bills"><div><b data-i18n="docBills">Recent electricity bills</b><small data-i18n="docBillsHelp">Ideally 3–12 months</small></div><select aria-label="Electricity bill status"><option value="Available" data-i18n="available">Available</option><option value="Will send later" selected data-i18n="sendLater">Will send later</option><option value="Need help" data-i18n="needHelp">Need help</option></select><label class="mini-upload"><span data-i18n="chooseFile">Choose file</span><input type="file" multiple accept=".pdf,image/*,.csv,.xlsx,.xls"></label></div>
-              <div class="document-row" data-document="Company registration documents"><div><b data-i18n="docCompany">Company registration documents</b><small data-i18n="docCompanyHelp">CIPC or equivalent</small></div><select aria-label="Company documents status"><option value="Available" data-i18n="available">Available</option><option value="Will send later" selected data-i18n="sendLater">Will send later</option><option value="Need help" data-i18n="needHelp">Need help</option></select><label class="mini-upload"><span data-i18n="chooseFile">Choose file</span><input type="file" multiple accept=".pdf,image/*"></label></div>
-              <div class="document-row" data-document="Proof of site tenure"><div><b data-i18n="docTenure">Proof of site tenure</b><small data-i18n="docTenureHelp">Title deed or lease</small></div><select aria-label="Site tenure status"><option value="Available" data-i18n="available">Available</option><option value="Will send later" selected data-i18n="sendLater">Will send later</option><option value="Need help" data-i18n="needHelp">Need help</option></select><label class="mini-upload"><span data-i18n="chooseFile">Choose file</span><input type="file" multiple accept=".pdf,image/*"></label></div>
-              <div class="document-row" data-document="Director / authorised person details"><div><b data-i18n="docDirector">Director / authorised person details</b><small data-i18n="docDirectorHelp">ID only when formally requested</small></div><select aria-label="Director details status"><option value="Available" data-i18n="available">Available</option><option value="Will send later" selected data-i18n="sendLater">Will send later</option><option value="Need help" data-i18n="needHelp">Need help</option></select><label class="mini-upload"><span data-i18n="chooseFile">Choose file</span><input type="file" multiple accept=".pdf,image/*"></label></div>
-              <div class="document-row" data-document="Generator information"><div><b data-i18n="docGenerator">Generator information</b><small data-i18n="docGeneratorHelp">Size, fuel use or service record</small></div><select aria-label="Generator information status"><option value="Not applicable" selected data-i18n="notApplicable">Not applicable</option><option value="Available" data-i18n="available">Available</option><option value="Will send later" data-i18n="sendLater">Will send later</option><option value="Need help" data-i18n="needHelp">Need help</option></select><label class="mini-upload"><span data-i18n="chooseFile">Choose file</span><input type="file" multiple accept=".pdf,image/*,.csv,.xlsx,.xls"></label></div>
-            </div>
+            <div id="documentList" class="document-list"></div>
             <div id="fileList" class="file-list"></div><p id="paperworkStatus" class="paperwork-status"></p>
             <div id="largeFilePanel" class="large-file-panel">
               <div><b data-i18n="largeFilesTitle">Large files or document folders?</b><p data-i18n="largeFilesHelp">Upload them to your preferred secure file service, then paste the sharing link below. Check that Chariot can open the link before submitting.</p></div>
@@ -167,9 +163,17 @@
   <button id="clearDraft" class="clear-draft" type="button" data-i18n="clearDraft">Clear saved draft</button>
 </main>
 
+<dialog id="documentHelpDialog" class="help-dialog">
+  <form method="dialog"><button class="dialog-close" value="cancel" aria-label="Close" data-i18n-aria="close">×</button></form>
+  <p class="eyebrow" data-i18n="documentGuidance">Document guidance</p>
+  <h2 id="helpDialogTitle" data-i18n="documentsTitle">Prepare the assessment documents.</h2>
+  <p id="helpDialogCopy" data-i18n="documentGuidanceCopy">These documents allow Chariot to validate consumption, site rights, technical feasibility and suitable funding options. Estimates are welcome initially; sensitive documents should only be shared when requested through an approved channel.</p>
+  <div class="dialog-actions"><button id="dialogRequestEmail" class="btn primary" type="button" data-i18n="draftRequestEmail">Draft a request email</button><button id="dialogClose" class="btn secondary" type="button" data-i18n="close">Close</button></div>
+</dialog>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="application.js?v=20260902r"></script>
+<script src="application.js?v=20260903s"></script>
 </body>
 </html>
